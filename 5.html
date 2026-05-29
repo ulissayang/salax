@@ -481,7 +481,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M20.188 10.934c.326.183.583.498.648.876.06.373.136 1.184.164 1.190M3.812 13.066C3.486 12.883 3.229 12.568 3.164 12.19c-.06-.373-.136-1.184-.164-1.190"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
             </div>
             <div>
-              <div style="font-size:14px;font-weight:500">Gemini AI</div>
+              <div style="font-size:14px;font-weight:500">Claude AI</div>
               <div id="aiStatus" style="font-size:11px;color:rgba(255,255,255,.4)">Siap membantu</div>
             </div>
             <button onclick="clearChat()" class="btn btn-ghost btn-xs ml-auto">Hapus Chat</button>
@@ -827,14 +827,7 @@ async function loadUserState(user){
   ['sidebarAvatar','mobileAvatar','profilAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=initials;});
   document.getElementById('sidebarName').textContent=CU.nama;
   const{data:cfg}=await sb.from('app_config').select('key,value').eq('key','workerUrl');
-  // Load semua config: workerUrl dan geminiKey
-  const{data:allCfg}=await sb.from('app_config').select('key,value');
-  if(allCfg){
-    const wUrl=allCfg.find(r=>r.key==='workerUrl');
-    const gKey=allCfg.find(r=>r.key==='geminiKey');
-    if(wUrl){WORKER_URL=wUrl.value;const el=document.getElementById('workerUrlInp');if(el)el.value=wUrl.value;}
-    if(gKey){_cachedGeminiKey=gKey.value;updateGeminiKeyUI();}
-  }
+  if(cfg&&cfg[0]){WORKER_URL=cfg[0].value;document.getElementById('workerUrlInp').value=cfg[0].value;}
   await Promise.all([loadKategori(),loadBuckets()]);
   document.getElementById('loadingPage').style.display='none';
   document.getElementById('loginPage').style.display='none';
@@ -1077,18 +1070,13 @@ function filterDok(){dokSearch=document.getElementById('dokSearch').value;dokKat
 
 // ── UPLOAD ────────────────────────────────────────────────────
 // ── GEMINI KEY ───────────────────────────────────────────────
-// Gemini key disimpan di Supabase app_config (bukan localStorage)
-let _cachedGeminiKey = '';
-function getGeminiKey(){ return _cachedGeminiKey; }
-async function saveGeminiKey(){
+function getGeminiKey(){return localStorage.getItem('salax_gemini_key')||'';}
+function saveGeminiKey(){
   const key=document.getElementById('geminiKeyInp').value.trim();
   if(!key){toast('API key tidak boleh kosong','warn');return;}
-  try{
-    await sb.from('app_config').upsert({key:'geminiKey',value:key},{onConflict:'key'});
-    _cachedGeminiKey=key;
-    toast('Gemini API key disimpan ✓','ok');
-    updateGeminiKeyUI();
-  }catch(e){ toast('Gagal simpan: '+e.message,'err'); }
+  localStorage.setItem('salax_gemini_key',key);
+  toast('Gemini API key disimpan ✓','ok');
+  updateGeminiKeyUI();
 }
 function updateGeminiKeyUI(){
   const key=getGeminiKey();
@@ -1396,25 +1384,16 @@ Tugas Anda:
     if(!geminiKey) throw new Error('Gemini API key belum diset. Buka halaman Upload → isi Gemini API key.');
 
     // Build Gemini messages — gabung system prompt ke user message pertama
-    // Format messages untuk Gemini — harus alternating user/model
-    // Inject system prompt ke pesan user pertama
-    const geminiContents=[];
-    for(let i=0;i<chatHistory.length;i++){
-      const m=chatHistory[i];
-      const isFirst=i===0&&m.role==='user';
-      const txt=isFirst?systemPrompt+'\n\n---\nPertanyaan pengguna: '+m.content:m.content;
-      geminiContents.push({role:m.role==='assistant'?'model':'user',parts:[{text:txt}]});
-    }
-    // Gemini butuh minimal 1 message, dan harus diawali user
-    if(!geminiContents.length||geminiContents[0].role!=='user'){
-      geminiContents.unshift({role:'user',parts:[{text:systemPrompt+'\n\n---\nPertanyaan: '+msg}]});
-    }
+    const geminiMsgs=chatHistory.map((m,i)=>{
+      const txt=i===0&&m.role==='user'?systemPrompt+'\n\nPertanyaan: '+m.content:m.content;
+      return{role:m.role==='assistant'?'model':'user',parts:[{text:txt}]};
+    });
 
     const response=await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
       {method:'POST',headers:{'Content-Type':'application/json'},
        body:JSON.stringify({
-         contents:geminiContents,
+         contents:geminiMsgs,
          generationConfig:{maxOutputTokens:1024,temperature:0.7}
        })}
     );

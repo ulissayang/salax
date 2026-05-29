@@ -11,1844 +11,1577 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: {
-        serif: ['Instrument Serif','Georgia','serif'],
-        sans: ['DM Sans','system-ui','sans-serif'],
+tailwind.config={
+  theme:{
+    extend:{
+      fontFamily:{serif:['Instrument Serif','Georgia','serif'],sans:['DM Sans','system-ui','sans-serif']},
+      colors:{
+        ink:{50:'#f4f4f6',100:'#e8e8ed',200:'#c8c8d4',300:'#9898ae',400:'#6a6a86',500:'#4a4a64',600:'#333350',700:'#22223c',800:'#14142a',900:'#0A0A0F'},
+        gold:{DEFAULT:'#C9A84C',light:'#DFC068',dark:'#a8883a'},
       },
-      colors: {
-        ink: { DEFAULT:'#0A0A0F', 50:'#f4f4f6', 100:'#e8e8ed', 200:'#c8c8d4', 300:'#9898ae', 400:'#6a6a86', 500:'#4a4a64', 600:'#333350', 700:'#22223c', 800:'#14142a', 900:'#0A0A0F' },
-        gold: { DEFAULT:'#C9A84C', light:'#DFC068', dark:'#a8883a', muted:'rgba(201,168,76,0.15)' },
-        glass: 'rgba(255,255,255,0.04)',
-      },
-      backgroundImage: {
-        'grain': "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E\")",
-      },
+      screens:{xs:'480px'},
     }
   }
 }
 </script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'DM Sans',sans-serif;background:#0A0A0F;color:#e8e8ed;min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 0%,rgba(201,168,76,0.08) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 80% 100%,rgba(100,80,180,0.06) 0%,transparent 60%);pointer-events:none;z-index:0}
-body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.5}
+*{box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#0A0A0F;color:#e8e8ed;min-height:100svh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 0%,rgba(201,168,76,.08),transparent 60%),radial-gradient(ellipse 60% 80% at 80% 100%,rgba(100,80,180,.06),transparent 60%);pointer-events:none;z-index:0}
 .z1{position:relative;z-index:1}
-
-/* Glass card */
-.glass{background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.07);border-radius:16px}
-.glass-hover{transition:all .25s ease}
-.glass-hover:hover{background:rgba(255,255,255,0.05);border-color:rgba(201,168,76,0.2);transform:translateY(-1px)}
-
+/* Glass */
+.glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+.glass-hover{transition:all .2s}.glass-hover:hover{background:rgba(255,255,255,.05);border-color:rgba(201,168,76,.2);transform:translateY(-1px)}
 /* Scrollbar */
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(201,168,76,0.3);border-radius:2px}
-
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:2px}
 /* Input */
-.inp{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 14px;color:#e8e8ed;font-family:'DM Sans',sans-serif;font-size:14px;transition:all .2s;outline:none}
-.inp:focus{border-color:rgba(201,168,76,0.5);background:rgba(255,255,255,0.07);box-shadow:0 0 0 3px rgba(201,168,76,0.08)}
-.inp::placeholder{color:rgba(255,255,255,0.3)}
-.inp-label{font-size:12px;font-weight:500;color:rgba(255,255,255,0.5);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;display:block}
-
+.inp{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#e8e8ed;font-family:'DM Sans',sans-serif;font-size:14px;transition:all .2s;outline:none}
+.inp:focus{border-color:rgba(201,168,76,.5);background:rgba(255,255,255,.07);box-shadow:0 0 0 3px rgba(201,168,76,.08)}
+.inp::placeholder{color:rgba(255,255,255,.3)}
+.lbl{font-size:11px;font-weight:500;color:rgba(255,255,255,.45);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px;display:block}
 /* Buttons */
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;border:none;outline:none}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;border:none;outline:none;white-space:nowrap}
 .btn-gold{background:linear-gradient(135deg,#C9A84C,#DFC068);color:#0A0A0F;font-weight:600}
-.btn-gold:hover{box-shadow:0 4px 20px rgba(201,168,76,0.4);transform:translateY(-1px)}
+.btn-gold:hover{box-shadow:0 4px 20px rgba(201,168,76,.4);transform:translateY(-1px)}
 .btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-ghost{background:rgba(255,255,255,0.05);color:#e8e8ed;border:1px solid rgba(255,255,255,0.1)}
-.btn-ghost:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2)}
-.btn-danger{background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)}
-.btn-danger:hover{background:rgba(239,68,68,0.2)}
+.btn-ghost{background:rgba(255,255,255,.05);color:#e8e8ed;border:1px solid rgba(255,255,255,.1)}
+.btn-ghost:hover{background:rgba(255,255,255,.08)}
+.btn-danger{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}
+.btn-danger:hover{background:rgba(239,68,68,.2)}
 .btn-sm{padding:7px 14px;font-size:13px;border-radius:8px}
 .btn-xs{padding:5px 10px;font-size:12px;border-radius:6px}
-
 /* Nav */
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all .2s;font-size:14px;font-weight:400;border:1px solid transparent}
-.nav-item:hover{color:#e8e8ed;background:rgba(255,255,255,0.04)}
-.nav-item.active{color:#C9A84C;background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.2)}
-.nav-icon{width:18px;height:18px;opacity:.7;flex-shrink:0}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;color:rgba(255,255,255,.45);cursor:pointer;transition:all .2s;font-size:13.5px;border:1px solid transparent;user-select:none}
+.nav-item:hover{color:#e8e8ed;background:rgba(255,255,255,.04)}
+.nav-item.active{color:#C9A84C;background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.2);font-weight:500}
+.nav-icon{width:17px;height:17px;opacity:.65;flex-shrink:0}
 .nav-item.active .nav-icon{opacity:1}
-
+/* Bottom nav mobile */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(10,10,15,.95);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);padding:8px 0 max(8px,env(safe-area-inset-bottom));gap:2px}
+@media(max-width:767px){.bottom-nav{display:flex}.desktop-sidebar{display:none!important}.main-pad{padding-bottom:70px!important}}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;cursor:pointer;color:rgba(255,255,255,.4);font-size:10px;transition:color .2s;border:none;background:none;font-family:'DM Sans',sans-serif}
+.bnav-item.active{color:#C9A84C}
+.bnav-item svg{width:20px;height:20px;stroke-width:1.8}
 /* Toast */
-#toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast-item{padding:12px 18px;border-radius:12px;font-size:13px;font-weight:500;backdrop-filter:blur(20px);border:1px solid;animation:slideUp .3s ease;max-width:320px;pointer-events:all}
-.toast-ok{background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);color:#6ee7b7}
-.toast-err{background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);color:#fca5a5}
-.toast-warn{background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.3);color:#fcd34d}
-.toast-info{background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.3);color:#a5b4fc}
-@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-/* Page transition */
-.page{display:none;animation:fadeIn .25s ease}
+#toast{position:fixed;bottom:80px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:calc(100vw - 32px)}
+@media(min-width:768px){#toast{bottom:24px;right:24px;max-width:340px}}
+.toast-item{padding:11px 16px;border-radius:12px;font-size:13px;font-weight:500;backdrop-filter:blur(20px);border:1px solid;animation:slideUp .3s ease;pointer-events:all}
+.toast-ok{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.3);color:#6ee7b7}
+.toast-err{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:#fca5a5}
+.toast-warn{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.3);color:#fcd34d}
+.toast-info{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.3);color:#a5b4fc}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* Pages */
+.page{display:none;animation:fadeIn .2s ease}
 .page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 /* Spinner */
-.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.2);border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-
 /* Badge */
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
-.badge-gold{background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.2)}
-.badge-green{background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.2)}
-.badge-red{background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)}
-.badge-muted{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.08)}
-
+.badge-gold{background:rgba(201,168,76,.15);color:#C9A84C;border:1px solid rgba(201,168,76,.2)}
+.badge-green{background:rgba(16,185,129,.1);color:#6ee7b7;border:1px solid rgba(16,185,129,.2)}
+.badge-red{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}
+.badge-muted{background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.08)}
 /* Storage bar */
-.storage-bar{height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden}
-.storage-fill{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
-
+.sbar{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.sbar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1)}
 /* Modal */
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
-.modal-backdrop.open{opacity:1;pointer-events:all}
-.modal-box{background:#12121c;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;transform:scale(.95);transition:transform .25s}
-.modal-backdrop.open .modal-box{transform:scale(1)}
-
-/* Drop zone */
-.dropzone{border:2px dashed rgba(255,255,255,0.1);border-radius:14px;padding:40px 20px;text-align:center;transition:all .2s;cursor:pointer}
-.dropzone:hover,.dropzone.drag{border-color:rgba(201,168,76,0.4);background:rgba(201,168,76,0.05)}
-
-/* Table */
-.tbl{width:100%;border-collapse:collapse}
-.tbl th{text-align:left;font-size:11px;font-weight:500;color:rgba(255,255,255,0.35);letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.06)}
-.tbl td{padding:12px 14px;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.modal-bd{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0;opacity:0;pointer-events:none;transition:opacity .25s}
+@media(min-width:480px){.modal-bd{align-items:center;padding:20px}}
+.modal-bd.open{opacity:1;pointer-events:all}
+.modal-box{background:#12121c;border:1px solid rgba(255,255,255,.1);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:100%;max-height:90svh;overflow-y:auto;transform:translateY(20px);transition:transform .25s}
+@media(min-width:480px){.modal-box{border-radius:20px;max-width:480px;transform:scale(.96)}}
+.modal-bd.open .modal-box{transform:translateY(0) scale(1)}
+/* Dropzone */
+.dropzone{border:2px dashed rgba(255,255,255,.1);border-radius:14px;padding:32px 16px;text-align:center;transition:all .2s;cursor:pointer}
+.dropzone:hover,.dropzone.drag{border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.04)}
+/* Table scroll */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl{width:100%;border-collapse:collapse;min-width:500px}
+.tbl th{text-align:left;font-size:11px;font-weight:500;color:rgba(255,255,255,.3);letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.tbl td{padding:11px 14px;font-size:13.5px;border-bottom:1px solid rgba(255,255,255,.04)}
 .tbl tr:last-child td{border-bottom:none}
-.tbl tbody tr{transition:background .15s}
-.tbl tbody tr:hover{background:rgba(255,255,255,0.02)}
-
-/* Sidebar */
-#sidebar{width:240px;flex-shrink:0;transition:transform .3s ease}
-@media(max-width:768px){
-  #sidebar{position:fixed;left:0;top:0;bottom:0;z-index:100;transform:translateX(-100%);background:#0d0d18;border-right:1px solid rgba(255,255,255,0.07)}
-  #sidebar.open{transform:translateX(0)}
-  #overlay{position:fixed;inset:0;z-index:99;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:none}
-  #overlay.open{display:block}
-}
-
-/* Login page */
-.login-bg{background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(201,168,76,0.12) 0%,transparent 70%)}
-
-/* Stat card */
-.stat-card{display:flex;flex-direction:column;gap:4px}
-.stat-num{font-family:'Instrument Serif',serif;font-size:36px;line-height:1;color:#e8e8ed}
-.stat-label{font-size:12px;color:rgba(255,255,255,0.4);font-weight:400}
-
-/* File icon colors */
-.icon-pdf{color:#f87171}
-.icon-doc{color:#60a5fa}
-.icon-img{color:#34d399}
-.icon-other{color:#a78bfa}
-
-/* Progress bar upload */
-.upload-prg-wrap{background:rgba(255,255,255,0.06);border-radius:4px;height:6px;overflow:hidden;margin-top:8px}
-.upload-prg-fill{height:100%;background:linear-gradient(90deg,#C9A84C,#DFC068);border-radius:4px;transition:width .3s ease;width:0}
+.tbl tbody tr:hover{background:rgba(255,255,255,.02)}
+/* Upload progress */
+.uprg-wrap{background:rgba(255,255,255,.06);border-radius:4px;height:5px;overflow:hidden;margin-top:8px}
+.uprg-fill{height:100%;background:linear-gradient(90deg,#C9A84C,#DFC068);border-radius:4px;transition:width .3s ease;width:0}
+/* AI Chat */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100svh - 200px);min-height:300px;max-height:600px}
+@media(min-width:768px){.chat-wrap{height:calc(100vh - 220px);max-height:700px}}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.chat-bubble{max-width:85%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.6}
+.chat-user{align-self:flex-end;background:linear-gradient(135deg,#C9A84C,#a8883a);color:#0A0A0F;border-radius:14px 14px 4px 14px}
+.chat-ai{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:14px 14px 14px 4px;color:#e8e8ed}
+.chat-ai.typing{color:rgba(255,255,255,.5)}
+.chat-input-row{padding:12px 16px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;align-items:flex-end}
+.chat-textarea{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 14px;color:#e8e8ed;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;resize:none;min-height:44px;max-height:120px;line-height:1.5;transition:border-color .2s}
+.chat-textarea:focus{border-color:rgba(201,168,76,.4)}
+.chat-textarea::placeholder{color:rgba(255,255,255,.25)}
+/* Action splash */
+#actionSplash{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+/* Stat number */
+.stat-num{font-family:'Instrument Serif',serif;font-size:clamp(28px,5vw,38px);line-height:1;color:#e8e8ed}
+/* Doc card */
+.dok-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);transition:all .2s}
+.dok-card:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}
+/* Page header */
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.page-title{font-family:'Instrument Serif',serif;font-size:clamp(22px,4vw,28px);font-weight:400;line-height:1.2}
+/* Login */
+.login-wrap{min-height:100svh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(201,168,76,.1),transparent 70%)}
+/* Dot context menu */
+.ctx-menu{position:absolute;right:0;top:100%;background:#1a1a2e;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:4px;min-width:140px;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.ctx-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:7px;font-size:13px;cursor:pointer;transition:background .15s;color:#e8e8ed;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif}
+.ctx-item:hover{background:rgba(255,255,255,.06)}
+.ctx-item.danger{color:#f87171}
+.ctx-item.danger:hover{background:rgba(239,68,68,.1)}
 </style>
 </head>
 <body>
 
-<!-- ───────────── TOAST ───────────── -->
 <div id="toast"></div>
 
-<!-- ───────────── OVERLAY (mobile) ───────────── -->
-<div id="overlay" onclick="closeSidebar()"></div>
+<!-- Action Splash -->
+<div id="actionSplash" style="display:none">
+  <div class="spin" style="width:32px;height:32px;border-width:3px;border-top-color:#C9A84C"></div>
+  <div id="splashMsg" style="font-size:14px;color:rgba(255,255,255,.7)">Memproses...</div>
+  <div id="splashSub" style="font-size:12px;color:rgba(255,255,255,.4)"></div>
+</div>
 
-<!-- ═══════════════════════════════════════════
-     LOGIN PAGE
-════════════════════════════════════════════ -->
-<div id="loginPage" class="min-h-screen flex items-center justify-center px-4 login-bg z1">
+<!-- ═══ LOGIN PAGE ═══ -->
+<div id="loginPage" class="login-wrap z1">
   <div style="width:100%;max-width:400px">
-    <!-- Logo -->
-    <div class="text-center mb-10">
-      <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:16px">
-        <div style="width:40px;height:40px;background:linear-gradient(135deg,#C9A84C,#DFC068);border-radius:12px;display:flex;align-items:center;justify-content:center">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#0A0A0F" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="#0A0A0F" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-2.5 mb-3">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#C9A84C,#DFC068);border-radius:11px;display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#0A0A0F" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="#0A0A0F" stroke-width="2" stroke-linecap="round"/></svg>
         </div>
-        <span style="font-family:'Instrument Serif',serif;font-size:26px;color:#e8e8ed;letter-spacing:-.01em">SaLax</span>
+        <span style="font-family:'Instrument Serif',serif;font-size:24px;color:#e8e8ed">SaLax</span>
       </div>
-      <p style="font-size:13px;color:rgba(255,255,255,0.35)">Arsip Dokumen Pribadi</p>
+      <p style="font-size:13px;color:rgba(255,255,255,.35)">Arsip Dokumen Pribadi</p>
     </div>
-
-    <!-- Card -->
-    <div class="glass" style="padding:32px">
-      <h2 style="font-family:'Instrument Serif',serif;font-size:22px;margin-bottom:6px">Selamat datang kembali</h2>
-      <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:28px">Masuk untuk mengakses arsip Anda</p>
-
-      <div id="loginErr" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;font-size:13px;color:#fca5a5;margin-bottom:16px"></div>
-
-      <div style="margin-bottom:16px">
-        <label class="inp-label">Email</label>
-        <input id="loginEmail" type="email" class="inp" placeholder="email@anda.com" autocomplete="email"/>
+    <div class="glass p-6 sm:p-8">
+      <h2 style="font-family:'Instrument Serif',serif;font-size:20px;margin-bottom:4px">Selamat datang</h2>
+      <p style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:24px">Masuk untuk mengakses arsip Anda</p>
+      <div id="loginErr" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 14px;font-size:13px;color:#fca5a5;margin-bottom:14px"></div>
+      <div class="mb-4">
+        <label class="lbl">Email</label>
+        <input id="loginEmail" type="email" class="inp" placeholder="email@anda.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()"/>
       </div>
-      <div style="margin-bottom:8px">
-        <label class="inp-label">Password</label>
-        <div style="position:relative">
+      <div class="mb-2">
+        <label class="lbl">Password</label>
+        <div class="relative">
           <input id="loginPass" type="password" class="inp" placeholder="••••••••" autocomplete="current-password" style="padding-right:44px" onkeydown="if(event.key==='Enter')doLogin()"/>
-          <button onclick="togglePw('loginPass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.3);padding:4px">
+          <button onclick="togglePw('loginPass',this)" class="absolute right-3 top-1/2 -translate-y-1/2 p-1" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
       </div>
-      <div style="text-align:right;margin-bottom:24px">
-        <button onclick="showPage('forgot')" style="background:none;border:none;color:rgba(201,168,76,0.8);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Lupa password?</button>
+      <div class="text-right mb-6">
+        <button onclick="showAuthPage('forgot')" style="background:none;border:none;color:rgba(201,168,76,.8);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Lupa password?</button>
       </div>
-      <button id="btnLogin" onclick="doLogin()" class="btn btn-gold" style="width:100%;justify-content:center;font-size:15px">
-        Masuk
-      </button>
+      <button id="btnLogin" onclick="doLogin()" class="btn btn-gold w-full justify-center text-base">Masuk</button>
     </div>
-    <p style="text-align:center;font-size:12px;color:rgba(255,255,255,0.2);margin-top:24px">SaLax &mdash; Personal Archive System</p>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     FORGOT PASSWORD PAGE
-════════════════════════════════════════════ -->
-<div id="forgotPage" style="display:none" class="min-h-screen flex items-center justify-center px-4 z1">
+<!-- ═══ FORGOT PAGE ═══ -->
+<div id="forgotPage" style="display:none" class="login-wrap z1">
   <div style="width:100%;max-width:400px">
-    <div class="glass" style="padding:32px">
-      <button onclick="showPage('login')" class="btn btn-ghost btn-sm" style="margin-bottom:20px">← Kembali</button>
-      <h2 style="font-family:'Instrument Serif',serif;font-size:22px;margin-bottom:6px">Reset Password</h2>
-      <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:24px">Link reset akan dikirim ke email Anda</p>
-      <div style="margin-bottom:20px">
-        <label class="inp-label">Email</label>
+    <div class="glass p-6 sm:p-8">
+      <button onclick="showAuthPage('login')" class="btn btn-ghost btn-sm mb-5">← Kembali</button>
+      <h2 style="font-family:'Instrument Serif',serif;font-size:20px;margin-bottom:4px">Reset Password</h2>
+      <p style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:22px">Link reset dikirim ke email Anda</p>
+      <div class="mb-4">
+        <label class="lbl">Email</label>
         <input id="forgotEmail" type="email" class="inp" placeholder="email@anda.com"/>
       </div>
-      <div id="forgotMsg" style="display:none;margin-bottom:16px;border-radius:10px;padding:10px 14px;font-size:13px"></div>
-      <button id="btnForgot" onclick="doForgot()" class="btn btn-gold" style="width:100%;justify-content:center">Kirim Link Reset</button>
+      <div id="forgotMsg" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px"></div>
+      <button id="btnForgot" onclick="doForgot()" class="btn btn-gold w-full justify-center">Kirim Link Reset</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     MAIN APP
-════════════════════════════════════════════ -->
-<div id="app" style="display:none;min-height:100vh;display:none" class="z1">
-  <div style="display:flex;min-height:100vh">
+<!-- ═══ MAIN APP ═══ -->
+<div id="app" style="display:none" class="z1">
+  <div class="flex min-h-screen">
 
-    <!-- ── SIDEBAR ── -->
-    <aside id="sidebar" class="flex flex-col p-4 gap-1" style="border-right:1px solid rgba(255,255,255,0.06)">
-      <!-- Brand -->
-      <div style="padding:12px 8px 20px;display:flex;align-items:center;gap:10px">
-        <div style="width:34px;height:34px;background:linear-gradient(135deg,#C9A84C,#DFC068);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#0A0A0F" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="#0A0A0F" stroke-width="2" stroke-linecap="round"/></svg>
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="desktop-sidebar flex flex-col gap-1 p-3" style="width:220px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.06);position:sticky;top:0;height:100vh">
+      <div class="flex items-center gap-2.5 px-2 py-3 mb-1">
+        <div style="width:32px;height:32px;background:linear-gradient(135deg,#C9A84C,#DFC068);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#0A0A0F" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="#0A0A0F" stroke-width="2" stroke-linecap="round"/></svg>
         </div>
-        <span style="font-family:'Instrument Serif',serif;font-size:20px;color:#e8e8ed">SaLax</span>
+        <span style="font-family:'Instrument Serif',serif;font-size:19px;color:#e8e8ed">SaLax</span>
       </div>
-
-      <!-- Nav -->
-      <nav style="flex:1;display:flex;flex-direction:column;gap:2px">
-        <div onclick="showPage('dash')" class="nav-item active" data-page="dash">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-          Dashboard
-        </div>
-        <div onclick="showPage('dokumen')" class="nav-item" data-page="dokumen">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
-          Dokumen
-        </div>
-        <div onclick="showPage('upload')" class="nav-item" data-page="upload">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Upload
-        </div>
-        <div onclick="showPage('kategori')" class="nav-item" data-page="kategori">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-          Kategori
-        </div>
-        <div onclick="showPage('download')" class="nav-item" data-page="download">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download
-        </div>
-
-        <div style="height:1px;background:rgba(255,255,255,0.06);margin:8px 0"></div>
-
-        <div onclick="showPage('storage')" class="nav-item" data-page="storage">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-          Storage
-        </div>
-        <div onclick="showPage('profil')" class="nav-item" data-page="profil">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Profil
-        </div>
+      <nav class="flex flex-col gap-0.5 flex-1">
+        <div onclick="showPage('dash')" class="nav-item active" data-page="dash"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+        <div onclick="showPage('dokumen')" class="nav-item" data-page="dokumen"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>Dokumen</div>
+        <div onclick="showPage('upload')" class="nav-item" data-page="upload"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload</div>
+        <div onclick="showPage('ai')" class="nav-item" data-page="ai"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>AI Asisten</div>
+        <div onclick="showPage('kategori')" class="nav-item" data-page="kategori"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Kategori</div>
+        <div onclick="showPage('download')" class="nav-item" data-page="download"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download</div>
+        <div style="height:1px;background:rgba(255,255,255,.06);margin:6px 0"></div>
+        <div onclick="showPage('storage')" class="nav-item" data-page="storage"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>Storage</div>
+        <div onclick="showPage('profil')" class="nav-item" data-page="profil"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profil</div>
       </nav>
-
-      <!-- User badge -->
-      <div style="padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;display:flex;align-items:center;gap:10px">
-        <div id="sidebarAvatar" style="width:34px;height:34px;background:linear-gradient(135deg,#C9A84C,#a8883a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:#0A0A0F;flex-shrink:0">?</div>
-        <div style="flex:1;min-width:0">
-          <div id="sidebarName" style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.35)">Personal</div>
+      <div class="flex items-center gap-2.5 p-2.5 rounded-xl" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)">
+        <div id="sidebarAvatar" class="flex-shrink-0 flex items-center justify-center text-xs font-semibold rounded-lg" style="width:30px;height:30px;background:linear-gradient(135deg,#C9A84C,#a8883a);color:#0A0A0F">?</div>
+        <div class="flex-1 min-w-0">
+          <div id="sidebarName" class="text-xs font-medium truncate">—</div>
+          <div class="text-xs" style="color:rgba(255,255,255,.3)">Personal</div>
         </div>
-        <button onclick="doLogout()" title="Keluar" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.3);padding:4px;border-radius:6px;transition:color .2s" onmouseenter="this.style.color='#f87171'" onmouseleave="this.style.color='rgba(255,255,255,0.3)'">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <button onclick="doLogout()" title="Keluar" style="background:none;border:none;cursor:pointer;padding:3px;border-radius:6px;color:rgba(255,255,255,.3);transition:color .2s" onmouseenter="this.style.color='#f87171'" onmouseleave="this.style.color='rgba(255,255,255,.3)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
       </div>
     </aside>
 
-    <!-- ── MAIN ── -->
-    <main style="flex:1;min-width:0;padding:28px;overflow-y:auto;max-height:100vh">
+    <!-- MAIN CONTENT -->
+    <main id="mainContent" class="flex-1 min-w-0 overflow-y-auto main-pad" style="padding:20px 16px;max-height:100svh" id="mainScroll">
 
       <!-- Mobile header -->
-      <div class="md:hidden flex items-center gap-3 mb-6" style="border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:16px">
-        <button onclick="openSidebar()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px;cursor:pointer;color:#e8e8ed">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-        <span style="font-family:'Instrument Serif',serif;font-size:18px">SaLax</span>
+      <div class="flex items-center justify-between mb-5 md:hidden">
+        <div class="flex items-center gap-2">
+          <div style="width:28px;height:28px;background:linear-gradient(135deg,#C9A84C,#DFC068);border-radius:8px;display:flex;align-items:center;justify-content:center">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#0A0A0F" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="#0A0A0F" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <span id="mobilePageTitle" style="font-family:'Instrument Serif',serif;font-size:17px">SaLax</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div id="mobileAvatar" class="flex items-center justify-center text-xs font-semibold rounded-lg" style="width:28px;height:28px;background:linear-gradient(135deg,#C9A84C,#a8883a);color:#0A0A0F;cursor:pointer" onclick="showPage('profil')">?</div>
+        </div>
       </div>
 
       <!-- ══ DASHBOARD ══ -->
       <section id="pageDash" class="page active">
-        <div style="margin-bottom:28px">
-          <h1 style="font-family:'Instrument Serif',serif;font-size:28px;font-weight:400;margin-bottom:4px">Dashboard</h1>
-          <p id="dashGreet" style="font-size:13px;color:rgba(255,255,255,0.4)">Selamat datang di arsip Anda</p>
+        <div class="mb-5">
+          <h1 class="page-title">Dashboard</h1>
+          <p id="dashGreet" style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Selamat datang</p>
         </div>
-
-        <!-- Stats -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:28px">
-          <div class="glass" style="padding:20px">
-            <div class="stat-card">
-              <div id="statDok" class="stat-num">—</div>
-              <div class="stat-label">Total Dokumen</div>
-            </div>
-          </div>
-          <div class="glass" style="padding:20px">
-            <div class="stat-card">
-              <div id="statKat" class="stat-num">—</div>
-              <div class="stat-label">Kategori</div>
-            </div>
-          </div>
-          <div class="glass" style="padding:20px">
-            <div class="stat-card">
-              <div id="statSize" class="stat-num">—</div>
-              <div class="stat-label">Total Ukuran</div>
-            </div>
-          </div>
-          <div class="glass" style="padding:20px">
-            <div class="stat-card">
-              <div id="statBuckets" class="stat-num">—</div>
-              <div class="stat-label">R2 Aktif</div>
-            </div>
-          </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+          <div class="glass p-4"><div class="stat-num" id="statDok">—</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Dokumen</div></div>
+          <div class="glass p-4"><div class="stat-num" id="statKat">—</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Kategori</div></div>
+          <div class="glass p-4"><div class="stat-num" id="statSize">—</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Ukuran</div></div>
+          <div class="glass p-4"><div class="stat-num" id="statBuckets">—</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">R2 Aktif</div></div>
         </div>
-
-        <!-- Storage Overview -->
-        <div class="glass" style="padding:24px;margin-bottom:24px">
-          <h2 style="font-size:15px;font-weight:500;margin-bottom:16px;color:#e8e8ed">Penyimpanan</h2>
-          <div id="dashStorageBars" style="display:flex;flex-direction:column;gap:14px">
-            <div style="color:rgba(255,255,255,0.3);font-size:13px">Memuat...</div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="glass p-5">
+            <h2 style="font-size:14px;font-weight:500;margin-bottom:14px">Penyimpanan</h2>
+            <div id="dashStorageBars" class="flex flex-col gap-3"><div style="color:rgba(255,255,255,.3);font-size:13px">Memuat...</div></div>
           </div>
-        </div>
-
-        <!-- Recent Docs -->
-        <div class="glass" style="padding:24px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <h2 style="font-size:15px;font-weight:500">Dokumen Terbaru</h2>
-            <button onclick="showPage('dokumen')" class="btn btn-ghost btn-xs">Lihat Semua</button>
-          </div>
-          <div id="dashRecentDok" style="display:flex;flex-direction:column;gap:8px">
-            <div style="color:rgba(255,255,255,0.3);font-size:13px">Memuat...</div>
+          <div class="glass p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h2 style="font-size:14px;font-weight:500">Terbaru</h2>
+              <button onclick="showPage('dokumen')" class="btn btn-ghost btn-xs">Lihat Semua</button>
+            </div>
+            <div id="dashRecentDok" class="flex flex-col gap-2"><div style="color:rgba(255,255,255,.3);font-size:13px">Memuat...</div></div>
           </div>
         </div>
       </section>
 
       <!-- ══ DOKUMEN ══ -->
       <section id="pageDokumen" class="page">
-        <div style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <h1 style="font-family:'Instrument Serif',serif;font-size:28px;font-weight:400">Dokumen</h1>
-          <button onclick="showPage('upload')" class="btn btn-gold btn-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Upload Baru
+        <div class="page-hdr">
+          <h1 class="page-title">Dokumen</h1>
+          <button onclick="showPage('upload')" class="btn btn-gold btn-sm flex-shrink-0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Upload
           </button>
         </div>
-
-        <!-- Filter bar -->
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
-          <input id="dokSearch" type="text" class="inp" placeholder="Cari nama atau keterangan..." style="max-width:280px" oninput="filterDok()"/>
-          <select id="dokKatFilter" class="inp" style="max-width:180px" onchange="filterDok()">
+        <div class="flex flex-col sm:flex-row gap-2 mb-4">
+          <input id="dokSearch" type="text" class="inp" placeholder="Cari dokumen..." style="max-width:100%" oninput="filterDok()"/>
+          <select id="dokKatFilter" class="inp sm:max-w-xs" onchange="filterDok()">
             <option value="">Semua Kategori</option>
           </select>
         </div>
-
-        <!-- Category tabs -->
-        <div id="dokKatTabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px"></div>
-
-        <!-- Doc list -->
-        <div id="dokList" style="display:flex;flex-direction:column;gap:8px"></div>
-        <div id="dokEmpty" style="display:none;text-align:center;padding:60px 20px;color:rgba(255,255,255,0.3)">
-          <div style="font-size:32px;margin-bottom:12px">📂</div>
-          <div style="font-size:15px;margin-bottom:8px">Belum ada dokumen</div>
-          <div style="font-size:13px">Upload dokumen pertama Anda</div>
+        <div id="dokKatTabs" class="flex gap-2 flex-wrap mb-4"></div>
+        <div id="dokList" class="flex flex-col gap-2"></div>
+        <div id="dokEmpty" style="display:none" class="text-center py-16" style="color:rgba(255,255,255,.3)">
+          <div style="font-size:36px;margin-bottom:10px">📂</div>
+          <div style="font-size:15px;margin-bottom:6px;color:rgba(255,255,255,.5)">Belum ada dokumen</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.3)">Upload dokumen pertama Anda</div>
         </div>
-        <div id="dokPagination" style="display:flex;gap:8px;justify-content:center;margin-top:20px"></div>
+        <div id="dokPagination" class="flex gap-2 justify-center mt-5 flex-wrap"></div>
       </section>
 
       <!-- ══ UPLOAD ══ -->
       <section id="pageUpload" class="page">
-        <div style="margin-bottom:28px">
-          <h1 style="font-family:'Instrument Serif',serif;font-size:28px;font-weight:400">Upload Dokumen</h1>
-          <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px">PDF, JPG, PNG — maks 50 MB</p>
+        <div class="mb-5">
+          <h1 class="page-title">Upload Dokumen</h1>
+          <p style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">AI akan otomatis mendeteksi nama, kategori, dan keterangan</p>
         </div>
+        <div style="max-width:580px">
+          <!-- STEP 1: Drop zone -->
+          <div id="upStep1">
+            <div id="upZone" class="dropzone mb-3" onclick="document.getElementById('upFile').click()" style="padding:40px 20px">
+              <div id="upZoneContent">
+                <div style="width:52px;height:52px;background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.05));border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div style="font-size:14px;color:rgba(255,255,255,.6);font-weight:500">Klik atau drag &amp; drop file di sini</div>
+                <div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:5px">PDF, JPG, PNG, DOC, DOCX — maks 50 MB</div>
+                <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-top:14px">
+                  <div style="width:20px;height:20px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:6px;display:flex;align-items:center;justify-content:center">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                  </div>
+                  <span style="font-size:11px;color:rgba(201,168,76,.7)">AI akan otomatis mendeteksi isi dokumen</span>
+                </div>
+              </div>
+              <div id="upFileInfo" style="display:none">
+                <div id="upFileIcon" style="font-size:32px;margin-bottom:8px">📄</div>
+                <div id="upFileName" style="font-size:14px;font-weight:500;color:#e8e8ed;word-break:break-all"></div>
+                <div id="upFileSize" style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px"></div>
+                <button onclick="clearUpFile(event)" style="margin-top:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:5px 12px;font-size:12px;color:#fca5a5;cursor:pointer;font-family:'DM Sans',sans-serif">✕ Hapus</button>
+              </div>
+            </div>
+            <input id="upFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" style="display:none" onchange="handleUpFile(this.files[0])"/>
 
-        <div style="max-width:560px">
-          <div class="glass" style="padding:28px;display:flex;flex-direction:column;gap:20px">
-            <!-- Category -->
-            <div>
-              <label class="inp-label">Kategori *</label>
-              <select id="upKat" class="inp">
-                <option value="">Pilih kategori...</option>
-              </select>
-            </div>
-            <!-- Description -->
-            <div>
-              <label class="inp-label">Keterangan</label>
-              <input id="upKet" type="text" class="inp" placeholder="cth: SK Pengangkatan 2024"/>
-            </div>
-            <!-- File drop -->
-            <div>
-              <label class="inp-label">File *</label>
-              <div id="upZone" class="dropzone" onclick="document.getElementById('upFile').click()">
-                <div id="upZoneContent">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" style="margin:0 auto 12px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  <div style="font-size:14px;color:rgba(255,255,255,0.4)">Klik atau drag & drop</div>
-                  <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px">PDF, JPG, PNG — maks 50 MB</div>
+            <!-- GEMINI API KEY input (one-time) -->
+            <div id="geminiKeyWrap" class="glass p-4 mb-3" style="border-color:rgba(99,102,241,.2)">
+              <div class="flex items-center gap-2 mb-2">
+                <div style="width:22px;height:22px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                 </div>
-                <div id="upFileInfo" style="display:none">
-                  <div id="upFileIcon" style="font-size:28px;margin-bottom:8px">📄</div>
-                  <div id="upFileName" style="font-size:14px;color:#e8e8ed;font-weight:500"></div>
-                  <div id="upFileSize" style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px"></div>
-                  <button onclick="clearUpFile(event)" style="margin-top:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:6px;padding:4px 10px;font-size:11px;color:#fca5a5;cursor:pointer">Hapus</button>
+                <span style="font-size:13px;font-weight:500;color:#a5b4fc">Gemini API Key</span>
+                <span class="badge badge-muted ml-auto" style="font-size:10px">Gratis</span>
+              </div>
+              <div class="flex gap-2">
+                <input id="geminiKeyInp" type="password" class="inp flex-1" placeholder="AIza..." style="font-size:13px" autocomplete="off"/>
+                <button onclick="saveGeminiKey()" class="btn btn-xs flex-shrink-0" style="background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.3);color:#a5b4fc">Simpan</button>
+              </div>
+              <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:6px">Dapatkan gratis di <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#a5b4fc">aistudio.google.com</a> — disimpan lokal di browser</p>
+            </div>
+
+            <div id="upStorageInfo" style="font-size:12px;color:rgba(255,255,255,.4);padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid rgba(255,255,255,.06)"></div>
+          </div>
+
+          <!-- STEP 2: AI scanning -->
+          <div id="upStep2" style="display:none">
+            <div class="glass p-6 text-center">
+              <div style="width:52px;height:52px;background:linear-gradient(135deg,rgba(99,102,241,.3),rgba(139,92,246,.2));border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;animation:pulse 1.5s ease-in-out infinite">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+              </div>
+              <div id="aiScanLabel" style="font-size:14px;font-weight:500;color:#a5b4fc;margin-bottom:6px">AI sedang membaca dokumen...</div>
+              <div id="aiScanSub" style="font-size:12px;color:rgba(255,255,255,.35)">Menganalisis isi dan menentukan kategori</div>
+            </div>
+          </div>
+
+          <!-- STEP 3: AI result — konfirmasi -->
+          <div id="upStep3" style="display:none">
+            <div class="glass p-5 mb-3" style="border-color:rgba(99,102,241,.25)">
+              <div class="flex items-center gap-2 mb-4">
+                <div style="width:22px;height:22px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+                <span style="font-size:13px;font-weight:500;color:#a5b4fc">AI mendeteksi — edit jika perlu</span>
+              </div>
+              <div class="flex flex-col gap-3">
+                <div>
+                  <label class="lbl">Nama File</label>
+                  <input id="aiNamaFile" type="text" class="inp" style="font-size:13px"/>
+                </div>
+                <div>
+                  <label class="lbl">Kategori</label>
+                  <div class="flex gap-2">
+                    <select id="upKat" class="inp flex-1" style="font-size:13px"><option value="">Pilih kategori...</option></select>
+                    <button onclick="openModalKat()" class="btn btn-ghost btn-xs flex-shrink-0" title="Buat kategori baru">+ Baru</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="lbl">Keterangan</label>
+                  <input id="upKet" type="text" class="inp" style="font-size:13px" placeholder="Keterangan singkat dokumen"/>
                 </div>
               </div>
-              <input id="upFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" style="display:none" onchange="handleUpFile(this.files[0])"/>
-              <!-- Progress -->
-              <div id="upPrgWrap" style="display:none;margin-top:12px">
-                <div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:6px">
-                  <span id="upPrgLabel">Mengupload...</span>
-                  <span id="upPrgPct">0%</span>
-                </div>
-                <div class="upload-prg-wrap"><div id="upPrgFill" class="upload-prg-fill"></div></div>
+              <!-- AI reasoning -->
+              <div id="aiReasoning" style="display:none;margin-top:12px;padding:10px 12px;background:rgba(99,102,241,.08);border-radius:8px;border:1px solid rgba(99,102,241,.15)">
+                <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Alasan AI</div>
+                <div id="aiReasoningText" style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.5"></div>
               </div>
             </div>
-            <!-- Storage info -->
-            <div id="upStorageInfo" style="font-size:13px;color:rgba(255,255,255,0.4);border-top:1px solid rgba(255,255,255,0.06);padding-top:16px"></div>
-            <!-- Alert -->
-            <div id="upAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px"></div>
-            <!-- Submit -->
-            <button id="btnUpload" onclick="doUpload()" class="btn btn-gold" style="justify-content:center">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Upload Dokumen
+
+            <!-- Progress -->
+            <div id="upPrgWrap" style="display:none;margin-bottom:12px;padding:12px 14px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid rgba(255,255,255,.06)">
+              <div class="flex justify-between text-xs mb-2" style="color:rgba(255,255,255,.4)"><span id="upPrgLabel">Mengupload...</span><span id="upPrgPct">0%</span></div>
+              <div class="uprg-wrap"><div id="upPrgFill" class="uprg-fill"></div></div>
+            </div>
+
+            <div id="upAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
+
+            <div class="flex gap-2">
+              <button onclick="resetUpload()" class="btn btn-ghost btn-sm flex-shrink-0">← Ganti File</button>
+              <button id="btnUpload" onclick="doUpload()" class="btn btn-gold flex-1 justify-center btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload Sekarang
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ AI ASISTEN ══ -->
+      <section id="pageAi" class="page">
+        <div class="mb-4">
+          <h1 class="page-title">AI Asisten</h1>
+          <p style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Tanya apapun tentang dokumen Anda</p>
+        </div>
+        <div class="glass overflow-hidden flex flex-col chat-wrap">
+          <!-- Chat header -->
+          <div class="flex items-center gap-3 px-4 py-3" style="border-bottom:1px solid rgba(255,255,255,.07)">
+            <div style="width:32px;height:32px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M20.188 10.934c.326.183.583.498.648.876.06.373.136 1.184.164 1.190M3.812 13.066C3.486 12.883 3.229 12.568 3.164 12.19c-.06-.373-.136-1.184-.164-1.190"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:500">Claude AI</div>
+              <div id="aiStatus" style="font-size:11px;color:rgba(255,255,255,.4)">Siap membantu</div>
+            </div>
+            <button onclick="clearChat()" class="btn btn-ghost btn-xs ml-auto">Hapus Chat</button>
+          </div>
+          <!-- Messages -->
+          <div id="chatMessages" class="chat-messages">
+            <div class="chat-bubble chat-ai">
+              <div style="font-size:13px;font-weight:500;color:#C9A84C;margin-bottom:6px">Halo! Saya asisten AI SaLax 👋</div>
+              <div style="font-size:13px;line-height:1.6">Saya bisa membantu Anda dengan:</div>
+              <ul style="font-size:13px;line-height:1.8;margin-top:6px;padding-left:16px">
+                <li>📂 Cari dokumen berdasarkan nama atau kategori</li>
+                <li>📊 Rangkum statistik arsip Anda</li>
+                <li>💡 Saran organisasi dokumen</li>
+                <li>❓ Jawab pertanyaan tentang sistem</li>
+              </ul>
+              <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:8px">Tanyakan sesuatu...</div>
+            </div>
+          </div>
+          <!-- Input -->
+          <div class="chat-input-row">
+            <textarea id="chatInput" class="chat-textarea" placeholder="Tanya sesuatu tentang dokumen Anda..." rows="1"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+              oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+            <button id="btnSendChat" onclick="sendChat()" class="btn btn-gold btn-sm flex-shrink-0" style="padding:10px 14px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
+          </div>
+        </div>
+        <!-- Quick prompts -->
+        <div class="mt-4">
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Pertanyaan cepat</div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="quickChat('Berapa total dokumen saya dan berapa ukurannya?')" class="btn btn-ghost btn-xs" style="font-size:12px">📊 Statistik arsip</button>
+            <button onclick="quickChat('Dokumen apa saja yang ada di kategori terbaru?')" class="btn btn-ghost btn-xs" style="font-size:12px">📂 Lihat per kategori</button>
+            <button onclick="quickChat('Berikan saran untuk mengorganisir dokumen saya dengan lebih baik')" class="btn btn-ghost btn-xs" style="font-size:12px">💡 Saran organisasi</button>
+            <button onclick="quickChat('Dokumen apa yang paling baru diupload?')" class="btn btn-ghost btn-xs" style="font-size:12px">🕐 Dokumen terbaru</button>
           </div>
         </div>
       </section>
 
       <!-- ══ KATEGORI ══ -->
       <section id="pageKategori" class="page">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
-          <h1 style="font-family:'Instrument Serif',serif;font-size:28px;font-weight:400">Kategori</h1>
-          <button onclick="openModalKat()" class="btn btn-gold btn-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Tambah Kategori
+        <div class="page-hdr">
+          <h1 class="page-title">Kategori</h1>
+          <button onclick="openModalKat()" class="btn btn-gold btn-sm flex-shrink-0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tambah
           </button>
         </div>
-
-        <div class="glass" style="overflow:hidden">
-          <table class="tbl">
-            <thead><tr>
-              <th>Nama Kategori</th>
-              <th>Deskripsi</th>
-              <th>Dokumen</th>
-              <th style="width:100px">Aksi</th>
-            </tr></thead>
-            <tbody id="katList">
-              <tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);padding:40px">Memuat...</td></tr>
-            </tbody>
-          </table>
+        <div class="glass overflow-hidden">
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Nama</th><th>Deskripsi</th><th>File</th><th style="width:90px">Aksi</th></tr></thead>
+              <tbody id="katList"><tr><td colspan="4" class="text-center py-10" style="color:rgba(255,255,255,.3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
       <!-- ══ DOWNLOAD ══ -->
       <section id="pageDownload" class="page">
-        <div style="margin-bottom:28px">
-          <h1 style="font-family:'Instrument Serif',serif;font-size:28px;font-weight:400">Download</h1>
-          <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px">Unduh semua atau per kategori</p>
+        <div class="mb-5">
+          <h1 class="page-title">Download</h1>
+          <p style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Unduh semua atau per kategori</p>
         </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px">
-          <!-- Semua file -->
-          <div class="glass" style="padding:24px">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-              <div style="width:40px;height:40px;background:rgba(201,168,76,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="glass p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div style="width:36px;height:36px;background:rgba(201,168,76,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               </div>
-              <div>
-                <div style="font-size:15px;font-weight:500">Download Semua</div>
-                <div id="dlAllInfo" style="font-size:12px;color:rgba(255,255,255,0.4)">Mengambil data...</div>
-              </div>
+              <div><div style="font-size:14px;font-weight:500">Download Semua</div><div id="dlAllInfo" style="font-size:11px;color:rgba(255,255,255,.4)">...</div></div>
             </div>
-            <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:16px">Semua dokumen dikemas dalam satu file .zip dengan folder per kategori.</p>
-            <button id="btnDlAll" onclick="doDownloadAll()" class="btn btn-gold" style="width:100%;justify-content:center">
-              Download Semua (.zip)
-            </button>
-            <div id="dlAllPrg" style="display:none;margin-top:12px">
-              <div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:6px">
-                <span id="dlAllLabel">Mengunduh...</span>
-                <span id="dlAllPct">0%</span>
-              </div>
-              <div class="upload-prg-wrap"><div id="dlAllFill" class="upload-prg-fill"></div></div>
+            <p style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px">Semua dokumen dalam satu .zip, terstruktur per kategori.</p>
+            <button id="btnDlAll" onclick="doDownloadAll()" class="btn btn-gold w-full justify-center btn-sm">Download Semua (.zip)</button>
+            <div id="dlAllPrg" style="display:none;margin-top:10px">
+              <div class="flex justify-between text-xs mb-1.5" style="color:rgba(255,255,255,.4)"><span id="dlAllLabel">Mengunduh...</span><span id="dlAllPct">0%</span></div>
+              <div class="uprg-wrap"><div id="dlAllFill" class="uprg-fill"></div></div>
             </div>
           </div>
-
-          <!-- Per kategori -->
-          <div class="glass" style="padding:24px">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-              <div style="width:40px;height:40px;background:rgba(99,102,241,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          <div class="glass p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div style="width:36px;height:36px;background:rgba(99,102,241,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
               </div>
-              <div>
-                <div style="font-size:15px;font-weight:500">Per Kategori</div>
-                <div style="font-size:12px;color:rgba(255,255,255,0.4)">Pilih kategori terlebih dahulu</div>
-              </div>
+              <div><div style="font-size:14px;font-weight:500">Per Kategori</div><div style="font-size:11px;color:rgba(255,255,255,.4)">Pilih kategori dulu</div></div>
             </div>
-            <select id="dlKatSel" class="inp" style="margin-bottom:12px">
-              <option value="">Pilih kategori...</option>
-            </select>
-            <button id="btnDlKat" onclick="doDownloadKat()" class="btn btn-ghost" style="width:100%;justify-content:center">
-              Download Kategori (.zip)
-            </button>
+            <select id="dlKatSel" class="inp mb-3 text-sm"><option value="">Pilih kategori...</option></select>
+            <button id="btnDlKat" onclick="doDownloadKat()" class="btn btn-ghost w-full justify-center btn-sm">Download Kategori (.zip)</button>
           </div>
         </div>
-
-        <!-- Result -->
-        <div id="dlResult" style="display:none;margin-top:20px" class="glass p-5">
-          <div id="dlResultText" style="font-size:14px"></div>
-        </div>
+        <div id="dlResult" style="display:none" class="glass p-4 mt-4"><div id="dlResultText" style="font-size:13px"></div></div>
       </section>
 
       <!-- ══ STORAGE ══ -->
       <section id="pageStorage" class="page">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
-          <div>
-            <h1 style="font-family:'Instrument Serif',serif;font-size:28px;font-weight:400">Storage</h1>
-            <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px">Kelola R2 buckets — maksimal 9 GB per bucket</p>
-          </div>
-          <button onclick="openModalBucket()" class="btn btn-gold btn-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Tambah Bucket
+        <div class="page-hdr">
+          <div><h1 class="page-title">Storage</h1><p style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Maks 9 GB per bucket — tak terbatas bucket</p></div>
+          <button onclick="openModalBucket()" class="btn btn-gold btn-sm flex-shrink-0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tambah Bucket
           </button>
         </div>
-
-        <div id="storageBucketList" style="display:flex;flex-direction:column;gap:16px"></div>
-        <div id="storageEmpty" style="display:none;text-align:center;padding:60px 20px;color:rgba(255,255,255,0.3)">
-          <div style="font-size:32px;margin-bottom:12px">🗄️</div>
-          <div style="font-size:15px;margin-bottom:8px">Belum ada bucket R2</div>
-          <div style="font-size:13px">Tambah bucket pertama untuk mulai menyimpan dokumen</div>
+        <div id="storageBucketList" class="flex flex-col gap-3"></div>
+        <div id="storageEmpty" style="display:none" class="text-center py-16" style="color:rgba(255,255,255,.3)">
+          <div style="font-size:36px;margin-bottom:10px">🗄️</div>
+          <div style="font-size:15px;color:rgba(255,255,255,.5);margin-bottom:6px">Belum ada bucket R2</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.3)">Tambah bucket untuk mulai menyimpan</div>
         </div>
-
-        <!-- Worker URL setting -->
-        <div class="glass" style="padding:24px;margin-top:20px">
-          <div style="font-size:14px;font-weight:500;margin-bottom:12px">Cloudflare Worker URL</div>
-          <div style="display:flex;gap:10px;align-items:flex-end">
-            <div style="flex:1">
-              <input id="workerUrlInp" type="url" class="inp" placeholder="https://salax-worker.username.workers.dev"/>
-            </div>
-            <button onclick="saveWorkerUrl()" class="btn btn-gold btn-sm">Simpan</button>
+        <div class="glass p-5 mt-4">
+          <div style="font-size:14px;font-weight:500;margin-bottom:10px">Worker URL</div>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input id="workerUrlInp" type="url" class="inp flex-1" placeholder="https://salax-worker.username.workers.dev"/>
+            <button onclick="saveWorkerUrl()" class="btn btn-gold btn-sm flex-shrink-0">Simpan</button>
           </div>
-          <p style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:8px">URL Cloudflare Worker yang menangani upload/download ke R2</p>
+          <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:6px">URL Cloudflare Worker untuk upload/download R2</p>
         </div>
       </section>
 
       <!-- ══ PROFIL ══ -->
       <section id="pageProfil" class="page">
-        <div style="margin-bottom:28px">
-          <h1 style="font-family:'Instrument Serif',serif;font-size:28px;font-weight:400">Profil & Password</h1>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:800px">
-          <!-- Profil -->
-          <div class="glass" style="padding:24px">
-            <h2 style="font-size:15px;font-weight:500;margin-bottom:20px">Data Diri</h2>
-            <div id="profilAvatar" style="width:64px;height:64px;background:linear-gradient(135deg,#C9A84C,#a8883a);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:#0A0A0F;margin-bottom:20px">?</div>
-            <div style="margin-bottom:14px">
-              <label class="inp-label">Nama</label>
-              <input id="profilNama" type="text" class="inp"/>
-            </div>
-            <div style="margin-bottom:20px">
-              <label class="inp-label">Email</label>
-              <input id="profilEmail" type="email" class="inp" disabled style="opacity:.5;cursor:not-allowed"/>
-            </div>
-            <div id="profilAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px"></div>
-            <button id="btnSaveProfil" onclick="saveProfil()" class="btn btn-gold" style="width:100%;justify-content:center">Simpan</button>
+        <div class="mb-5"><h1 class="page-title">Profil & Password</h1></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" style="max-width:720px">
+          <div class="glass p-5">
+            <h2 style="font-size:14px;font-weight:500;margin-bottom:16px">Data Diri</h2>
+            <div id="profilAvatar" class="flex items-center justify-center text-2xl font-semibold rounded-2xl mb-4" style="width:56px;height:56px;background:linear-gradient(135deg,#C9A84C,#a8883a);color:#0A0A0F">?</div>
+            <div class="mb-3"><label class="lbl">Nama</label><input id="profilNama" type="text" class="inp"/></div>
+            <div class="mb-4"><label class="lbl">Email</label><input id="profilEmail" type="email" class="inp" disabled style="opacity:.5;cursor:not-allowed"/></div>
+            <div id="profilAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
+            <button id="btnSaveProfil" onclick="saveProfil()" class="btn btn-gold w-full justify-center btn-sm">Simpan</button>
           </div>
-
-          <!-- Password -->
-          <div class="glass" style="padding:24px">
-            <h2 style="font-size:15px;font-weight:500;margin-bottom:20px">Ubah Password</h2>
-            <div style="margin-bottom:14px">
-              <label class="inp-label">Password Baru</label>
-              <input id="passNew" type="password" class="inp" placeholder="Min. 8 karakter" autocomplete="new-password"/>
-            </div>
-            <div style="margin-bottom:20px">
-              <label class="inp-label">Konfirmasi Password</label>
-              <input id="passConfirm" type="password" class="inp" placeholder="Ulangi password baru" autocomplete="new-password"/>
-            </div>
-            <div id="passAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px"></div>
-            <button id="btnSavePass" onclick="savePassword()" class="btn btn-gold" style="width:100%;justify-content:center">Ubah Password</button>
+          <div class="glass p-5">
+            <h2 style="font-size:14px;font-weight:500;margin-bottom:16px">Ubah Password</h2>
+            <div class="mb-3"><label class="lbl">Password Baru</label><input id="passNew" type="password" class="inp" placeholder="Min. 8 karakter" autocomplete="new-password"/></div>
+            <div class="mb-4"><label class="lbl">Konfirmasi</label><input id="passConfirm" type="password" class="inp" placeholder="Ulangi password baru" autocomplete="new-password"/></div>
+            <div id="passAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
+            <button id="btnSavePass" onclick="savePassword()" class="btn btn-gold w-full justify-center btn-sm">Ubah Password</button>
           </div>
         </div>
       </section>
 
     </main>
   </div>
+
+  <!-- BOTTOM NAV (mobile) -->
+  <nav class="bottom-nav">
+    <button class="bnav-item active" data-page="dash" onclick="showPage('dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="bnav-item" data-page="dokumen" onclick="showPage('dokumen')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+      <span>Dokumen</span>
+    </button>
+    <button class="bnav-item" data-page="upload" onclick="showPage('upload')">
+      <div style="width:40px;height:40px;background:linear-gradient(135deg,#C9A84C,#DFC068);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:2px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0A0F" stroke-width="2.5"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/></svg>
+      </div>
+    </button>
+    <button class="bnav-item" data-page="ai" onclick="showPage('ai')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span>AI</span>
+    </button>
+    <button class="bnav-item" data-page="profil" onclick="showPage('profil')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Profil</span>
+    </button>
+  </nav>
 </div><!-- #app -->
 
-<!-- ═══════════════════════════════════════════
-     MODALS
-════════════════════════════════════════════ -->
-
+<!-- ═══ MODALS ═══ -->
 <!-- Modal Kategori -->
-<div id="modalKat" class="modal-backdrop" onclick="if(event.target===this)closeModal('modalKat')">
+<div id="modalKat" class="modal-bd" onclick="if(event.target===this)closeModal('modalKat')">
   <div class="modal-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-      <h3 id="modalKatTitle" style="font-family:'Instrument Serif',serif;font-size:20px">Tambah Kategori</h3>
-      <button onclick="closeModal('modalKat')" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);padding:4px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+    <div class="flex items-center justify-between mb-5">
+      <h3 id="modalKatTitle" style="font-family:'Instrument Serif',serif;font-size:19px">Tambah Kategori</h3>
+      <button onclick="closeModal('modalKat')" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <input type="hidden" id="modalKatId"/>
-    <div style="margin-bottom:16px">
-      <label class="inp-label">Nama Kategori *</label>
-      <input id="modalKatNama" type="text" class="inp" placeholder="cth: SK Jabatan"/>
-    </div>
-    <div style="margin-bottom:24px">
-      <label class="inp-label">Deskripsi</label>
-      <input id="modalKatDesk" type="text" class="inp" placeholder="Opsional"/>
-    </div>
-    <div id="modalKatAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px"></div>
-    <div style="display:flex;gap:10px">
-      <button onclick="closeModal('modalKat')" class="btn btn-ghost" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnSaveKat" onclick="saveKat()" class="btn btn-gold" style="flex:1;justify-content:center">Simpan</button>
+    <div class="mb-3"><label class="lbl">Nama *</label><input id="modalKatNama" type="text" class="inp" placeholder="cth: SK Jabatan"/></div>
+    <div class="mb-5"><label class="lbl">Deskripsi</label><input id="modalKatDesk" type="text" class="inp" placeholder="Opsional"/></div>
+    <div id="modalKatAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
+    <div class="flex gap-2">
+      <button onclick="closeModal('modalKat')" class="btn btn-ghost flex-1 justify-center btn-sm">Batal</button>
+      <button id="btnSaveKat" onclick="saveKat()" class="btn btn-gold flex-1 justify-center btn-sm">Simpan</button>
     </div>
   </div>
 </div>
 
-<!-- Modal Edit Dokumen -->
-<div id="modalEditDok" class="modal-backdrop" onclick="if(event.target===this)closeModal('modalEditDok')">
+<!-- Modal Edit Dok -->
+<div id="modalEditDok" class="modal-bd" onclick="if(event.target===this)closeModal('modalEditDok')">
   <div class="modal-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-      <h3 style="font-family:'Instrument Serif',serif;font-size:20px">Edit Dokumen</h3>
-      <button onclick="closeModal('modalEditDok')" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);padding:4px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+    <div class="flex items-center justify-between mb-5">
+      <h3 style="font-family:'Instrument Serif',serif;font-size:19px">Edit Dokumen</h3>
+      <button onclick="closeModal('modalEditDok')" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <input type="hidden" id="editDokId"/>
-    <div style="margin-bottom:16px">
-      <label class="inp-label">Nama File</label>
-      <input id="editDokNama" type="text" class="inp"/>
-    </div>
-    <div style="margin-bottom:16px">
-      <label class="inp-label">Kategori</label>
-      <select id="editDokKat" class="inp"></select>
-    </div>
-    <div style="margin-bottom:24px">
-      <label class="inp-label">Keterangan</label>
-      <input id="editDokKet" type="text" class="inp"/>
-    </div>
-    <div id="editDokAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px"></div>
-    <div style="display:flex;gap:10px">
-      <button onclick="closeModal('modalEditDok')" class="btn btn-ghost" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnSaveEditDok" onclick="saveEditDok()" class="btn btn-gold" style="flex:1;justify-content:center">Simpan</button>
+    <div class="mb-3"><label class="lbl">Nama File</label><input id="editDokNama" type="text" class="inp"/></div>
+    <div class="mb-3"><label class="lbl">Kategori</label><select id="editDokKat" class="inp"></select></div>
+    <div class="mb-5"><label class="lbl">Keterangan</label><input id="editDokKet" type="text" class="inp"/></div>
+    <div id="editDokAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
+    <div class="flex gap-2">
+      <button onclick="closeModal('modalEditDok')" class="btn btn-ghost flex-1 justify-center btn-sm">Batal</button>
+      <button id="btnSaveEditDok" onclick="saveEditDok()" class="btn btn-gold flex-1 justify-center btn-sm">Simpan</button>
     </div>
   </div>
 </div>
 
-<!-- Modal Bucket R2 -->
-<div id="modalBucket" class="modal-backdrop" onclick="if(event.target===this)closeModal('modalBucket')">
+<!-- Modal Bucket -->
+<div id="modalBucket" class="modal-bd" onclick="if(event.target===this)closeModal('modalBucket')">
   <div class="modal-box" style="max-width:520px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-      <h3 id="modalBucketTitle" style="font-family:'Instrument Serif',serif;font-size:20px">Tambah Bucket R2</h3>
-      <button onclick="closeModal('modalBucket')" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);padding:4px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+    <div class="flex items-center justify-between mb-5">
+      <h3 id="modalBucketTitle" style="font-family:'Instrument Serif',serif;font-size:19px">Tambah Bucket R2</h3>
+      <button onclick="closeModal('modalBucket')" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <input type="hidden" id="modalBucketId"/>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-      <div>
-        <label class="inp-label">Label *</label>
-        <input id="mbLabel" type="text" class="inp" placeholder="cth: R2 Utama"/>
-      </div>
-      <div>
-        <label class="inp-label">Account ID *</label>
-        <input id="mbAccountId" type="text" class="inp" placeholder="Cloudflare Account ID"/>
-      </div>
-      <div>
-        <label class="inp-label">Bucket Name *</label>
-        <input id="mbBucket" type="text" class="inp" placeholder="nama-bucket"/>
-      </div>
-      <div>
-        <label class="inp-label">Access Key ID *</label>
-        <input id="mbAccessKey" type="text" class="inp"/>
-      </div>
-      <div style="grid-column:1/-1">
-        <label class="inp-label">Secret Access Key <span style="color:rgba(255,255,255,0.3)">(kosongkan jika tidak diubah)</span></label>
-        <input id="mbSecretKey" type="password" class="inp" placeholder="Biarkan kosong untuk mempertahankan nilai lama" autocomplete="new-password"/>
-      </div>
-      <div>
-        <label class="inp-label">Limit (GB) — maks 9</label>
-        <input id="mbLimit" type="number" class="inp" placeholder="9" min="1" max="9" value="9"/>
-      </div>
-      <div>
-        <label class="inp-label">Urutan Auto-fallback</label>
-        <input id="mbUrutan" type="number" class="inp" placeholder="1,2,3,..." min="1" value="1"/>
-      </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+      <div><label class="lbl">Label *</label><input id="mbLabel" type="text" class="inp" placeholder="cth: R2 Utama"/></div>
+      <div><label class="lbl">Account ID *</label><input id="mbAccountId" type="text" class="inp"/></div>
+      <div><label class="lbl">Bucket Name *</label><input id="mbBucket" type="text" class="inp" placeholder="nama-bucket"/></div>
+      <div><label class="lbl">Access Key ID *</label><input id="mbAccessKey" type="text" class="inp"/></div>
+      <div class="sm:col-span-2"><label class="lbl">Secret Access Key <span style="color:rgba(255,255,255,.3)">(kosong = pertahankan)</span></label><input id="mbSecretKey" type="password" class="inp" placeholder="Biarkan kosong jika tidak diubah" autocomplete="new-password"/></div>
+      <div><label class="lbl">Limit (GB) maks 9</label><input id="mbLimit" type="number" class="inp" placeholder="9" min="1" max="9" value="9"/></div>
+      <div><label class="lbl">Urutan Fallback</label><input id="mbUrutan" type="number" class="inp" placeholder="1" min="1" value="1"/></div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.07)">
-      <input type="checkbox" id="mbAktif" checked style="accent-color:#C9A84C;width:16px;height:16px;cursor:pointer"/>
-      <label for="mbAktif" style="font-size:13px;cursor:pointer">Bucket aktif (digunakan untuk upload)</label>
-    </div>
-    <div id="modalBucketAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px"></div>
-    <div style="display:flex;gap:10px">
-      <button onclick="closeModal('modalBucket')" class="btn btn-ghost" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnSaveBucket" onclick="saveBucket()" class="btn btn-gold" style="flex:1;justify-content:center">Simpan</button>
+    <label class="flex items-center gap-2.5 p-3 rounded-xl mb-5 cursor-pointer" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)">
+      <input type="checkbox" id="mbAktif" checked style="accent-color:#C9A84C;width:15px;height:15px"/>
+      <span style="font-size:13px">Bucket aktif untuk upload</span>
+    </label>
+    <div id="modalBucketAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
+    <div class="flex gap-2">
+      <button onclick="closeModal('modalBucket')" class="btn btn-ghost flex-1 justify-center btn-sm">Batal</button>
+      <button id="btnSaveBucket" onclick="saveBucket()" class="btn btn-gold flex-1 justify-center btn-sm">Simpan</button>
     </div>
   </div>
 </div>
 
 <!-- Confirm Modal -->
-<div id="modalConfirm" class="modal-backdrop" onclick="if(event.target===this)closeModal('modalConfirm')">
-  <div class="modal-box" style="max-width:360px">
-    <h3 id="confirmTitle" style="font-family:'Instrument Serif',serif;font-size:20px;margin-bottom:10px">Konfirmasi</h3>
-    <p id="confirmMsg" style="font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:24px;line-height:1.6"></p>
-    <div style="display:flex;gap:10px">
-      <button onclick="closeModal('modalConfirm')" class="btn btn-ghost" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnConfirmOk" class="btn btn-danger" style="flex:1;justify-content:center">Hapus</button>
+<div id="modalConfirm" class="modal-bd" onclick="if(event.target===this)closeModal('modalConfirm')">
+  <div class="modal-box" style="max-width:340px">
+    <h3 id="confirmTitle" style="font-family:'Instrument Serif',serif;font-size:19px;margin-bottom:8px">Konfirmasi</h3>
+    <p id="confirmMsg" style="font-size:13px;color:rgba(255,255,255,.55);margin-bottom:20px;line-height:1.6"></p>
+    <div class="flex gap-2">
+      <button onclick="closeModal('modalConfirm')" class="btn btn-ghost flex-1 justify-center btn-sm">Batal</button>
+      <button id="btnConfirmOk" class="btn btn-danger flex-1 justify-center btn-sm">Hapus</button>
     </div>
   </div>
-</div>
-
-<!-- Action Splash -->
-<div id="actionSplash" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);z-index:2000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px">
-  <div class="spin" style="width:32px;height:32px;border-width:3px;border-top-color:#C9A84C"></div>
-  <div id="splashMsg" style="font-size:14px;color:rgba(255,255,255,0.7)">Memproses...</div>
-  <div id="splashSub" style="font-size:12px;color:rgba(255,255,255,0.4)"></div>
 </div>
 
 <!-- ═══════════════════════════════════════════
      JAVASCRIPT
 ════════════════════════════════════════════ -->
 <script>
-// ── CONFIG ──────────────────────────────────────────────────
-const SB_URL  = 'https://oxttycjpgjylkjwhocuv.supabase.co';
-const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94dHR5Y2pwZ2p5bGtqd2hvY3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NDc5MjYsImV4cCI6MjA5NTUyMzkyNn0.bXv3QBHjEXPCEDgHrOQbzI5ATJRZpOf93b10GRcGThI';
-const MAX_BUCKET_GB = 9;
+// ── CONFIG ─── replace these ──────────────────────────────────
+const SB_URL      = 'YOUR_SUPABASE_URL';
+const SB_ANON     = 'YOUR_SUPABASE_ANON_KEY';
+const CLAUDE_MODEL= 'claude-sonnet-4-20250514';
+const MAX_BUCKET_BYTES = 9 * 1024 * 1024 * 1024;
 const PAGE_SIZE = 20;
 
 const { createClient } = supabase;
 const sb = createClient(SB_URL, SB_ANON, {
-  auth: { storage: sessionStorage, storageKey: 'salax_session', autoRefreshToken: true, persistSession: true }
+  auth:{ storage:sessionStorage, storageKey:'salax_v2', autoRefreshToken:true, persistSession:true }
 });
 
-// ── STATE ────────────────────────────────────────────────────
-let CU = null; // current user
-let allKategori = [];
-let allBuckets = [];
-let WORKER_URL = '';
-let dokPage = 1, dokTotal = 0, dokKatFilter = '', dokSearch = '';
-let upSelectedFile = null;
+// ── STATE ─────────────────────────────────────────────────────
+let CU=null, allKategori=[], allBuckets=[], WORKER_URL='';
+let dokPage=1, dokKatFilter='', dokSearch='';
+let upSelectedFile=null;
+let chatHistory=[]; // for AI context
 
-// ── INIT ─────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', async () => {
-  // Auto-detect session
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    await loadUserState(session.user);
-  } else {
-    showAuthPage('login');
-  }
-
-  // Auth state listener
-  sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      await loadUserState(session.user);
-    } else if (event === 'SIGNED_OUT') {
-      CU = null;
-      showAuthPage('login');
-    } else if (event === 'PASSWORD_RECOVERY') {
-      showAuthPage('forgot');
-    }
+// ── INIT ──────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) await loadUserState(session.user);
+  else showAuthPage('login');
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session) await loadUserState(session.user);
+    else if(event==='SIGNED_OUT'){ CU=null; showAuthPage('login'); }
   });
+  // Drag for upload zone
+  const zone=document.getElementById('upZone');
+  if(zone){
+    zone.ondragover=e=>{e.preventDefault();zone.classList.add('drag')};
+    zone.ondragleave=()=>zone.classList.remove('drag');
+    zone.ondrop=e=>{e.preventDefault();zone.classList.remove('drag');if(e.dataTransfer.files[0])handleUpFile(e.dataTransfer.files[0])};
+  }
 });
 
-async function loadUserState(user) {
-  CU = user;
-  // Load profile
-  let { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
-  if (!prof) {
-    await sb.from('profiles').insert({ id: user.id, email: user.email, nama: user.email.split('@')[0] });
-    prof = { id: user.id, email: user.email, nama: user.email.split('@')[0] };
+async function loadUserState(user){
+  CU=user;
+  let{data:prof}=await sb.from('profiles').select('*').eq('id',user.id).single();
+  if(!prof){
+    await sb.from('profiles').insert({id:user.id,email:user.email,nama:user.email.split('@')[0]});
+    prof={id:user.id,email:user.email,nama:user.email.split('@')[0]};
   }
-  CU.nama = prof.nama || user.email;
-  CU.email = prof.email || user.email;
-
-  // Update sidebar
-  const initials = (CU.nama||'?').slice(0, 2).toUpperCase();
-  document.getElementById('sidebarAvatar').textContent = initials;
-  document.getElementById('sidebarName').textContent = CU.nama;
-  document.getElementById('profilAvatar').textContent = initials;
-
-  // Load config
-  const { data: cfg } = await sb.from('app_config').select('key,value');
-  if (cfg) {
-    const wu = cfg.find(r => r.key === 'workerUrl');
-    if (wu) { WORKER_URL = wu.value; document.getElementById('workerUrlInp').value = wu.value; }
-  }
-
-  // Load reference data
-  await Promise.all([loadKategori(), loadBuckets()]);
-
-  // Show app
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('forgotPage').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
+  CU.nama=prof.nama||user.email;
+  CU.email=prof.email||user.email;
+  const initials=(CU.nama||'?').slice(0,2).toUpperCase();
+  ['sidebarAvatar','mobileAvatar','profilAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=initials;});
+  document.getElementById('sidebarName').textContent=CU.nama;
+  const{data:cfg}=await sb.from('app_config').select('key,value').eq('key','workerUrl');
+  if(cfg&&cfg[0]){WORKER_URL=cfg[0].value;document.getElementById('workerUrlInp').value=cfg[0].value;}
+  await Promise.all([loadKategori(),loadBuckets()]);
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('forgotPage').style.display='none';
+  document.getElementById('app').style.display='block';
   showPage('dash');
 }
 
-// ── AUTH PAGES ───────────────────────────────────────────────
-function showAuthPage(p) {
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('loginPage').style.display = p === 'login' ? 'flex' : 'none';
-  document.getElementById('forgotPage').style.display = p === 'forgot' ? 'flex' : 'none';
+// ── AUTH ──────────────────────────────────────────────────────
+function showAuthPage(p){
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginPage').style.display=p==='login'?'flex':'none';
+  document.getElementById('forgotPage').style.display=p==='forgot'?'flex':'none';
 }
 
-async function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass  = document.getElementById('loginPass').value;
-  const btn   = document.getElementById('btnLogin');
-  const err   = document.getElementById('loginErr');
-  err.style.display = 'none';
-  if (!email || !pass) { showLoginErr('Email dan password wajib diisi'); return; }
-  setBtn(btn, true, 'Masuk');
-  try {
-    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-    if (error) showLoginErr(error.message === 'Invalid login credentials' ? 'Email atau password salah' : error.message);
-  } catch(e) { showLoginErr('Gagal terhubung ke server'); }
-  setBtn(btn, false, 'Masuk');
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const btn=document.getElementById('btnLogin');
+  document.getElementById('loginErr').style.display='none';
+  if(!email||!pass){showLoginErr('Email dan password wajib diisi');return;}
+  setBtn(btn,true);
+  try{
+    const{error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error) showLoginErr(error.message==='Invalid login credentials'?'Email atau password salah':error.message);
+  }catch(e){showLoginErr('Gagal terhubung ke server');}
+  setBtn(btn,false,'Masuk');
 }
+function showLoginErr(msg){const el=document.getElementById('loginErr');el.textContent=msg;el.style.display='block';}
 
-function showLoginErr(msg) {
-  const el = document.getElementById('loginErr');
-  el.textContent = msg; el.style.display = 'block';
+async function doForgot(){
+  const email=document.getElementById('forgotEmail').value.trim();
+  const btn=document.getElementById('btnForgot');
+  if(!email){showForgotMsg('Email wajib diisi','err');return;}
+  setBtn(btn,true);
+  try{
+    const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/'});
+    if(error) showForgotMsg(error.message,'err');
+    else showForgotMsg('Link reset dikirim. Cek inbox atau spam.','ok');
+  }catch(e){showForgotMsg('Gagal mengirim email','err');}
+  setBtn(btn,false,'Kirim Link Reset');
 }
-
-async function doForgot() {
-  const email = document.getElementById('forgotEmail').value.trim();
-  const btn = document.getElementById('btnForgot');
-  const msg = document.getElementById('forgotMsg');
-  msg.style.display = 'none';
-  if (!email) { showForgotMsg('Email wajib diisi', 'err'); return; }
-  setBtn(btn, true, 'Kirim Link Reset');
-  try {
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/' });
-    if (error) showForgotMsg(error.message, 'err');
-    else showForgotMsg('Link reset telah dikirim ke email Anda. Cek inbox atau folder spam.', 'ok');
-  } catch(e) { showForgotMsg('Gagal mengirim email', 'err'); }
-  setBtn(btn, false, 'Kirim Link Reset');
+function showForgotMsg(text,type){
+  const el=document.getElementById('forgotMsg');el.textContent=text;el.style.display='block';
+  el.style.background=type==='ok'?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
+  el.style.border=type==='ok'?'1px solid rgba(16,185,129,.2)':'1px solid rgba(239,68,68,.2)';
+  el.style.color=type==='ok'?'#6ee7b7':'#fca5a5';
 }
+async function doLogout(){try{await sb.auth.signOut();}catch(e){}showAuthPage('login');}
 
-function showForgotMsg(text, type) {
-  const el = document.getElementById('forgotMsg');
-  el.textContent = text;
-  el.style.display = 'block';
-  el.style.background = type === 'ok' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
-  el.style.border = type === 'ok' ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(239,68,68,0.2)';
-  el.style.color = type === 'ok' ? '#6ee7b7' : '#fca5a5';
-}
-
-async function doLogout() {
-  try { await sb.auth.signOut(); } catch(e) {}
-  showAuthPage('login');
-}
-
-// ── PAGE NAVIGATION ──────────────────────────────────────────
-const PAGE_MAP = {
-  dash:     loadDash,
-  dokumen:  loadDokumen,
-  upload:   loadUploadPage,
-  kategori: loadKategoriPage,
-  download: loadDownloadPage,
-  storage:  loadStoragePage,
-  profil:   loadProfilPage,
+// ── NAVIGATION ────────────────────────────────────────────────
+const PAGE_TITLES={'dash':'SaLax','dokumen':'Dokumen','upload':'Upload','ai':'AI Asisten','kategori':'Kategori','download':'Download','storage':'Storage','profil':'Profil'};
+const PAGE_LOADERS={
+  dash:loadDash, dokumen:()=>loadDokumen(1), upload:loadUploadPage,
+  ai:loadAiPage, kategori:loadKategoriPage, download:loadDownloadPage,
+  storage:loadStoragePage, profil:loadProfilPage,
 };
 
-function showPage(name) {
-  // Hide all pages
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-  // Show target
-  const page = document.getElementById('page' + name.charAt(0).toUpperCase() + name.slice(1));
-  if (page) page.classList.add('active');
-
-  // Highlight nav
-  const nav = document.querySelector(`[data-page="${name}"]`);
-  if (nav) nav.classList.add('active');
-
-  // Load data
-  try { if (PAGE_MAP[name]) PAGE_MAP[name](); } catch(e) { toast('Gagal memuat halaman: ' + e.message, 'err'); }
-
-  // Close sidebar on mobile
-  closeSidebar();
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('[data-page]').forEach(n=>n.classList.remove('active'));
+  const page=document.getElementById('page'+name[0].toUpperCase()+name.slice(1));
+  if(page) page.classList.add('active');
+  document.querySelectorAll(`[data-page="${name}"]`).forEach(el=>el.classList.add('active'));
+  const titleEl=document.getElementById('mobilePageTitle');
+  if(titleEl) titleEl.textContent=PAGE_TITLES[name]||'SaLax';
+  try{if(PAGE_LOADERS[name])PAGE_LOADERS[name]();}
+  catch(e){toast('Gagal memuat halaman: '+e.message,'err');}
+  // Scroll to top on mobile
+  const mc=document.getElementById('mainContent')||document.getElementById('mainScroll');
+  if(mc) mc.scrollTop=0;
 }
 
-// ── DASHBOARD ────────────────────────────────────────────────
-async function loadDash() {
-  // Greet
-  const hour = new Date().getHours();
-  const greet = hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 18 ? 'Selamat sore' : 'Selamat malam';
-  document.getElementById('dashGreet').textContent = `${greet}, ${CU.nama}`;
-
-  try {
-    // Stats
-    const [{ count: totalDok }, { count: totalKat }, { data: sizeData }] = await Promise.all([
-      sb.from('dokumen').select('*', { count: 'exact', head: true }).eq('user_id', CU.id),
-      sb.from('kategori').select('*', { count: 'exact', head: true }).eq('user_id', CU.id),
-      sb.from('dokumen').select('ukuran_file').eq('user_id', CU.id),
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function loadDash(){
+  const hr=new Date().getHours();
+  const g=hr<11?'Selamat pagi':hr<15?'Selamat siang':hr<18?'Selamat sore':'Selamat malam';
+  document.getElementById('dashGreet').textContent=`${g}, ${CU.nama}`;
+  try{
+    const[{count:totalDok},{count:totalKat},{data:sizeData}]=await Promise.all([
+      sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
+      sb.from('kategori').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
+      sb.from('dokumen').select('ukuran_file').eq('user_id',CU.id),
     ]);
-    document.getElementById('statDok').textContent = totalDok || 0;
-    document.getElementById('statKat').textContent = totalKat || 0;
-    const totalSize = (sizeData || []).reduce((a, d) => a + (d.ukuran_file || 0), 0);
-    document.getElementById('statSize').textContent = fmtSz(totalSize);
-    document.getElementById('statBuckets').textContent = allBuckets.filter(b => b.aktif).length;
-
-    // Storage bars
+    document.getElementById('statDok').textContent=totalDok||0;
+    document.getElementById('statKat').textContent=totalKat||0;
+    const totalSize=(sizeData||[]).reduce((a,d)=>a+(d.ukuran_file||0),0);
+    document.getElementById('statSize').textContent=fmtSz(totalSize);
+    document.getElementById('statBuckets').textContent=allBuckets.filter(b=>b.aktif).length;
     await renderDashStorageBars();
-
-    // Recent docs
-    const { data: recent } = await sb.from('dokumen')
-      .select('id,nama_file,ukuran_file,uploaded_at,storage_bucket_id,kategori:kategori_id(nama)')
-      .eq('user_id', CU.id)
-      .order('uploaded_at', { ascending: false })
-      .limit(5);
-    const container = document.getElementById('dashRecentDok');
-    if (!recent || !recent.length) {
-      container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);font-size:13px">Belum ada dokumen</div>';
-    } else {
-      container.innerHTML = recent.map(d => `
-        <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05)">
-          <div style="font-size:22px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.nama_file)}</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px">${d.kategori?.nama || '—'} · ${fmtSz(d.ukuran_file)}</div>
-          </div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.3);flex-shrink:0">${fmtDate(d.uploaded_at)}</div>
+    const{data:recent}=await sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,storage_bucket_id,kategori:kategori_id(nama)').eq('user_id',CU.id).order('uploaded_at',{ascending:false}).limit(5);
+    const el=document.getElementById('dashRecentDok');
+    if(!recent||!recent.length){el.innerHTML='<div class="text-center py-5" style="color:rgba(255,255,255,.3);font-size:13px">Belum ada dokumen</div>';return;}
+    el.innerHTML=recent.map(d=>`
+      <div class="dok-card">
+        <div style="font-size:22px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
+        <div class="flex-1 min-w-0">
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.nama_file)}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">${d.kategori?.nama||'—'} · ${fmtSz(d.ukuran_file)}</div>
         </div>
-      `).join('');
-    }
-  } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
+        <div style="font-size:11px;color:rgba(255,255,255,.3);flex-shrink:0">${fmtDate(d.uploaded_at)}</div>
+      </div>`).join('');
+  }catch(e){toast('Gagal memuat dashboard: '+e.message,'err');}
 }
 
-async function renderDashStorageBars() {
-  const container = document.getElementById('dashStorageBars');
-  if (!allBuckets.length) {
-    container.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:13px">Belum ada bucket R2 dikonfigurasi</div>';
-    return;
-  }
-  // Get usage per bucket
-  const { data: usageData } = await sb.from('dokumen')
-    .select('storage_bucket_id,ukuran_file')
-    .eq('user_id', CU.id);
-
-  const usageMap = {};
-  (usageData || []).forEach(d => {
-    if (!usageMap[d.storage_bucket_id]) usageMap[d.storage_bucket_id] = 0;
-    usageMap[d.storage_bucket_id] += (d.ukuran_file || 0);
-  });
-
-  container.innerHTML = allBuckets.map(b => {
-    const used = usageMap[b.id] || 0;
-    const limit = (b.limit_bytes || MAX_BUCKET_GB * 1024**3);
-    const pct = Math.min((used / limit) * 100, 100);
-    const color = pct > 90 ? '#f87171' : pct > 70 ? '#fbbf24' : '#C9A84C';
-    return `
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <span style="font-size:13px;font-weight:500">${esc(b.label)}</span>
-          <span style="font-size:11px;color:rgba(255,255,255,0.4)">${fmtSz(used)} / ${fmtSz(limit)}</span>
-        </div>
-        <div class="storage-bar">
-          <div class="storage-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div>
-        </div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:4px">${pct.toFixed(1)}% terpakai${b.aktif ? '' : ' · <span style="color:#f87171">Nonaktif</span>'}</div>
-      </div>
-    `;
+async function renderDashStorageBars(){
+  const el=document.getElementById('dashStorageBars');
+  if(!allBuckets.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:13px">Belum ada bucket R2</div>';return;}
+  const{data:usageData}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id',CU.id);
+  const usageMap={};
+  (usageData||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
+  el.innerHTML=allBuckets.map(b=>{
+    const used=usageMap[b.id]||0,limit=b.limit_bytes||MAX_BUCKET_BYTES;
+    const pct=Math.min((used/limit)*100,100);
+    const clr=pct>90?'#f87171':pct>70?'#fbbf24':'#C9A84C';
+    return`<div><div class="flex justify-between items-center mb-1.5"><span style="font-size:13px;font-weight:500">${esc(b.label)}</span><span style="font-size:11px;color:rgba(255,255,255,.4)">${fmtSz(used)} / ${fmtSz(limit)}</span></div><div class="sbar"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${clr}"></div></div><div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">${pct.toFixed(1)}%${b.aktif?'':' · <span style="color:#f87171">Nonaktif</span>'}</div></div>`;
   }).join('');
 }
 
-// ── DOKUMEN ──────────────────────────────────────────────────
-async function loadDokumen(p = 1) {
-  dokPage = p;
-  const from = (p - 1) * PAGE_SIZE, to = from + PAGE_SIZE - 1;
-  let q = sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,storage_type,kategori:kategori_id(id,nama)', { count: 'exact' }).eq('user_id', CU.id);
-  if (dokKatFilter) q = q.eq('kategori_id', dokKatFilter);
-  if (dokSearch) q = q.or(`nama_file.ilike.%${dokSearch}%,keterangan.ilike.%${dokSearch}%`);
-  q = q.order('uploaded_at', { ascending: false }).range(from, to);
-
-  const { data: docs, count, error } = await q;
-  dokTotal = count || 0;
-
-  // Category tabs
-  const tabsEl = document.getElementById('dokKatTabs');
-  tabsEl.innerHTML = [{ id: '', nama: 'Semua' }, ...allKategori].map(k =>
-    `<button onclick="setDokKatFilter('${k.id}')" class="btn btn-xs ${dokKatFilter === k.id ? 'btn-gold' : 'btn-ghost'}" style="${dokKatFilter === k.id ? '' : 'border:1px solid rgba(255,255,255,0.08)'}">${esc(k.nama)}</button>`
+// ── DOKUMEN ───────────────────────────────────────────────────
+async function loadDokumen(p=1){
+  dokPage=p;
+  const from=(p-1)*PAGE_SIZE,to=from+PAGE_SIZE-1;
+  let q=sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,kategori:kategori_id(id,nama)',{count:'exact'}).eq('user_id',CU.id);
+  if(dokKatFilter) q=q.eq('kategori_id',dokKatFilter);
+  if(dokSearch) q=q.or(`nama_file.ilike.%${dokSearch}%,keterangan.ilike.%${dokSearch}%`);
+  q=q.order('uploaded_at',{ascending:false}).range(from,to);
+  const{data:docs,count,error}=await q;
+  // Tabs
+  document.getElementById('dokKatTabs').innerHTML=[{id:'',nama:'Semua'},...allKategori].map(k=>
+    `<button onclick="setDokKatFilter('${k.id}')" class="btn btn-xs ${dokKatFilter===k.id?'btn-gold':'btn-ghost'}" style="${dokKatFilter===k.id?'':'border:1px solid rgba(255,255,255,.08)'}">${esc(k.nama)}</button>`
   ).join('');
-
-  // Update filter dropdown
-  const filterSel = document.getElementById('dokKatFilter');
-  filterSel.innerHTML = '<option value="">Semua Kategori</option>' + allKategori.map(k =>
-    `<option value="${k.id}" ${dokKatFilter === k.id ? 'selected' : ''}>${esc(k.nama)}</option>`
-  ).join('');
-
-  const list = document.getElementById('dokList');
-  const empty = document.getElementById('dokEmpty');
-
-  if (error) { toast('Gagal memuat dokumen: ' + error.message, 'err'); return; }
-  if (!docs || !docs.length) {
-    list.innerHTML = ''; empty.style.display = 'block';
-    document.getElementById('dokPagination').innerHTML = '';
-    return;
-  }
-  empty.style.display = 'none';
-
-  list.innerHTML = docs.map(d => {
-    const bkt = allBuckets.find(b => b.id === d.storage_bucket_id);
-    return `
-      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);transition:all .2s" class="glass-hover">
-        <div style="font-size:26px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.nama_file)}</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span>${d.kategori?.nama || '—'}</span>
-            <span>·</span>
-            <span>${fmtSz(d.ukuran_file)}</span>
-            <span>·</span>
-            <span>${fmtDate(d.uploaded_at)}</span>
-            ${bkt ? `<span>·</span><span style="color:rgba(201,168,76,0.6)">${esc(bkt.label)}</span>` : ''}
-          </div>
-          ${d.keterangan ? `<div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.keterangan)}</div>` : ''}
+  document.getElementById('dokKatFilter').innerHTML='<option value="">Semua Kategori</option>'+allKategori.map(k=>`<option value="${k.id}" ${dokKatFilter===k.id?'selected':''}>${esc(k.nama)}</option>`).join('');
+  if(error){toast('Gagal memuat dokumen: '+error.message,'err');return;}
+  const list=document.getElementById('dokList'),empty=document.getElementById('dokEmpty');
+  if(!docs||!docs.length){list.innerHTML='';empty.style.display='block';document.getElementById('dokPagination').innerHTML='';return;}
+  empty.style.display='none';
+  list.innerHTML=docs.map(d=>{
+    const bkt=allBuckets.find(b=>b.id===d.storage_bucket_id);
+    return`<div class="dok-card">
+      <div style="font-size:24px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
+      <div class="flex-1 min-w-0">
+        <div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.nama_file)}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;display:flex;flex-wrap:wrap;gap:5px">
+          <span>${d.kategori?.nama||'—'}</span><span>·</span><span>${fmtSz(d.ukuran_file)}</span><span>·</span><span>${fmtDate(d.uploaded_at)}</span>
+          ${bkt?`<span>·</span><span style="color:rgba(201,168,76,.6)">${esc(bkt.label)}</span>`:''}
         </div>
-        <div style="display:flex;gap:6px;flex-shrink:0">
-          <button onclick="openDok('${d.r2_key}','${d.nama_file}','${d.storage_bucket_id}')" class="btn btn-ghost btn-xs" title="Buka">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </button>
-          <button onclick="openModalEditDok('${d.id}','${esc(d.nama_file)}','${d.kategori?.id||''}','${esc(d.keterangan||'')}')" class="btn btn-ghost btn-xs" title="Edit">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button onclick="confirmDel('${d.id}','${d.r2_key}','${d.storage_bucket_id}')" class="btn btn-danger btn-xs" title="Hapus">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-          </button>
-        </div>
+        ${d.keterangan?`<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.keterangan)}</div>`:''}
       </div>
-    `;
+      <div class="flex gap-1.5 flex-shrink-0">
+        <button onclick="openDok('${esc(d.r2_key)}','${esc(d.nama_file)}','${d.storage_bucket_id}')" class="btn btn-ghost btn-xs" title="Buka">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button onclick="openModalEditDok('${d.id}','${esc(d.nama_file)}','${d.kategori?.id||''}','${esc(d.keterangan||'')}')" class="btn btn-ghost btn-xs" title="Edit">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button onclick="confirmDel('${d.id}','${esc(d.r2_key)}','${d.storage_bucket_id}')" class="btn btn-danger btn-xs" title="Hapus">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>`;
   }).join('');
+  renderPagination(count||0,p,PAGE_SIZE,'loadDokumen','dokPagination');
+}
+function setDokKatFilter(id){dokKatFilter=id;loadDokumen(1);}
+function filterDok(){dokSearch=document.getElementById('dokSearch').value;dokKatFilter=document.getElementById('dokKatFilter').value;loadDokumen(1);}
 
-  // Pagination
-  renderPagination(dokTotal, dokPage, PAGE_SIZE, 'loadDokumen', 'dokPagination');
+// ── UPLOAD ────────────────────────────────────────────────────
+// ── GEMINI KEY ───────────────────────────────────────────────
+function getGeminiKey(){return localStorage.getItem('salax_gemini_key')||'';}
+function saveGeminiKey(){
+  const key=document.getElementById('geminiKeyInp').value.trim();
+  if(!key){toast('API key tidak boleh kosong','warn');return;}
+  localStorage.setItem('salax_gemini_key',key);
+  toast('Gemini API key disimpan ✓','ok');
+  updateGeminiKeyUI();
+}
+function updateGeminiKeyUI(){
+  const key=getGeminiKey();
+  const wrap=document.getElementById('geminiKeyWrap');
+  const inp=document.getElementById('geminiKeyInp');
+  if(key){
+    wrap.style.borderColor='rgba(16,185,129,.3)';
+    wrap.style.background='rgba(16,185,129,.04)';
+    if(inp) inp.value='●'.repeat(20);
+  }
 }
 
-function setDokKatFilter(katId) { dokKatFilter = katId; loadDokumen(1); }
-function filterDok() {
-  dokSearch = document.getElementById('dokSearch').value;
-  dokKatFilter = document.getElementById('dokKatFilter').value;
-  loadDokumen(1);
-}
-
-// ── UPLOAD ───────────────────────────────────────────────────
-async function loadUploadPage() {
-  const sel = document.getElementById('upKat');
-  sel.innerHTML = '<option value="">Pilih kategori...</option>' + allKategori.map(k =>
-    `<option value="${k.id}">${esc(k.nama)}</option>`
-  ).join('');
-  updateUploadStorageInfo();
+async function loadUploadPage(){
+  const sel=document.getElementById('upKat');
+  if(sel) sel.innerHTML='<option value="">Pilih kategori...</option>'+allKategori.map(k=>`<option value="${k.id}">${esc(k.nama)}</option>`).join('');
+  document.getElementById('upKet').value='';
+  document.getElementById('upAlert').style.display='none';
   clearUpFile();
-  document.getElementById('upKet').value = '';
-  document.getElementById('upAlert').style.display = 'none';
+  updateGeminiKeyUI();
+  await updateUploadStorageInfo();
 }
 
-async function updateUploadStorageInfo() {
-  const el = document.getElementById('upStorageInfo');
-  if (!allBuckets.length) {
-    el.innerHTML = '⚠️ Belum ada bucket R2 dikonfigurasi. <button onclick="showPage(\'storage\')" style="color:#C9A84C;background:none;border:none;cursor:pointer;font-size:13px">Tambah bucket</button>';
+async function updateUploadStorageInfo(){
+  const el=document.getElementById('upStorageInfo');
+  if(!el)return;
+  if(!allBuckets.length){el.innerHTML='⚠️ Belum ada bucket R2. <button onclick="showPage(&quot;storage&quot;)" style="color:#C9A84C;background:none;border:none;cursor:pointer;font-size:12px">Tambah bucket →</button>';return;}
+  const bkt=await findAvailableBucket(0);
+  if(!bkt){el.innerHTML='🚫 Semua storage penuh';return;}
+  const{data:ud}=await sb.from('dokumen').select('ukuran_file,storage_bucket_id').eq('user_id',CU.id);
+  const usageMap={};(ud||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
+  const used=usageMap[bkt.id]||0,limit=bkt.limit_bytes||MAX_BUCKET_BYTES;
+  el.innerHTML=`<span style="color:rgba(201,168,76,.8)">📦 ${esc(bkt.label)}</span> · Sisa: ${fmtSz(limit-used)}`;
+}
+
+async function handleUpFile(file){
+  if(!file)return;
+  if(file.size>50*1024*1024){toast('❌ Ukuran file maksimal 50 MB. File ini '+fmtSz(file.size)+'.','err');return;}
+  upSelectedFile=file;
+  // Show file info in dropzone
+  document.getElementById('upZoneContent').style.display='none';
+  document.getElementById('upFileInfo').style.display='block';
+  document.getElementById('upFileIcon').textContent=fileEmoji(file.name);
+  document.getElementById('upFileName').textContent=file.name;
+  document.getElementById('upFileSize').textContent=fmtSz(file.size);
+
+  // Auto-scan dengan Gemini
+  await scanWithAI(file);
+}
+
+async function scanWithAI(file){
+  const geminiKey=getGeminiKey();
+
+  // Show step 2 (scanning)
+  document.getElementById('upStep1').style.display='none';
+  document.getElementById('upStep2').style.display='block';
+  document.getElementById('upStep3').style.display='none';
+
+  // Jika tidak ada Gemini key, skip AI dan langsung ke step 3 manual
+  if(!geminiKey){
+    document.getElementById('upStep2').style.display='none';
+    document.getElementById('upStep3').style.display='block';
+    document.getElementById('aiNamaFile').value=file.name;
+    toast('⚠️ Gemini key belum diset — isi manual','warn');
     return;
   }
-  const bucket = await findAvailableBucket(0);
-  if (!bucket) {
-    el.innerHTML = '🚫 Semua storage penuh';
-    return;
-  }
-  const { data: usageData } = await sb.from('dokumen').select('ukuran_file,storage_bucket_id').eq('user_id', CU.id);
-  const usageMap = {};
-  (usageData || []).forEach(d => { if (!usageMap[d.storage_bucket_id]) usageMap[d.storage_bucket_id] = 0; usageMap[d.storage_bucket_id] += (d.ukuran_file || 0); });
-  const used = usageMap[bucket.id] || 0;
-  const limit = bucket.limit_bytes || MAX_BUCKET_GB * 1024**3;
-  el.innerHTML = `<span style="color:rgba(201,168,76,0.8)">📦 ${esc(bucket.label)}</span> · Sisa: ${fmtSz(limit - used)}`;
+
+  try{
+    document.getElementById('aiScanLabel').textContent='Membaca dokumen...';
+    document.getElementById('aiScanSub').textContent='AI menganalisis isi file';
+
+    // Convert file to base64
+    const base64=await fileToBase64(file);
+    const mimeType=file.type||'application/octet-stream';
+    const isImage=['image/jpeg','image/png','image/webp','image/gif'].includes(mimeType);
+    const isPDF=mimeType==='application/pdf';
+
+    // Build kategori list for context
+    const katList=allKategori.map(k=>k.nama).join(', ')||'belum ada kategori';
+
+    const prompt=`Kamu adalah asisten arsip dokumen. Analisis dokumen ini dan berikan informasi berikut dalam format JSON.
+
+Kategori yang tersedia: ${katList}
+
+Berikan JSON dengan format PERSIS seperti ini (tidak ada teks lain, hanya JSON):
+{
+  "nama_file": "nama file yang proper dan deskriptif tanpa ekstensi",
+  "kategori": "nama kategori yang paling cocok dari daftar tersedia, atau nama kategori baru jika tidak ada yang cocok",
+  "keterangan": "keterangan singkat 1 kalimat tentang isi dokumen",
+  "alasan": "alasan singkat mengapa kategori ini dipilih"
 }
 
-function handleUpFile(file) {
-  if (!file) return;
-  if (file.size > 50 * 1024 * 1024) {
-    showUpAlert('❌ Ukuran file maksimal 50 MB. File ini ' + fmtSz(file.size) + '.', 'err'); return;
-  }
-  upSelectedFile = file;
-  document.getElementById('upZoneContent').style.display = 'none';
-  document.getElementById('upFileInfo').style.display = 'block';
-  document.getElementById('upFileIcon').textContent = fileEmoji(file.name);
-  document.getElementById('upFileName').textContent = file.name;
-  document.getElementById('upFileSize').textContent = fmtSz(file.size);
-  document.getElementById('upAlert').style.display = 'none';
+Contoh:
+{
+  "nama_file": "SK Pengangkatan Jabatan 2024",
+  "kategori": "SK Jabatan",
+  "keterangan": "Surat Keputusan pengangkatan dalam jabatan struktural tahun 2024",
+  "alasan": "Dokumen ini adalah Surat Keputusan resmi terkait jabatan"
+}`;
 
-  // Setup drag
-  const zone = document.getElementById('upZone');
-  zone.ondragover = e => { e.preventDefault(); zone.classList.add('drag'); };
-  zone.ondragleave = () => zone.classList.remove('drag');
-  zone.ondrop = e => { e.preventDefault(); zone.classList.remove('drag'); if (e.dataTransfer.files[0]) handleUpFile(e.dataTransfer.files[0]); };
-}
+    document.getElementById('aiScanLabel').textContent='Menganalisis konten...';
 
-function clearUpFile(e) {
-  if (e) e.stopPropagation();
-  upSelectedFile = null;
-  document.getElementById('upFile').value = '';
-  document.getElementById('upZoneContent').style.display = 'block';
-  document.getElementById('upFileInfo').style.display = 'none';
-}
+    let requestBody;
+    if(isPDF||isImage){
+      requestBody={
+        contents:[{parts:[
+          {inline_data:{mime_type:mimeType,data:base64}},
+          {text:prompt}
+        ]}]
+      };
+    } else {
+      // For other files, just use filename
+      requestBody={
+        contents:[{parts:[{text:`Nama file: ${file.name}
 
-function showUpAlert(msg, type) {
-  const el = document.getElementById('upAlert');
-  el.textContent = msg; el.style.display = 'block';
-  el.style.background = type === 'ok' ? 'rgba(16,185,129,0.1)' : type === 'warn' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)';
-  el.style.border = type === 'ok' ? '1px solid rgba(16,185,129,0.2)' : type === 'warn' ? '1px solid rgba(245,158,11,0.2)' : '1px solid rgba(239,68,68,0.2)';
-  el.style.color = type === 'ok' ? '#6ee7b7' : type === 'warn' ? '#fcd34d' : '#fca5a5';
-}
-
-async function doUpload() {
-  const katId = document.getElementById('upKat').value;
-  const ket = document.getElementById('upKet').value;
-  const btn = document.getElementById('btnUpload');
-  if (!katId) { showUpAlert('Pilih kategori terlebih dahulu', 'err'); return; }
-  if (!upSelectedFile) { showUpAlert('Pilih file terlebih dahulu', 'err'); return; }
-  if (!WORKER_URL) { showUpAlert('Worker URL belum dikonfigurasi. Atur di halaman Storage.', 'err'); return; }
-
-  // Find available bucket
-  const bucket = await findAvailableBucket(upSelectedFile.size);
-  if (!bucket) { showUpAlert('🚫 Semua penyimpanan penuh. Tambah bucket R2 baru di halaman Storage.', 'err'); return; }
-
-  setBtn(btn, true);
-  document.getElementById('upPrgWrap').style.display = 'block';
-  setPrg(0, 'Mempersiapkan...');
-
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const token = session?.access_token || '';
-    const ext = upSelectedFile.name.split('.').pop();
-    const r2Key = `${CU.id}/${Date.now()}_${upSelectedFile.name}`;
-    const encodedKey = encodeURIComponent(r2Key);
-
-    setPrg(20, 'Mengupload file...');
-
-    const res = await fetch(`${WORKER_URL}/upload/${encodedKey}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': upSelectedFile.type || 'application/octet-stream',
-        'X-Bucket-Id': String(bucket.id),
-        'X-R2-Limit': String(bucket.limit_bytes || MAX_BUCKET_GB * 1024 ** 3),
-      },
-      body: upSelectedFile,
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (res.status === 413) throw new Error('Penyimpanan penuh. Coba bucket lain atau tambah bucket baru.');
-      throw new Error(err.error || 'Upload gagal: HTTP ' + res.status);
+${prompt}`}]}]
+      };
     }
 
-    setPrg(80, 'Menyimpan ke database...');
+    const res=await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(requestBody)}
+    );
 
-    const { error: dbErr } = await sb.from('dokumen').insert({
-      user_id: CU.id,
-      nama_file: upSelectedFile.name,
-      kategori_id: katId,
-      keterangan: ket,
-      ukuran_file: upSelectedFile.size,
-      r2_key: r2Key,
-      storage_bucket_id: bucket.id,
-      storage_type: 'r2',
+    if(!res.ok){
+      const errData=await res.json().catch(()=>({}));
+      throw new Error(errData?.error?.message||'Gemini API error: '+res.status);
+    }
+
+    const data=await res.json();
+    const rawText=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    // Extract JSON from response
+    const jsonMatch=rawText.match(/\{[\s\S]*\}/);
+    if(!jsonMatch)throw new Error('Respons AI tidak valid');
+    const result=JSON.parse(jsonMatch[0]);
+
+    // Show step 3 with AI results
+    document.getElementById('upStep2').style.display='none';
+    document.getElementById('upStep3').style.display='block';
+
+    // Fill fields
+    const ext=file.name.includes('.')?'.'+file.name.split('.').pop():'';
+    document.getElementById('aiNamaFile').value=(result.nama_file||file.name.replace(/\.[^.]+$/,''))+ext;
+    document.getElementById('upKet').value=result.keterangan||'';
+
+    // Match kategori
+    const katMatch=allKategori.find(k=>k.nama.toLowerCase()===result.kategori?.toLowerCase())||
+                   allKategori.find(k=>k.nama.toLowerCase().includes(result.kategori?.toLowerCase()?.split(' ')[0]||''));
+    const sel=document.getElementById('upKat');
+    if(katMatch){
+      sel.value=katMatch.id;
+    } else if(result.kategori){
+      // Suggest creating new category
+      toast(`💡 AI menyarankan kategori baru: "${result.kategori}" — buat via tombol "+ Baru"`, 'info');
+    }
+
+    // Show reasoning
+    if(result.alasan){
+      document.getElementById('aiReasoning').style.display='block';
+      document.getElementById('aiReasoningText').textContent=result.alasan;
+    }
+
+    toast('✨ AI berhasil mendeteksi dokumen','ok');
+
+  }catch(e){
+    console.warn('AI scan error:',e.message);
+    // Fallback to manual
+    document.getElementById('upStep2').style.display='none';
+    document.getElementById('upStep3').style.display='block';
+    document.getElementById('aiNamaFile').value=file.name;
+    if(e.message.includes('API_KEY')||e.message.includes('key')||e.message.includes('401')){
+      toast('⚠️ Gemini API key tidak valid — isi manual','warn');
+    } else {
+      toast('⚠️ AI tidak bisa membaca file ini — isi manual','warn');
+    }
+  }
+}
+
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result.split(',')[1]);
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function clearUpFile(e){
+  if(e)e.stopPropagation();
+  upSelectedFile=null;
+  document.getElementById('upFile').value='';
+  document.getElementById('upZoneContent').style.display='block';
+  document.getElementById('upFileInfo').style.display='none';
+}
+
+function resetUpload(){
+  upSelectedFile=null;
+  document.getElementById('upFile').value='';
+  document.getElementById('upStep1').style.display='block';
+  document.getElementById('upStep2').style.display='none';
+  document.getElementById('upStep3').style.display='none';
+  document.getElementById('upZoneContent').style.display='block';
+  document.getElementById('upFileInfo').style.display='none';
+  document.getElementById('upAlert').style.display='none';
+  document.getElementById('upPrgWrap').style.display='none';
+}
+
+function showUpAlert(msg,type){
+  const el=document.getElementById('upAlert');if(!el)return;
+  el.textContent=msg;el.style.display='block';
+  el.style.background=type==='ok'?'rgba(16,185,129,.1)':type==='warn'?'rgba(245,158,11,.1)':'rgba(239,68,68,.1)';
+  el.style.border=type==='ok'?'1px solid rgba(16,185,129,.2)':type==='warn'?'1px solid rgba(245,158,11,.2)':'1px solid rgba(239,68,68,.2)';
+  el.style.color=type==='ok'?'#6ee7b7':type==='warn'?'#fcd34d':'#fca5a5';
+}
+
+async function doUpload(){
+  const katId=document.getElementById('upKat').value;
+  const ket=document.getElementById('upKet').value;
+  const namaFile=document.getElementById('aiNamaFile').value.trim()||upSelectedFile?.name;
+  const btn=document.getElementById('btnUpload');
+  if(!katId){showUpAlert('Pilih kategori terlebih dahulu','err');return;}
+  if(!upSelectedFile){showUpAlert('Pilih file terlebih dahulu','err');return;}
+  if(!WORKER_URL){showUpAlert('Worker URL belum dikonfigurasi. Atur di halaman Storage.','err');return;}
+  const bucket=await findAvailableBucket(upSelectedFile.size);
+  if(!bucket){showUpAlert('🚫 Semua penyimpanan penuh. Tambah bucket R2 baru di Storage.','err');return;}
+  setBtn(btn,true);
+  document.getElementById('upPrgWrap').style.display='block';
+  setPrg(0,'Mempersiapkan...');
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    const token=session?.access_token||'';
+    const r2Key=`${CU.id}/${Date.now()}_${upSelectedFile.name}`;
+    setPrg(20,'Mengupload file...');
+    const res=await fetch(`${WORKER_URL}/upload/${encodeURIComponent(r2Key)}`,{
+      method:'PUT',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':upSelectedFile.type||'application/octet-stream','X-Bucket-Id':String(bucket.id),'X-R2-Limit':String(bucket.limit_bytes||MAX_BUCKET_BYTES)},
+      body:upSelectedFile,
     });
-    if (dbErr) throw new Error(dbErr.message);
-
-    setPrg(100, 'Selesai!');
-    showUpAlert(`✓ ${upSelectedFile.name} berhasil diupload ke ${bucket.label}`, 'ok');
-    toast('Dokumen berhasil diupload ✓', 'ok');
-    clearUpFile();
-    document.getElementById('upKat').value = '';
-    document.getElementById('upKet').value = '';
-    setTimeout(() => { document.getElementById('upPrgWrap').style.display = 'none'; }, 2000);
-  } catch(e) {
-    showUpAlert('❌ ' + e.message, 'err');
-    toast(e.message, 'err');
-    document.getElementById('upPrgWrap').style.display = 'none';
-  }
-  setBtn(btn, false);
+    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error||(res.status===413?'Penyimpanan penuh':'Upload gagal HTTP '+res.status));}
+    setPrg(80,'Menyimpan ke database...');
+    const{error:dbErr}=await sb.from('dokumen').insert({user_id:CU.id,nama_file:namaFile,kategori_id:katId,keterangan:ket,ukuran_file:upSelectedFile.size,r2_key:r2Key,storage_bucket_id:bucket.id,storage_type:'r2'});
+    if(dbErr)throw new Error(dbErr.message);
+    setPrg(100,'Selesai!');
+    showUpAlert(`✓ Berhasil diupload ke ${bucket.label}`,'ok');
+    toast('Dokumen berhasil diupload ✓','ok');
+    setTimeout(()=>{ resetUpload(); loadUploadPage(); },1800);
+  }catch(e){showUpAlert('❌ '+e.message,'err');toast(e.message,'err');document.getElementById('upPrgWrap').style.display='none';}
+  setBtn(btn,false);
 }
-
-function setPrg(pct, label) {
-  document.getElementById('upPrgFill').style.width = pct + '%';
-  document.getElementById('upPrgLabel').textContent = label;
-  document.getElementById('upPrgPct').textContent = pct + '%';
+function setPrg(pct,label){
+  document.getElementById('upPrgFill').style.width=pct+'%';
+  document.getElementById('upPrgLabel').textContent=label;
+  document.getElementById('upPrgPct').textContent=pct+'%';
 }
-
-// Find first bucket with space for fileSize
-async function findAvailableBucket(fileSize) {
-  const active = allBuckets.filter(b => b.aktif).sort((a, b) => a.urutan - b.urutan);
-  if (!active.length) return null;
-
-  const { data: usageData } = await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id', CU.id);
-  const usageMap = {};
-  (usageData || []).forEach(d => { if (!usageMap[d.storage_bucket_id]) usageMap[d.storage_bucket_id] = 0; usageMap[d.storage_bucket_id] += (d.ukuran_file || 0); });
-
-  for (const b of active) {
-    const used = usageMap[b.id] || 0;
-    const limit = b.limit_bytes || MAX_BUCKET_GB * 1024 ** 3;
-    if (used + fileSize <= limit) return b;
-  }
+async function findAvailableBucket(fileSize){
+  const active=allBuckets.filter(b=>b.aktif).sort((a,b)=>a.urutan-b.urutan);
+  if(!active.length)return null;
+  const{data:ud}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id',CU.id);
+  const usageMap={};(ud||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
+  for(const b of active){const used=usageMap[b.id]||0,limit=b.limit_bytes||MAX_BUCKET_BYTES;if(used+fileSize<=limit)return b;}
   return null;
 }
 
-// ── KATEGORI ─────────────────────────────────────────────────
-async function loadKategori() {
-  const { data, error } = await sb.from('kategori').select('id,nama,deskripsi').eq('user_id', CU.id).order('nama');
-  allKategori = data || [];
+// ── AI ASISTEN ────────────────────────────────────────────────
+function loadAiPage(){/* already rendered */}
 
-  // Update dropdowns
-  ['upKat', 'editDokKat', 'dlKatSel', 'dokKatFilter'].forEach(id => {
-    const el = document.getElementById(id); if (!el) return;
-    const isFilter = id === 'dokKatFilter';
-    const cur = el.value;
-    el.innerHTML = (isFilter ? '<option value="">Semua Kategori</option>' : '<option value="">Pilih kategori...</option>') +
-      allKategori.map(k => `<option value="${k.id}">${esc(k.nama)}</option>`).join('');
-    if (cur) el.value = cur;
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();
+  if(!msg)return;
+  input.value='';
+  input.style.height='auto';
+  addChatBubble(msg,'user');
+  document.getElementById('aiStatus').textContent='Sedang berpikir...';
+  document.getElementById('btnSendChat').disabled=true;
+
+  try{
+    // Gather document context
+    const{data:docs}=await sb.from('dokumen').select('nama_file,ukuran_file,uploaded_at,keterangan,kategori:kategori_id(nama)').eq('user_id',CU.id).order('uploaded_at',{ascending:false}).limit(50);
+    const{data:kats}=await sb.from('kategori').select('nama').eq('user_id',CU.id);
+    const docSummary=(docs||[]).map(d=>`- ${d.nama_file} [${d.kategori?.nama||'Tanpa Kategori'}] ${fmtSz(d.ukuran_file)} ${fmtDate(d.uploaded_at)}${d.keterangan?' ('+d.keterangan+')':''}`).join('\n');
+    const katList=(kats||[]).map(k=>k.nama).join(', ');
+    const systemPrompt=`Anda adalah asisten AI untuk SaLax, sistem arsip dokumen pribadi milik ${CU.nama}.
+
+DATA ARSIP PENGGUNA:
+Kategori tersedia: ${katList||'belum ada'}
+Total dokumen: ${(docs||[]).length}
+Total ukuran: ${fmtSz((docs||[]).reduce((a,d)=>a+(d.ukuran_file||0),0))}
+
+DAFTAR DOKUMEN (50 terbaru):
+${docSummary||'Belum ada dokumen'}
+
+Tugas Anda:
+- Bantu pengguna mencari, menganalisis, dan memahami dokumen mereka
+- Berikan saran organisasi dokumen yang praktis
+- Jawab pertanyaan tentang sistem SaLax
+- Gunakan Bahasa Indonesia yang ramah dan natural
+- Berikan jawaban yang ringkas dan langsung ke poin`;
+
+    chatHistory.push({role:'user',content:msg});
+    if(chatHistory.length>20) chatHistory=chatHistory.slice(-20);
+
+    const typingEl=addChatBubble('●●●','ai',true);
+
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:CLAUDE_MODEL,
+        max_tokens:1000,
+        system:systemPrompt,
+        messages:chatHistory,
+      })
+    });
+
+    if(!response.ok) throw new Error('API error: '+response.status);
+    const data=await response.json();
+    const reply=data.content?.find(c=>c.type==='text')?.text||'Maaf, tidak ada respons.';
+
+    chatHistory.push({role:'assistant',content:reply});
+    if(typingEl) typingEl.remove();
+    addChatBubble(reply,'ai');
+  }catch(e){
+    addChatBubble('Maaf, terjadi error: '+e.message,'ai');
+  }
+  document.getElementById('aiStatus').textContent='Siap membantu';
+  document.getElementById('btnSendChat').disabled=false;
+}
+
+function addChatBubble(text,role,typing=false){
+  const container=document.getElementById('chatMessages');
+  const el=document.createElement('div');
+  el.className='chat-bubble chat-'+role+(typing?' typing':'');
+  if(typing){el.textContent=text;}
+  else{
+    // Simple markdown-like formatting
+    const formatted=text
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g,'<em>$1</em>')
+      .replace(/`(.*?)`/g,'<code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:4px;font-size:12px">$1</code>')
+      .replace(/\n/g,'<br>');
+    el.innerHTML=formatted;
+  }
+  container.appendChild(el);
+  container.scrollTop=container.scrollHeight;
+  return el;
+}
+
+function quickChat(text){
+  document.getElementById('chatInput').value=text;
+  sendChat();
+}
+
+function clearChat(){
+  chatHistory=[];
+  const container=document.getElementById('chatMessages');
+  container.innerHTML=`<div class="chat-bubble chat-ai"><div style="font-size:13px;font-weight:500;color:#C9A84C;margin-bottom:6px">Chat dibersihkan ✓</div><div style="font-size:13px">Ada yang bisa saya bantu?</div></div>`;
+}
+
+// ── KATEGORI ──────────────────────────────────────────────────
+async function loadKategori(){
+  const{data,error}=await sb.from('kategori').select('id,nama,deskripsi').eq('user_id',CU.id).order('nama');
+  allKategori=data||[];
+  ['upKat','editDokKat','dlKatSel'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const cur=el.value;
+    el.innerHTML=(id==='dokKatFilter'?'<option value="">Semua Kategori</option>':'<option value="">Pilih kategori...</option>')+allKategori.map(k=>`<option value="${k.id}">${esc(k.nama)}</option>`).join('');
+    if(cur)el.value=cur;
   });
 }
-
-async function loadKategoriPage() {
+async function loadKategoriPage(){
   await loadKategori();
-  // Counts per kategori
-  const { data: counts } = await sb.from('dokumen').select('kategori_id').eq('user_id', CU.id);
-  const countMap = {};
-  (counts || []).forEach(d => { countMap[d.kategori_id] = (countMap[d.kategori_id] || 0) + 1; });
-
-  document.getElementById('katList').innerHTML = !allKategori.length
-    ? '<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);padding:40px">Belum ada kategori</td></tr>'
-    : allKategori.map(k => `
-      <tr>
-        <td><span style="font-weight:500">${esc(k.nama)}</span></td>
-        <td style="color:rgba(255,255,255,0.4);font-size:13px">${esc(k.deskripsi || '—')}</td>
-        <td><span class="badge badge-muted">${countMap[k.id] || 0} file</span></td>
-        <td>
-          <div style="display:flex;gap:6px">
-            <button onclick="openModalKat('${k.id}','${esc(k.nama)}','${esc(k.deskripsi||'')}')" class="btn btn-ghost btn-xs">Edit</button>
-            <button onclick="confirmDelKat('${k.id}','${esc(k.nama)}')" class="btn btn-danger btn-xs">Hapus</button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+  const{data:counts}=await sb.from('dokumen').select('kategori_id').eq('user_id',CU.id);
+  const cMap={};(counts||[]).forEach(d=>{cMap[d.kategori_id]=(cMap[d.kategori_id]||0)+1;});
+  document.getElementById('katList').innerHTML=!allKategori.length
+    ?'<tr><td colspan="4" class="text-center py-10" style="color:rgba(255,255,255,.3)">Belum ada kategori</td></tr>'
+    :allKategori.map(k=>`<tr><td><span style="font-weight:500">${esc(k.nama)}</span></td><td style="color:rgba(255,255,255,.4);font-size:13px">${esc(k.deskripsi||'—')}</td><td><span class="badge badge-muted">${cMap[k.id]||0} file</span></td><td><div class="flex gap-1.5"><button onclick="openModalKat('${k.id}','${esc(k.nama)}','${esc(k.deskripsi||'')}')" class="btn btn-ghost btn-xs">Edit</button><button onclick="confirmDelKat('${k.id}','${esc(k.nama)}')" class="btn btn-danger btn-xs">Hapus</button></div></td></tr>`).join('');
 }
-
-function openModalKat(id = '', nama = '', desk = '') {
-  document.getElementById('modalKatId').value = id;
-  document.getElementById('modalKatNama').value = nama;
-  document.getElementById('modalKatDesk').value = desk;
-  document.getElementById('modalKatTitle').textContent = id ? 'Edit Kategori' : 'Tambah Kategori';
-  document.getElementById('modalKatAlert').style.display = 'none';
+function openModalKat(id='',nama='',desk=''){
+  document.getElementById('modalKatId').value=id;
+  document.getElementById('modalKatNama').value=nama;
+  document.getElementById('modalKatDesk').value=desk;
+  document.getElementById('modalKatTitle').textContent=id?'Edit Kategori':'Tambah Kategori';
+  document.getElementById('modalKatAlert').style.display='none';
   openModal('modalKat');
 }
-
-async function saveKat() {
-  const id = document.getElementById('modalKatId').value;
-  const nama = document.getElementById('modalKatNama').value.trim();
-  const desk = document.getElementById('modalKatDesk').value.trim();
-  const btn = document.getElementById('btnSaveKat');
-  if (!nama) { showModalAlert('modalKatAlert', 'Nama kategori wajib diisi', 'err'); return; }
-  setBtn(btn, true);
-  try {
-    const { error } = id
-      ? await sb.from('kategori').update({ nama, deskripsi: desk }).eq('id', id)
-      : await sb.from('kategori').insert({ nama, deskripsi: desk, user_id: CU.id });
-    if (error) throw new Error(error.message);
-    closeModal('modalKat');
-    toast((id ? 'Kategori diperbarui' : 'Kategori ditambahkan') + ' ✓', 'ok');
+async function saveKat(){
+  const id=document.getElementById('modalKatId').value;
+  const nama=document.getElementById('modalKatNama').value.trim();
+  const desk=document.getElementById('modalKatDesk').value.trim();
+  const btn=document.getElementById('btnSaveKat');
+  if(!nama){showModalAlert('modalKatAlert','Nama wajib diisi','err');return;}
+  setBtn(btn,true);
+  try{
+    const{error}=id?await sb.from('kategori').update({nama,deskripsi:desk}).eq('id',id):await sb.from('kategori').insert({nama,deskripsi:desk,user_id:CU.id});
+    if(error)throw new Error(error.message);
+    closeModal('modalKat');toast((id?'Kategori diperbarui':'Ditambahkan')+' ✓','ok');
     await loadKategoriPage();
-  } catch(e) { showModalAlert('modalKatAlert', e.message, 'err'); }
-  setBtn(btn, false);
+  }catch(e){showModalAlert('modalKatAlert',e.message,'err');}
+  setBtn(btn,false);
 }
-
-function confirmDelKat(id, nama) {
-  confirm_('Hapus Kategori', `Hapus kategori <strong>${esc(nama)}</strong>?<br><span style="font-size:12px;color:rgba(255,255,255,0.4)">Dokumen dalam kategori ini tidak terhapus.</span>`, async () => {
-    try {
-      const { error } = await sb.from('kategori').delete().eq('id', id);
-      if (error) throw new Error(error.message);
-      toast('Kategori dihapus ✓', 'ok');
-      await loadKategoriPage();
-    } catch(e) { toast(e.message, 'err'); }
+function confirmDelKat(id,nama){
+  confirm_('Hapus Kategori',`Hapus <strong>${esc(nama)}</strong>?`,async()=>{
+    try{const{error}=await sb.from('kategori').delete().eq('id',id);if(error)throw new Error(error.message);toast('Kategori dihapus ✓','ok');await loadKategoriPage();}
+    catch(e){toast(e.message,'err');}
   });
 }
 
-// ── DOWNLOAD ─────────────────────────────────────────────────
-async function loadDownloadPage() {
+// ── DOWNLOAD ──────────────────────────────────────────────────
+async function loadDownloadPage(){
   await loadKategori();
-  const dlKatSel = document.getElementById('dlKatSel');
-  dlKatSel.innerHTML = '<option value="">Pilih kategori...</option>' + allKategori.map(k =>
-    `<option value="${k.id}">${esc(k.nama)}</option>`
-  ).join('');
-  // Update info
-  const { count } = await sb.from('dokumen').select('*', { count: 'exact', head: true }).eq('user_id', CU.id);
-  const { data: sizeData } = await sb.from('dokumen').select('ukuran_file').eq('user_id', CU.id);
-  const totalSize = (sizeData || []).reduce((a, d) => a + (d.ukuran_file || 0), 0);
-  document.getElementById('dlAllInfo').textContent = `${count || 0} file · ${fmtSz(totalSize)}`;
+  document.getElementById('dlKatSel').innerHTML='<option value="">Pilih kategori...</option>'+allKategori.map(k=>`<option value="${k.id}">${esc(k.nama)}</option>`).join('');
+  const{count}=await sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id);
+  const{data:sd}=await sb.from('dokumen').select('ukuran_file').eq('user_id',CU.id);
+  document.getElementById('dlAllInfo').textContent=`${count||0} file · ${fmtSz((sd||[]).reduce((a,d)=>a+(d.ukuran_file||0),0))}`;
 }
-
-async function doDownloadAll() {
-  await doZipDownload(null, 'SaLax_Semua_Dokumen');
+async function doDownloadAll(){await doZipDownload(null,'SaLax_Semua');}
+async function doDownloadKat(){
+  const katId=document.getElementById('dlKatSel').value;
+  if(!katId){toast('Pilih kategori','warn');return;}
+  const kat=allKategori.find(k=>k.id===katId);
+  await doZipDownload(katId,'SaLax_'+(kat?.nama||'Kategori'));
 }
-
-async function doDownloadKat() {
-  const katId = document.getElementById('dlKatSel').value;
-  if (!katId) { toast('Pilih kategori terlebih dahulu', 'warn'); return; }
-  const kat = allKategori.find(k => k.id === katId);
-  await doZipDownload(katId, 'SaLax_' + (kat?.nama || 'Kategori'));
-}
-
-async function doZipDownload(katId, zipName) {
-  const btn = katId ? document.getElementById('btnDlKat') : document.getElementById('btnDlAll');
-  setBtn(btn, true);
-
-  const prgWrap = document.getElementById('dlAllPrg');
-  const prgFill = document.getElementById('dlAllFill');
-  const prgLabel = document.getElementById('dlAllLabel');
-  const prgPct = document.getElementById('dlAllPct');
-  prgWrap.style.display = 'block';
-
-  const setP = (pct, label) => {
-    prgFill.style.width = pct + '%';
-    prgLabel.textContent = label;
-    prgPct.textContent = pct + '%';
-  };
-
-  try {
-    let q = sb.from('dokumen').select('nama_file,r2_key,ukuran_file,storage_bucket_id,kategori:kategori_id(nama)').eq('user_id', CU.id);
-    if (katId) q = q.eq('kategori_id', katId);
-    q = q.order('uploaded_at', { ascending: false });
-    const { data: docs, error } = await q;
-    if (error) throw new Error(error.message);
-    if (!docs || !docs.length) { toast('Tidak ada dokumen', 'warn'); return; }
-
-    const { data: { session } } = await sb.auth.getSession();
-    const token = session?.access_token || '';
-    const zip = new JSZip();
-    const nameTracker = {};
-    let ok = 0, fail = 0;
-
-    for (let i = 0; i < docs.length; i++) {
-      const doc = docs[i];
-      setP(Math.round((i / docs.length) * 90), `Mengunduh ${i + 1}/${docs.length}: ${doc.nama_file}`);
-      try {
-        const bucket = allBuckets.find(b => b.id === doc.storage_bucket_id);
-        const encodedKey = encodeURIComponent(doc.r2_key);
-        const res = await fetch(`${WORKER_URL}/file/${encodedKey}`, {
-          headers: { 'Authorization': `Bearer ${token}`, 'X-Bucket-Id': String(doc.storage_bucket_id || '') }
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const blob = await res.blob();
-        if (!blob || blob.size === 0) throw new Error('File kosong');
-
-        const katName = (doc.kategori?.nama || 'Lainnya').replace(/[/\\?%*:|"<>]/g, '_');
-        let namaFile = doc.nama_file.replace(/[/\\?%*:|"<>]/g, '_');
-        const key = katName + '/' + namaFile;
-        if (nameTracker[key]) {
-          const ext = namaFile.includes('.') ? '.' + namaFile.split('.').pop() : '';
-          const base = ext ? namaFile.slice(0, -ext.length) : namaFile;
-          let n = 2; while (nameTracker[katName + '/' + base + '_(' + n + ')' + ext]) n++;
-          namaFile = base + '_(' + n + ')' + ext;
-        }
-        nameTracker[katName + '/' + namaFile] = true;
-        zip.folder(katName).file(namaFile, blob, { binary: true });
-        ok++;
-      } catch(e) { fail++; }
+async function doZipDownload(katId,zipName){
+  const btn=katId?document.getElementById('btnDlKat'):document.getElementById('btnDlAll');
+  setBtn(btn,true);
+  const prgWrap=document.getElementById('dlAllPrg'),prgFill=document.getElementById('dlAllFill'),prgLabel=document.getElementById('dlAllLabel'),prgPct=document.getElementById('dlAllPct');
+  prgWrap.style.display='block';
+  const setP=(pct,label)=>{prgFill.style.width=pct+'%';prgLabel.textContent=label;prgPct.textContent=pct+'%';};
+  try{
+    let q=sb.from('dokumen').select('nama_file,r2_key,ukuran_file,storage_bucket_id,kategori:kategori_id(nama)').eq('user_id',CU.id);
+    if(katId) q=q.eq('kategori_id',katId);
+    q=q.order('uploaded_at',{ascending:false});
+    const{data:docs,error}=await q;
+    if(error)throw new Error(error.message);
+    if(!docs||!docs.length){toast('Tidak ada dokumen','warn');return;}
+    const{data:{session}}=await sb.auth.getSession();
+    const token=session?.access_token||'';
+    const zip=new JSZip();const nameTracker={};let ok=0,fail=0;
+    for(let i=0;i<docs.length;i++){
+      const doc=docs[i];
+      setP(Math.round((i/docs.length)*90),`Mengunduh ${i+1}/${docs.length}: ${doc.nama_file}`);
+      try{
+        const res=await fetch(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':String(doc.storage_bucket_id||'')}});
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        const blob=await res.blob();
+        if(!blob||blob.size===0)throw new Error('File kosong');
+        const katName=(doc.kategori?.nama||'Lainnya').replace(/[/\\?%*:|"<>]/g,'_');
+        let namaFile=doc.nama_file.replace(/[/\\?%*:|"<>]/g,'_');
+        const key=katName+'/'+namaFile;
+        if(nameTracker[key]){const ext=namaFile.includes('.')?'.'+namaFile.split('.').pop():'';const base=ext?namaFile.slice(0,-ext.length):namaFile;let n=2;while(nameTracker[katName+'/'+base+'_('+n+')'+ext])n++;namaFile=base+'_('+n+')'+ext;}
+        nameTracker[katName+'/'+namaFile]=true;
+        zip.folder(katName).file(namaFile,blob,{binary:true});ok++;
+      }catch(e){fail++;}
     }
-
-    setP(95, 'Mengemas ZIP...');
-    const content = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-    if (!content || content.size < 22) throw new Error('ZIP kosong');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(content);
-    a.download = zipName + '_' + new Date().toISOString().slice(0, 10) + '.zip';
-    a.click();
-    setP(100, 'Selesai!');
-    toast(`✓ ${ok} file berhasil diunduh${fail ? ', ' + fail + ' gagal' : ''}`, ok > 0 ? 'ok' : 'warn');
-    const result = document.getElementById('dlResult');
-    result.style.display = 'block';
-    document.getElementById('dlResultText').innerHTML = `<span style="color:#6ee7b7">✓ ${ok} file berhasil dikemas</span>${fail ? `<span style="color:#fca5a5"> · ${fail} file gagal</span>` : ''}`;
-    setTimeout(() => { prgWrap.style.display = 'none'; }, 3000);
-  } catch(e) {
-    toast('Download gagal: ' + e.message, 'err');
-    prgWrap.style.display = 'none';
-  }
-  setBtn(btn, false);
+    setP(95,'Mengemas ZIP...');
+    const content=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+    if(!content||content.size<22)throw new Error('ZIP kosong');
+    const a=document.createElement('a');a.href=URL.createObjectURL(content);a.download=zipName+'_'+new Date().toISOString().slice(0,10)+'.zip';a.click();
+    setP(100,'Selesai!');
+    toast(`✓ ${ok} file diunduh${fail?', '+fail+' gagal':''}`,ok>0?'ok':'warn');
+    document.getElementById('dlResult').style.display='block';
+    document.getElementById('dlResultText').innerHTML=`<span style="color:#6ee7b7">✓ ${ok} file berhasil</span>${fail?`<span style="color:#fca5a5"> · ${fail} gagal</span>`:''}`;
+    setTimeout(()=>{prgWrap.style.display='none';},3000);
+  }catch(e){toast('Download gagal: '+e.message,'err');prgWrap.style.display='none';}
+  setBtn(btn,false);
 }
 
-// ── OPEN DOCUMENT ─────────────────────────────────────────────
-async function openDok(r2Key, nama, bucketId) {
-  if (!r2Key) { toast('File tidak tersedia', 'err'); return; }
-  showSplash('Mempersiapkan file...', 'Mengambil dari penyimpanan');
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const token = session?.access_token || '';
-    const encodedKey = encodeURIComponent(r2Key);
-    const res = await fetch(`${WORKER_URL}/file/${encodedKey}`, {
-      headers: { 'Authorization': `Bearer ${token}`, 'X-Bucket-Id': String(bucketId || '') }
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = nama; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-  } catch(e) { toast('Gagal membuka file: ' + e.message, 'err'); }
+// ── OPEN/EDIT/DEL DOK ─────────────────────────────────────────
+async function openDok(r2Key,nama,bucketId){
+  if(!r2Key){toast('File tidak tersedia','err');return;}
+  showSplash('Mengambil file...','Mohon tunggu');
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    const token=session?.access_token||'';
+    const res=await fetch(`${WORKER_URL}/file/${encodeURIComponent(r2Key)}`,{headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':String(bucketId||'')}});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const blob=await res.blob();
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nama;a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+  }catch(e){toast('Gagal: '+e.message,'err');}
   hideSplash();
 }
-
-// ── EDIT DOKUMEN ──────────────────────────────────────────────
-function openModalEditDok(id, nama, katId, ket) {
-  document.getElementById('editDokId').value = id;
-  document.getElementById('editDokNama').value = nama;
-  document.getElementById('editDokKet').value = ket;
-  const sel = document.getElementById('editDokKat');
-  sel.innerHTML = '<option value="">Pilih kategori...</option>' + allKategori.map(k =>
-    `<option value="${k.id}" ${k.id === katId ? 'selected' : ''}>${esc(k.nama)}</option>`
-  ).join('');
-  document.getElementById('editDokAlert').style.display = 'none';
+function openModalEditDok(id,nama,katId,ket){
+  document.getElementById('editDokId').value=id;
+  document.getElementById('editDokNama').value=nama;
+  document.getElementById('editDokKet').value=ket;
+  document.getElementById('editDokKat').innerHTML='<option value="">Pilih kategori...</option>'+allKategori.map(k=>`<option value="${k.id}" ${k.id===katId?'selected':''}>${esc(k.nama)}</option>`).join('');
+  document.getElementById('editDokAlert').style.display='none';
   openModal('modalEditDok');
 }
-
-async function saveEditDok() {
-  const id = document.getElementById('editDokId').value;
-  const nama = document.getElementById('editDokNama').value.trim();
-  const katId = document.getElementById('editDokKat').value;
-  const ket = document.getElementById('editDokKet').value.trim();
-  const btn = document.getElementById('btnSaveEditDok');
-  if (!nama) { showModalAlert('editDokAlert', 'Nama file wajib diisi', 'err'); return; }
-  setBtn(btn, true);
-  try {
-    const { error } = await sb.from('dokumen').update({ nama_file: nama, kategori_id: katId || null, keterangan: ket }).eq('id', id);
-    if (error) throw new Error(error.message);
-    closeModal('modalEditDok');
-    toast('Dokumen diperbarui ✓', 'ok');
-    loadDokumen(dokPage);
-  } catch(e) { showModalAlert('editDokAlert', e.message, 'err'); }
-  setBtn(btn, false);
+async function saveEditDok(){
+  const id=document.getElementById('editDokId').value;
+  const nama=document.getElementById('editDokNama').value.trim();
+  const katId=document.getElementById('editDokKat').value;
+  const ket=document.getElementById('editDokKet').value.trim();
+  const btn=document.getElementById('btnSaveEditDok');
+  if(!nama){showModalAlert('editDokAlert','Nama wajib diisi','err');return;}
+  setBtn(btn,true);
+  try{
+    const{error}=await sb.from('dokumen').update({nama_file:nama,kategori_id:katId||null,keterangan:ket}).eq('id',id);
+    if(error)throw new Error(error.message);
+    closeModal('modalEditDok');toast('Dokumen diperbarui ✓','ok');loadDokumen(dokPage);
+  }catch(e){showModalAlert('editDokAlert',e.message,'err');}
+  setBtn(btn,false);
 }
-
-// ── DELETE DOKUMEN ────────────────────────────────────────────
-function confirmDel(id, r2Key, bucketId) {
-  confirm_('Hapus Dokumen', 'Dokumen akan dihapus permanen dari penyimpanan.', async () => {
-    showSplash('Menghapus dokumen...', 'Menghapus file dari storage');
-    try {
-      // Delete from R2 first
-      if (r2Key && WORKER_URL) {
-        const { data: { session } } = await sb.auth.getSession();
-        const token = session?.access_token || '';
-        await fetch(`${WORKER_URL}/file/${encodeURIComponent(r2Key)}`, {
-          method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'X-Bucket-Id': String(bucketId || '') }
-        }).catch(() => {});
-      }
-      const { error } = await sb.from('dokumen').delete().eq('id', id);
-      if (error) throw new Error(error.message);
-      toast('Dokumen dihapus ✓', 'ok');
-      loadDokumen(dokPage);
-    } catch(e) { toast('Gagal hapus: ' + e.message, 'err'); }
+function confirmDel(id,r2Key,bucketId){
+  confirm_('Hapus Dokumen','File akan dihapus permanen dari penyimpanan.',async()=>{
+    showSplash('Menghapus...','Menghapus dari storage');
+    try{
+      if(r2Key&&WORKER_URL){const{data:{session}}=await sb.auth.getSession();const token=session?.access_token||'';await fetch(`${WORKER_URL}/file/${encodeURIComponent(r2Key)}`,{method:'DELETE',headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':String(bucketId||'')}}).catch(()=>{});}
+      const{error}=await sb.from('dokumen').delete().eq('id',id);
+      if(error)throw new Error(error.message);
+      toast('Dokumen dihapus ✓','ok');loadDokumen(dokPage);
+    }catch(e){toast('Gagal: '+e.message,'err');}
     hideSplash();
   });
 }
 
-// ── STORAGE (BUCKETS) ─────────────────────────────────────────
-async function loadBuckets() {
-  const { data, error } = await sb.from('r2_buckets').select('*').eq('user_id', CU.id).order('urutan');
-  allBuckets = data || [];
+// ── STORAGE ───────────────────────────────────────────────────
+async function loadBuckets(){
+  const{data}=await sb.from('r2_buckets').select('*').eq('user_id',CU.id).order('urutan');
+  allBuckets=data||[];
 }
-
-async function loadStoragePage() {
+async function loadStoragePage(){
   await loadBuckets();
-  const list = document.getElementById('storageBucketList');
-  const empty = document.getElementById('storageEmpty');
-
-  // Worker URL
-  const workerInp = document.getElementById('workerUrlInp');
-  if (WORKER_URL) workerInp.value = WORKER_URL;
-
-  if (!allBuckets.length) {
-    list.innerHTML = ''; empty.style.display = 'block'; return;
-  }
-  empty.style.display = 'none';
-
-  // Usage per bucket
-  const { data: usageData } = await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id', CU.id);
-  const usageMap = {};
-  (usageData || []).forEach(d => { if (!usageMap[d.storage_bucket_id]) usageMap[d.storage_bucket_id] = 0; usageMap[d.storage_bucket_id] += (d.ukuran_file || 0); });
-
-  list.innerHTML = allBuckets.map(b => {
-    const used = usageMap[b.id] || 0;
-    const limit = b.limit_bytes || MAX_BUCKET_GB * 1024 ** 3;
-    const pct = Math.min((used / limit) * 100, 100);
-    const color = pct > 90 ? '#f87171' : pct > 70 ? '#fbbf24' : '#4ade80';
-    const statusLabel = !b.aktif ? '<span class="badge badge-red">Nonaktif</span>' : pct >= 100 ? '<span class="badge badge-red">Penuh</span>' : pct > 70 ? '<span class="badge" style="background:rgba(251,191,36,0.1);color:#fbbf24;border-color:rgba(251,191,36,0.2)">Hampir penuh</span>' : '<span class="badge badge-green">Normal</span>';
-    return `
-      <div class="glass" style="padding:20px">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="width:40px;height:40px;background:rgba(255,255,255,0.05);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">🗄️</div>
-            <div>
-              <div style="font-size:15px;font-weight:500">${esc(b.label)}</div>
-              <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px">${esc(b.bucket)} · Urutan ${b.urutan}</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            ${statusLabel}
-            <button onclick="openModalBucket('${b.id}')" class="btn btn-ghost btn-xs">Edit</button>
-            <button onclick="confirmDelBucket('${b.id}','${esc(b.label)}')" class="btn btn-danger btn-xs">Hapus</button>
-          </div>
-        </div>
-        <div class="storage-bar" style="height:6px">
-          <div class="storage-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:8px">
-          <span style="font-size:12px;color:rgba(255,255,255,0.35)">${fmtSz(used)} / ${fmtSz(limit)}</span>
-          <span style="font-size:12px;color:rgba(255,255,255,0.35)">${pct.toFixed(1)}%</span>
-        </div>
-      </div>
-    `;
+  if(WORKER_URL)document.getElementById('workerUrlInp').value=WORKER_URL;
+  const list=document.getElementById('storageBucketList');
+  const empty=document.getElementById('storageEmpty');
+  if(!allBuckets.length){list.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const{data:ud}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id',CU.id);
+  const usageMap={};(ud||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
+  list.innerHTML=allBuckets.map(b=>{
+    const used=usageMap[b.id]||0,limit=b.limit_bytes||MAX_BUCKET_BYTES;
+    const pct=Math.min((used/limit)*100,100);
+    const clr=pct>90?'#f87171':pct>70?'#fbbf24':'#4ade80';
+    const badge=!b.aktif?'<span class="badge badge-red">Nonaktif</span>':pct>=100?'<span class="badge badge-red">Penuh</span>':pct>70?'<span class="badge" style="background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)">Hampir penuh</span>':'<span class="badge badge-green">Normal</span>';
+    return`<div class="glass p-4 sm:p-5"><div class="flex items-start justify-between gap-3 mb-3"><div class="flex items-center gap-3"><div style="width:36px;height:36px;background:rgba(255,255,255,.05);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🗄️</div><div><div style="font-size:14px;font-weight:500">${esc(b.label)}</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px">${esc(b.bucket)} · Urutan ${b.urutan}</div></div></div><div class="flex items-center gap-2 flex-wrap">${badge}<button onclick="openModalBucket('${b.id}')" class="btn btn-ghost btn-xs">Edit</button><button onclick="confirmDelBucket('${b.id}','${esc(b.label)}')" class="btn btn-danger btn-xs">Hapus</button></div></div><div class="sbar" style="height:5px"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${clr}"></div></div><div class="flex justify-between mt-2"><span style="font-size:11px;color:rgba(255,255,255,.35)">${fmtSz(used)} / ${fmtSz(limit)}</span><span style="font-size:11px;color:rgba(255,255,255,.35)">${pct.toFixed(1)}%</span></div></div>`;
   }).join('');
 }
-
-function openModalBucket(id = '') {
-  document.getElementById('modalBucketId').value = id;
-  if (id) {
-    const b = allBuckets.find(x => x.id == id);
-    if (b) {
-      document.getElementById('mbLabel').value = b.label;
-      document.getElementById('mbAccountId').value = b.account_id;
-      document.getElementById('mbBucket').value = b.bucket;
-      document.getElementById('mbAccessKey').value = b.access_key;
-      document.getElementById('mbSecretKey').value = '';
-      document.getElementById('mbLimit').value = Math.round((b.limit_bytes || MAX_BUCKET_GB * 1024 ** 3) / 1024 ** 3);
-      document.getElementById('mbUrutan').value = b.urutan;
-      document.getElementById('mbAktif').checked = b.aktif;
+function openModalBucket(id=''){
+  document.getElementById('modalBucketId').value=id;
+  if(id){
+    const b=allBuckets.find(x=>x.id==id);
+    if(b){
+      document.getElementById('mbLabel').value=b.label;document.getElementById('mbAccountId').value=b.account_id;document.getElementById('mbBucket').value=b.bucket;document.getElementById('mbAccessKey').value=b.access_key;document.getElementById('mbSecretKey').value='';
+      document.getElementById('mbLimit').value=Math.round((b.limit_bytes||MAX_BUCKET_BYTES)/1024**3);document.getElementById('mbUrutan').value=b.urutan;document.getElementById('mbAktif').checked=b.aktif;
     }
-    document.getElementById('modalBucketTitle').textContent = 'Edit Bucket R2';
-  } else {
-    ['mbLabel','mbAccountId','mbBucket','mbAccessKey','mbSecretKey'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('mbLimit').value = '9';
-    document.getElementById('mbUrutan').value = String(allBuckets.length + 1);
-    document.getElementById('mbAktif').checked = true;
-    document.getElementById('modalBucketTitle').textContent = 'Tambah Bucket R2';
+    document.getElementById('modalBucketTitle').textContent='Edit Bucket R2';
+  }else{
+    ['mbLabel','mbAccountId','mbBucket','mbAccessKey','mbSecretKey'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('mbLimit').value='9';document.getElementById('mbUrutan').value=String(allBuckets.length+1);document.getElementById('mbAktif').checked=true;
+    document.getElementById('modalBucketTitle').textContent='Tambah Bucket R2';
   }
-  document.getElementById('modalBucketAlert').style.display = 'none';
-  openModal('modalBucket');
+  document.getElementById('modalBucketAlert').style.display='none';openModal('modalBucket');
 }
-
-async function saveBucket() {
-  const id = document.getElementById('modalBucketId').value;
-  const label = document.getElementById('mbLabel').value.trim();
-  const accountId = document.getElementById('mbAccountId').value.trim();
-  const bucket = document.getElementById('mbBucket').value.trim();
-  const accessKey = document.getElementById('mbAccessKey').value.trim();
-  const secretKey = document.getElementById('mbSecretKey').value.trim();
-  const limitGb = Math.min(parseFloat(document.getElementById('mbLimit').value) || 9, 9);
-  const urutan = parseInt(document.getElementById('mbUrutan').value) || 1;
-  const aktif = document.getElementById('mbAktif').checked;
-  const btn = document.getElementById('btnSaveBucket');
-
-  if (!label || !accountId || !bucket || !accessKey) {
-    showModalAlert('modalBucketAlert', 'Label, Account ID, Bucket, dan Access Key wajib diisi', 'err'); return;
-  }
-  if (!id && !secretKey) {
-    showModalAlert('modalBucketAlert', 'Secret Key wajib diisi untuk bucket baru', 'err'); return;
-  }
-  setBtn(btn, true);
-  try {
-    const payload = {
-      user_id: CU.id, label, account_id: accountId, bucket, access_key: accessKey,
-      limit_bytes: Math.round(limitGb * 1024 ** 3), urutan, aktif
-    };
-    if (secretKey) payload.secret_key = secretKey;
-
-    const { error } = id
-      ? await sb.from('r2_buckets').update(payload).eq('id', id)
-      : await sb.from('r2_buckets').insert(payload);
-    if (error) throw new Error(error.message);
-    closeModal('modalBucket');
-    toast((id ? 'Bucket diperbarui' : 'Bucket ditambahkan') + ' ✓', 'ok');
-    await loadBuckets();
-    loadStoragePage();
-  } catch(e) { showModalAlert('modalBucketAlert', e.message, 'err'); }
-  setBtn(btn, false);
+async function saveBucket(){
+  const id=document.getElementById('modalBucketId').value;
+  const label=document.getElementById('mbLabel').value.trim();
+  const accountId=document.getElementById('mbAccountId').value.trim();
+  const bucket=document.getElementById('mbBucket').value.trim();
+  const accessKey=document.getElementById('mbAccessKey').value.trim();
+  const secretKey=document.getElementById('mbSecretKey').value.trim();
+  const limitGb=Math.min(parseFloat(document.getElementById('mbLimit').value)||9,9);
+  const urutan=parseInt(document.getElementById('mbUrutan').value)||1;
+  const aktif=document.getElementById('mbAktif').checked;
+  const btn=document.getElementById('btnSaveBucket');
+  if(!label||!accountId||!bucket||!accessKey){showModalAlert('modalBucketAlert','Label, Account ID, Bucket, Access Key wajib diisi','err');return;}
+  if(!id&&!secretKey){showModalAlert('modalBucketAlert','Secret Key wajib untuk bucket baru','err');return;}
+  setBtn(btn,true);
+  try{
+    const payload={user_id:CU.id,label,account_id:accountId,bucket,access_key:accessKey,limit_bytes:Math.round(limitGb*1024**3),urutan,aktif};
+    if(secretKey)payload.secret_key=secretKey;
+    const{error}=id?await sb.from('r2_buckets').update(payload).eq('id',id):await sb.from('r2_buckets').insert(payload);
+    if(error)throw new Error(error.message);
+    closeModal('modalBucket');toast((id?'Bucket diperbarui':'Ditambahkan')+' ✓','ok');
+    await loadBuckets();loadStoragePage();
+  }catch(e){showModalAlert('modalBucketAlert',e.message,'err');}
+  setBtn(btn,false);
 }
-
-function confirmDelBucket(id, label) {
-  confirm_('Hapus Bucket', `Hapus bucket <strong>${esc(label)}</strong>?<br><span style="font-size:12px;color:rgba(255,255,255,0.4)">Data dokumen yang referensi ke bucket ini tidak ikut terhapus dari database.</span>`, async () => {
-    try {
-      const { error } = await sb.from('r2_buckets').delete().eq('id', id);
-      if (error) throw new Error(error.message);
-      toast('Bucket dihapus ✓', 'ok');
-      await loadBuckets();
-      loadStoragePage();
-    } catch(e) { toast(e.message, 'err'); }
+function confirmDelBucket(id,label){
+  confirm_('Hapus Bucket',`Hapus bucket <strong>${esc(label)}</strong>?`,async()=>{
+    try{const{error}=await sb.from('r2_buckets').delete().eq('id',id);if(error)throw new Error(error.message);toast('Bucket dihapus ✓','ok');await loadBuckets();loadStoragePage();}
+    catch(e){toast(e.message,'err');}
   });
 }
-
-async function saveWorkerUrl() {
-  const url = document.getElementById('workerUrlInp').value.trim();
-  if (!url) { toast('URL tidak boleh kosong', 'warn'); return; }
-  try {
-    await sb.from('app_config').upsert({ key: 'workerUrl', value: url }, { onConflict: 'key' });
-    WORKER_URL = url;
-    toast('Worker URL disimpan ✓', 'ok');
-  } catch(e) { toast('Gagal menyimpan: ' + e.message, 'err'); }
+async function saveWorkerUrl(){
+  const url=document.getElementById('workerUrlInp').value.trim();
+  if(!url){toast('URL tidak boleh kosong','warn');return;}
+  try{await sb.from('app_config').upsert({key:'workerUrl',value:url},{onConflict:'key'});WORKER_URL=url;toast('Worker URL disimpan ✓','ok');}
+  catch(e){toast('Gagal: '+e.message,'err');}
 }
 
 // ── PROFIL ────────────────────────────────────────────────────
-function loadProfilPage() {
-  document.getElementById('profilNama').value = CU.nama || '';
-  document.getElementById('profilEmail').value = CU.email || '';
-  document.getElementById('profilAvatar').textContent = (CU.nama || '?').slice(0, 2).toUpperCase();
-  document.getElementById('profilAlert').style.display = 'none';
-  document.getElementById('passAlert').style.display = 'none';
-  document.getElementById('passNew').value = '';
-  document.getElementById('passConfirm').value = '';
+function loadProfilPage(){
+  document.getElementById('profilNama').value=CU.nama||'';
+  document.getElementById('profilEmail').value=CU.email||'';
+  document.getElementById('profilAvatar').textContent=(CU.nama||'?').slice(0,2).toUpperCase();
+  ['profilAlert','passAlert'].forEach(id=>document.getElementById(id).style.display='none');
+  ['passNew','passConfirm'].forEach(id=>document.getElementById(id).value='');
+}
+async function saveProfil(){
+  const nama=document.getElementById('profilNama').value.trim();
+  const btn=document.getElementById('btnSaveProfil');
+  if(!nama){showModalAlert('profilAlert','Nama wajib diisi','err');return;}
+  setBtn(btn,true);
+  try{
+    const{error}=await sb.from('profiles').update({nama}).eq('id',CU.id);
+    if(error)throw new Error(error.message);
+    CU.nama=nama;
+    ['sidebarAvatar','mobileAvatar','profilAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=nama.slice(0,2).toUpperCase();});
+    document.getElementById('sidebarName').textContent=nama;
+    showModalAlert('profilAlert','Profil disimpan ✓','ok');toast('Profil disimpan ✓','ok');
+  }catch(e){showModalAlert('profilAlert',e.message,'err');}
+  setBtn(btn,false);
+}
+async function savePassword(){
+  const np=document.getElementById('passNew').value;
+  const nc=document.getElementById('passConfirm').value;
+  const btn=document.getElementById('btnSavePass');
+  if(np.length<8){showModalAlert('passAlert','Password minimal 8 karakter','err');return;}
+  if(np!==nc){showModalAlert('passAlert','Konfirmasi tidak cocok','err');return;}
+  setBtn(btn,true);
+  try{
+    const{error}=await sb.auth.updateUser({password:np});
+    if(error)throw new Error(error.message);
+    showModalAlert('passAlert','Password diubah ✓','ok');toast('Password diubah ✓','ok');
+    document.getElementById('passNew').value='';document.getElementById('passConfirm').value='';
+  }catch(e){showModalAlert('passAlert',e.message,'err');}
+  setBtn(btn,false);
 }
 
-async function saveProfil() {
-  const nama = document.getElementById('profilNama').value.trim();
-  const btn = document.getElementById('btnSaveProfil');
-  if (!nama) { showModalAlert('profilAlert', 'Nama wajib diisi', 'err'); return; }
-  setBtn(btn, true);
-  try {
-    const { error } = await sb.from('profiles').update({ nama }).eq('id', CU.id);
-    if (error) throw new Error(error.message);
-    CU.nama = nama;
-    document.getElementById('sidebarName').textContent = nama;
-    document.getElementById('sidebarAvatar').textContent = nama.slice(0, 2).toUpperCase();
-    document.getElementById('profilAvatar').textContent = nama.slice(0, 2).toUpperCase();
-    showModalAlert('profilAlert', 'Profil diperbarui ✓', 'ok');
-    toast('Profil disimpan ✓', 'ok');
-  } catch(e) { showModalAlert('profilAlert', e.message, 'err'); }
-  setBtn(btn, false);
+// ── UTILS ─────────────────────────────────────────────────────
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');}
+function fmtSz(b){if(!b)return'0 B';const u=['B','KB','MB','GB'];let i=0;while(b>=1024&&i<3){b/=1024;i++;}return b.toFixed(i>0?1:0)+' '+u[i];}
+function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});}
+function fileEmoji(name=''){const e=name.split('.').pop().toLowerCase();if(e==='pdf')return'📄';if(['jpg','jpeg','png','gif','webp','svg'].includes(e))return'🖼️';if(['doc','docx'].includes(e))return'📝';if(['xls','xlsx'].includes(e))return'📊';if(['zip','rar','7z'].includes(e))return'🗜️';return'📁';}
+function setBtn(btn,loading,text=''){
+  if(!btn)return;btn.disabled=loading;
+  if(loading){btn._orig=btn.innerHTML;btn.innerHTML='<div class="spin"></div>';btn.style.opacity='.7';}
+  else{btn.style.opacity='';btn.innerHTML=text||(btn._orig||text);}
 }
-
-async function savePassword() {
-  const np = document.getElementById('passNew').value;
-  const nc = document.getElementById('passConfirm').value;
-  const btn = document.getElementById('btnSavePass');
-  if (np.length < 8) { showModalAlert('passAlert', 'Password minimal 8 karakter', 'err'); return; }
-  if (np !== nc) { showModalAlert('passAlert', 'Konfirmasi password tidak cocok', 'err'); return; }
-  if (!/[A-Z]/.test(np)) { showModalAlert('passAlert', 'Password harus mengandung huruf kapital', 'err'); return; }
-  if (!/[0-9]/.test(np)) { showModalAlert('passAlert', 'Password harus mengandung angka', 'err'); return; }
-  setBtn(btn, true);
-  try {
-    const { error } = await sb.auth.updateUser({ password: np });
-    if (error) throw new Error(error.message);
-    showModalAlert('passAlert', 'Password berhasil diubah ✓', 'ok');
-    toast('Password diubah ✓', 'ok');
-    document.getElementById('passNew').value = '';
-    document.getElementById('passConfirm').value = '';
-  } catch(e) { showModalAlert('passAlert', e.message, 'err'); }
-  setBtn(btn, false);
+function toast(msg,type='info'){
+  const c=document.getElementById('toast');const el=document.createElement('div');el.className='toast-item toast-'+type;el.textContent=msg;c.appendChild(el);
+  setTimeout(()=>{el.style.transition='all .3s';el.style.opacity='0';el.style.transform='translateY(6px)';setTimeout(()=>el.remove(),300);},3500);
 }
-
-// ── HELPERS ───────────────────────────────────────────────────
-function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;'); }
-
-function fmtSz(bytes) {
-  if (!bytes) return '0 B';
-  const u = ['B','KB','MB','GB']; let i = 0;
-  while (bytes >= 1024 && i < 3) { bytes /= 1024; i++; }
-  return bytes.toFixed(i > 0 ? 1 : 0) + ' ' + u[i];
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showModalAlert(id,msg,type){
+  const el=document.getElementById(id);if(!el)return;
+  el.textContent=msg;el.style.display='block';
+  el.style.background=type==='ok'?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
+  el.style.border=type==='ok'?'1px solid rgba(16,185,129,.2)':'1px solid rgba(239,68,68,.2)';
+  el.style.color=type==='ok'?'#6ee7b7':'#fca5a5';
 }
-
-function fmtDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function fileEmoji(name = '') {
-  const ext = name.split('.').pop().toLowerCase();
-  if (['pdf'].includes(ext)) return '📄';
-  if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) return '🖼️';
-  if (['doc','docx'].includes(ext)) return '📝';
-  if (['xls','xlsx'].includes(ext)) return '📊';
-  if (['zip','rar','7z'].includes(ext)) return '🗜️';
-  return '📁';
-}
-
-function setBtn(btn, loading, text = '') {
-  if (!btn) return;
-  btn.disabled = loading;
-  if (loading) {
-    btn._orig = btn.innerHTML;
-    btn.innerHTML = '<div class="spin"></div>';
-    btn.style.opacity = '0.7';
-  } else {
-    btn.style.opacity = '';
-    btn.innerHTML = text ? text : (btn._orig || text);
-  }
-}
-
-function toast(msg, type = 'info') {
-  const container = document.getElementById('toast');
-  const el = document.createElement('div');
-  el.className = `toast-item toast-${type}`;
-  el.textContent = msg;
-  container.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(4px)'; el.style.transition = 'all .3s'; setTimeout(() => el.remove(), 300); }, 3500);
-}
-
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function showModalAlert(id, msg, type) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = msg; el.style.display = 'block';
-  el.style.background = type === 'ok' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
-  el.style.border = type === 'ok' ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(239,68,68,0.2)';
-  el.style.color = type === 'ok' ? '#6ee7b7' : '#fca5a5';
-}
-
-function confirm_(title, msg, onOk) {
-  document.getElementById('confirmTitle').textContent = title;
-  document.getElementById('confirmMsg').innerHTML = msg;
-  const okBtn = document.getElementById('btnConfirmOk');
-  okBtn.onclick = () => { closeModal('modalConfirm'); onOk(); };
+function confirm_(title,msg,onOk){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').innerHTML=msg;
+  document.getElementById('btnConfirmOk').onclick=()=>{closeModal('modalConfirm');onOk();};
   openModal('modalConfirm');
 }
-
-function showSplash(msg, sub = '') {
-  const el = document.getElementById('actionSplash');
-  document.getElementById('splashMsg').textContent = msg;
-  document.getElementById('splashSub').textContent = sub;
-  el.style.display = 'flex';
+function showSplash(msg,sub=''){const el=document.getElementById('actionSplash');document.getElementById('splashMsg').textContent=msg;document.getElementById('splashSub').textContent=sub;el.style.display='flex';}
+function hideSplash(){document.getElementById('actionSplash').style.display='none';}
+function renderPagination(total,current,size,fn,containerId){
+  const pages=Math.ceil(total/size);const c=document.getElementById(containerId);if(!c)return;
+  if(pages<=1){c.innerHTML='';return;}
+  let html='';for(let i=1;i<=pages;i++)html+=`<button onclick="${fn}(${i})" class="btn btn-xs ${i===current?'btn-gold':'btn-ghost'}" style="${i===current?'':'border:1px solid rgba(255,255,255,.08)'}">${i}</button>`;
+  c.innerHTML=html;
 }
-function hideSplash() { document.getElementById('actionSplash').style.display = 'none'; }
-
-function renderPagination(total, current, size, fn, containerId) {
-  const pages = Math.ceil(total / size);
-  const container = document.getElementById(containerId);
-  if (pages <= 1) { container.innerHTML = ''; return; }
-  let html = '';
-  for (let i = 1; i <= pages; i++) {
-    html += `<button onclick="${fn}(${i})" class="btn btn-xs ${i === current ? 'btn-gold' : 'btn-ghost'}" style="${i===current?'':'border:1px solid rgba(255,255,255,0.08)'}">${i}</button>`;
-  }
-  container.innerHTML = html;
-}
-
-function togglePw(id, btn) {
-  const inp = document.getElementById(id);
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-  btn.style.color = inp.type === 'text' ? '#C9A84C' : 'rgba(255,255,255,0.3)';
-}
-
-function openSidebar() {
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('overlay').classList.add('open');
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('open');
-}
-
-// ── ESC to close modals ───────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-backdrop.open').forEach(m => m.classList.remove('open'));
-  }
-});
+function togglePw(id,btn){const inp=document.getElementById(id);inp.type=inp.type==='password'?'text':'password';btn.style.color=inp.type==='text'?'#C9A84C':'rgba(255,255,255,.3)';}
+// ESC close modals
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-bd.open').forEach(m=>m.classList.remove('open'));});
 </script>
-
-<!-- ═══════════════════════════════════════════
-     SUPABASE SQL SCHEMA (paste ke SQL Editor)
-════════════════════════════════════════════
--- Enable RLS
--- Table: profiles
-create table profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text,
-  nama text,
-  created_at timestamptz default now()
-);
-alter table profiles enable row level security;
-create policy "owner" on profiles for all using (auth.uid() = id);
-
--- Table: kategori
-create table kategori (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) on delete cascade,
-  nama text not null,
-  deskripsi text,
-  created_at timestamptz default now()
-);
-alter table kategori enable row level security;
-create policy "owner" on kategori for all using (auth.uid() = user_id);
-
--- Table: r2_buckets
-create table r2_buckets (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) on delete cascade,
-  label text not null,
-  account_id text not null,
-  bucket text not null,
-  access_key text not null,
-  secret_key text,
-  limit_bytes bigint default 9663676416,
-  urutan int default 1,
-  aktif boolean default true,
-  created_at timestamptz default now()
-);
-alter table r2_buckets enable row level security;
-create policy "owner" on r2_buckets for all using (auth.uid() = user_id);
-
--- Table: dokumen
-create table dokumen (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) on delete cascade,
-  nama_file text not null,
-  kategori_id uuid references kategori(id) on delete set null,
-  keterangan text,
-  ukuran_file bigint default 0,
-  r2_key text,
-  storage_bucket_id uuid references r2_buckets(id) on delete set null,
-  storage_type text default 'r2',
-  uploaded_at timestamptz default now()
-);
-alter table dokumen enable row level security;
-create policy "owner" on dokumen for all using (auth.uid() = user_id);
-
--- Table: app_config
-create table app_config (
-  key text primary key,
-  value text,
-  updated_at timestamptz default now()
-);
-alter table app_config enable row level security;
-create policy "owner" on app_config for all using (true);
--->
 </body>
 </html>

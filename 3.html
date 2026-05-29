@@ -123,9 +123,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 #actionSplash{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:12px}
 /* Stat number */
 .stat-num{font-family:'Instrument Serif',serif;font-size:clamp(28px,5vw,38px);line-height:1;color:#e8e8ed}
-@media(min-width:768px){.stat-grid-4{grid-template-columns:repeat(4,1fr)!important}}
-@media(min-width:1024px){.dash-grid{grid-template-columns:repeat(2,1fr)!important}}
-.dash-grid{display:grid;grid-template-columns:1fr;gap:16px}
 /* Doc card */
 .dok-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);transition:all .2s}
 .dok-card:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}
@@ -208,11 +205,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div>
 
 <!-- ═══ MAIN APP ═══ -->
-<div id="app" style="display:flex;min-height:100svh;visibility:hidden;position:absolute;width:100%" class="z1">
-  <div style="display:flex;width:100%;min-height:100svh;">
+<div id="app" style="display:none" class="z1">
+  <div class="flex min-h-screen">
 
     <!-- DESKTOP SIDEBAR -->
-    <aside class="desktop-sidebar flex flex-col gap-1 p-4" style="width:240px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.06);position:sticky;top:0;height:100svh;overflow-y:auto">
+    <aside class="desktop-sidebar flex flex-col gap-1 p-3" style="width:220px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.06);position:sticky;top:0;height:100vh">
       <div class="flex items-center gap-2.5 px-2 py-3 mb-1">
         <div style="width:32px;height:32px;background:linear-gradient(135deg,#C9A84C,#DFC068);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#0A0A0F" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="#0A0A0F" stroke-width="2" stroke-linecap="round"/></svg>
@@ -243,7 +240,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </aside>
 
     <!-- MAIN CONTENT -->
-    <main id="mainContent" class="flex-1 min-w-0 overflow-y-auto main-pad" style="padding:24px 24px;max-height:100svh;min-height:100svh">
+    <main id="mainContent" class="flex-1 min-w-0 overflow-y-auto main-pad" style="padding:20px 16px;max-height:100svh" id="mainScroll">
 
       <!-- Mobile header -->
       <div class="flex items-center justify-between mb-5 md:hidden">
@@ -264,13 +261,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <h1 class="page-title">Dashboard</h1>
           <p id="dashGreet" style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Selamat datang</p>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px" class="stat-grid-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
           <div class="glass p-4"><div class="stat-num" id="statDok">—</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Dokumen</div></div>
           <div class="glass p-4"><div class="stat-num" id="statKat">—</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Kategori</div></div>
           <div class="glass p-4"><div class="stat-num" id="statSize">—</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Ukuran</div></div>
           <div class="glass p-4"><div class="stat-num" id="statBuckets">—</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">R2 Aktif</div></div>
         </div>
-        <div class="dash-grid">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div class="glass p-5">
             <h2 style="font-size:14px;font-weight:500;margin-bottom:14px">Penyimpanan</h2>
             <div id="dashStorageBars" class="flex flex-col gap-3"><div style="color:rgba(255,255,255,.3);font-size:13px">Memuat...</div></div>
@@ -689,8 +686,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 ════════════════════════════════════════════ -->
 <script>
 // ── CONFIG ─── replace these ──────────────────────────────────
-const SB_URL  = 'https://oxttycjpgjylkjwhocuv.supabase.co';
-const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94dHR5Y2pwZ2p5bGtqd2hvY3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NDc5MjYsImV4cCI6MjA5NTUyMzkyNn0.bXv3QBHjEXPCEDgHrOQbzI5ATJRZpOf93b10GRcGThI';
+const SB_URL      = 'YOUR_SUPABASE_URL';
+const SB_ANON     = 'YOUR_SUPABASE_ANON_KEY';
 const CLAUDE_MODEL= 'claude-sonnet-4-20250514';
 const MAX_BUCKET_BYTES = 9 * 1024 * 1024 * 1024;
 const PAGE_SIZE = 20;
@@ -741,16 +738,13 @@ async function loadUserState(user){
   await Promise.all([loadKategori(),loadBuckets()]);
   document.getElementById('loginPage').style.display='none';
   document.getElementById('forgotPage').style.display='none';
-  const appEl=document.getElementById('app');
-  appEl.style.visibility='visible';
-  appEl.style.position='relative';
-  appEl.style.width='';
+  document.getElementById('app').style.display='block';
   showPage('dash');
 }
 
 // ── AUTH ──────────────────────────────────────────────────────
 function showAuthPage(p){
-  const appEl=document.getElementById('app');appEl.style.visibility='hidden';appEl.style.position='absolute';appEl.style.width='100%';
+  document.getElementById('app').style.display='none';
   document.getElementById('loginPage').style.display=p==='login'?'flex':'none';
   document.getElementById('forgotPage').style.display=p==='forgot'?'flex':'none';
 }

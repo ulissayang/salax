@@ -815,33 +815,52 @@ window.addEventListener('DOMContentLoaded', async()=>{
 });
 
 async function loadUserState(user){
-  CU=user;
-  let{data:prof}=await sb.from('profiles').select('*').eq('id',user.id).single();
-  if(!prof){
-    await sb.from('profiles').insert({id:user.id,email:user.email,nama:user.email.split('@')[0]});
-    prof={id:user.id,email:user.email,nama:user.email.split('@')[0]};
+  try{
+    CU=user;
+    // Load profile — buat baru jika belum ada
+    let{data:prof,error:profErr}=await sb.from('profiles').select('*').eq('id',user.id).single();
+    if(profErr||!prof){
+      try{
+        await sb.from('profiles').insert({id:user.id,email:user.email,nama:user.email.split('@')[0]});
+      }catch(e){}
+      prof={id:user.id,email:user.email,nama:user.email.split('@')[0]};
+    }
+    CU.nama=prof.nama||user.email;
+    CU.email=prof.email||user.email;
+    const initials=(CU.nama||'?').slice(0,2).toUpperCase();
+    ['sidebarAvatar','mobileAvatar','profilAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=initials;});
+    const sn=document.getElementById('sidebarName');if(sn)sn.textContent=CU.nama;
+
+    // Load semua config sekaligus
+    try{
+      const{data:allCfg}=await sb.from('app_config').select('key,value');
+      if(allCfg){
+        const wUrl=allCfg.find(r=>r.key==='workerUrl');
+        const gKey=allCfg.find(r=>r.key==='geminiKey');
+        if(wUrl){WORKER_URL=wUrl.value;const el=document.getElementById('workerUrlInp');if(el)el.value=wUrl.value;}
+        if(gKey){_cachedGeminiKey=gKey.value;updateGeminiKeyUI();}
+      }
+    }catch(e){}
+
+    // Load data paralel
+    try{ await Promise.all([loadKategori(),loadBuckets()]); }catch(e){}
+
+    // Tampilkan app
+    ['loadingPage','loginPage','forgotPage','configPage'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.style.display='none';
+    });
+    document.getElementById('app').style.display='flex';
+    showPage('dash');
+
+  }catch(e){
+    console.error('loadUserState error:',e);
+    // Tetap tampilkan app meski ada error
+    ['loadingPage','loginPage','forgotPage','configPage'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.style.display='none';
+    });
+    document.getElementById('app').style.display='flex';
+    showPage('dash');
   }
-  CU.nama=prof.nama||user.email;
-  CU.email=prof.email||user.email;
-  const initials=(CU.nama||'?').slice(0,2).toUpperCase();
-  ['sidebarAvatar','mobileAvatar','profilAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=initials;});
-  document.getElementById('sidebarName').textContent=CU.nama;
-  const{data:cfg}=await sb.from('app_config').select('key,value').eq('key','workerUrl');
-  // Load semua config: workerUrl dan geminiKey
-  const{data:allCfg}=await sb.from('app_config').select('key,value');
-  if(allCfg){
-    const wUrl=allCfg.find(r=>r.key==='workerUrl');
-    const gKey=allCfg.find(r=>r.key==='geminiKey');
-    if(wUrl){WORKER_URL=wUrl.value;const el=document.getElementById('workerUrlInp');if(el)el.value=wUrl.value;}
-    if(gKey){_cachedGeminiKey=gKey.value;updateGeminiKeyUI();}
-  }
-  await Promise.all([loadKategori(),loadBuckets()]);
-  document.getElementById('loadingPage').style.display='none';
-  document.getElementById('loginPage').style.display='none';
-  document.getElementById('forgotPage').style.display='none';
-  document.getElementById('configPage').style.display='none';
-  document.getElementById('app').style.display='flex';
-  showPage('dash');
 }
 
 // ── AUTH ──────────────────────────────────────────────────────

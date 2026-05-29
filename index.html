@@ -153,6 +153,42 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div id="splashSub" style="font-size:12px;color:rgba(255,255,255,.4)"></div>
 </div>
 
+<!-- ═══ CONFIG PAGE (first time setup) ═══ -->
+<div id="configPage" style="display:none" class="login-wrap z1">
+  <div style="width:100%;max-width:420px">
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center gap-2.5 mb-3">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#C9A84C,#DFC068);border-radius:11px;display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#0A0A0F" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="#0A0A0F" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <span style="font-family:'Instrument Serif',serif;font-size:24px;color:#e8e8ed">SaLax</span>
+      </div>
+      <p style="font-size:13px;color:rgba(255,255,255,.35)">Setup awal — masukkan konfigurasi Supabase</p>
+    </div>
+    <div class="glass p-6">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;padding:10px 12px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span style="font-size:12px;color:#a5b4fc">Credentials disimpan di browser Anda saja, tidak dikirim ke mana pun.</span>
+      </div>
+      <div class="mb-4">
+        <label class="lbl">Supabase Project URL</label>
+        <input id="cfgSbUrl" type="url" class="inp" placeholder="https://xxxxx.supabase.co"/>
+        <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Supabase Dashboard → Project Settings → API → Project URL</p>
+      </div>
+      <div class="mb-6">
+        <label class="lbl">Supabase Anon Key</label>
+        <input id="cfgSbAnon" type="password" class="inp" placeholder="eyJhbGciOi..." autocomplete="off"/>
+        <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Supabase Dashboard → Project Settings → API → anon public</p>
+      </div>
+      <div id="cfgAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px"></div>
+      <button id="btnSaveConfig" onclick="saveConfig()" class="btn btn-gold w-full justify-center">
+        Simpan &amp; Lanjutkan
+      </button>
+      <p style="font-size:11px;color:rgba(255,255,255,.25);text-align:center;margin-top:12px">Perlu diisi hanya sekali. Reset kapan saja di halaman Profil.</p>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ LOGIN PAGE ═══ -->
 <div id="loginPage" class="login-wrap z1">
   <div style="width:100%;max-width:400px">
@@ -688,17 +724,34 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
      JAVASCRIPT
 ════════════════════════════════════════════ -->
 <script>
-// ── CONFIG ─── replace these ──────────────────────────────────
-const SB_URL  = 'https://oxttycjpgjylkjwhocuv.supabase.co';
-const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94dHR5Y2pwZ2p5bGtqd2hvY3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NDc5MjYsImV4cCI6MjA5NTUyMzkyNn0.bXv3QBHjEXPCEDgHrOQbzI5ATJRZpOf93b10GRcGThI';
-const CLAUDE_MODEL= 'claude-sonnet-4-20250514';
+// ── CONFIG — dari Cloudflare Pages env variables ─────────────
+// Set di: Pages → Settings → Environment Variables
+//   SALAX_SUPABASE_URL  = https://xxx.supabase.co
+//   SALAX_SUPABASE_ANON = eyJ...
+// Cloudflare Pages otomatis inject sebagai window.__CF_PAGES_ENV__ (tidak)
+// Cara terbaik: pakai _worker.js atau taruh di HTML via Pages Functions
+// Untuk single-file, kita ambil dari meta tag yang di-inject saat build
+// ATAU user isi sekali di Settings page dan simpan ke localStorage
+
 const MAX_BUCKET_BYTES = 9 * 1024 * 1024 * 1024;
 const PAGE_SIZE = 20;
+const GEMINI_MODEL = 'gemini-2.0-flash';
+
+// Ambil config: coba dari meta tag (jika pakai Pages Functions),
+// fallback ke localStorage (user isi manual di Settings)
+function getConfig() {
+  const metaUrl  = document.querySelector('meta[name="sb-url"]')?.content;
+  const metaAnon = document.querySelector('meta[name="sb-anon"]')?.content;
+  const storedUrl  = localStorage.getItem('salax_sb_url');
+  const storedAnon = localStorage.getItem('salax_sb_anon');
+  return {
+    sbUrl:  metaUrl  || storedUrl  || '',
+    sbAnon: metaAnon || storedAnon || '',
+  };
+}
 
 const { createClient } = supabase;
-const sb = createClient(SB_URL, SB_ANON, {
-  auth:{ storage:sessionStorage, storageKey:'salax_v2', autoRefreshToken:true, persistSession:true }
-});
+let sb = null; // initialized after config loaded
 
 // ── STATE ─────────────────────────────────────────────────────
 let CU=null, allKategori=[], allBuckets=[], WORKER_URL='';
@@ -708,13 +761,25 @@ let chatHistory=[]; // for AI context
 
 // ── INIT ──────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async()=>{
+  // Init Supabase dengan config
+  const cfg = getConfig();
+  if (!cfg.sbUrl || !cfg.sbAnon) {
+    // Tampilkan halaman settings config dulu
+    showConfigPage();
+    return;
+  }
+  sb = createClient(cfg.sbUrl, cfg.sbAnon, {
+    auth:{ storage:sessionStorage, storageKey:'salax_v2', autoRefreshToken:true, persistSession:true }
+  });
+  // Setup auth listener sekali saja
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session) await loadUserState(session.user);
+    else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
+  });
   const {data:{session}}=await sb.auth.getSession();
   if(session) await loadUserState(session.user);
   else showAuthPage('login');
-  sb.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_IN'&&session) await loadUserState(session.user);
-    else if(event==='SIGNED_OUT'){ CU=null; showAuthPage('login'); }
-  });
+  // auth listener already set above
   // Drag for upload zone
   const zone=document.getElementById('upZone');
   if(zone){
@@ -749,6 +814,62 @@ async function loadUserState(user){
 }
 
 // ── AUTH ──────────────────────────────────────────────────────
+function showConfigPage(){
+  ['loginPage','forgotPage'].forEach(id=>document.getElementById(id).style.display='none');
+  const appEl=document.getElementById('app');appEl.style.visibility='hidden';appEl.style.position='absolute';
+  document.getElementById('configPage').style.display='flex';
+  // Pre-fill if already have values
+  const cfg=getConfig();
+  if(cfg.sbUrl) document.getElementById('cfgSbUrl').value=cfg.sbUrl;
+  if(cfg.sbAnon) document.getElementById('cfgSbAnon').value='';
+}
+
+async function saveConfig(){
+  const url=document.getElementById('cfgSbUrl').value.trim();
+  const anon=document.getElementById('cfgSbAnon').value.trim();
+  const btn=document.getElementById('btnSaveConfig');
+  const alert=document.getElementById('cfgAlert');
+  alert.style.display='none';
+  if(!url||!anon){
+    alert.textContent='Kedua field wajib diisi';alert.style.display='block';
+    alert.style.cssText+='background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5';return;
+  }
+  if(!url.startsWith('https://')||!url.includes('supabase')){
+    alert.textContent='URL tidak valid. Harus dimulai dengan https:// dan mengandung supabase';alert.style.display='block';
+    alert.style.cssText+='background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5';return;
+  }
+  setBtn(btn,true);
+  // Test connection
+  try{
+    const testRes=await fetch(`${url}/auth/v1/settings`,{headers:{'apikey':anon}});
+    if(!testRes.ok&&testRes.status!==401) throw new Error('Koneksi gagal: '+testRes.status);
+    localStorage.setItem('salax_sb_url',url);
+    localStorage.setItem('salax_sb_anon',anon);
+    // Init Supabase
+    sb=createClient(url,anon,{auth:{storage:sessionStorage,storageKey:'salax_v2',autoRefreshToken:true,persistSession:true}});
+    document.getElementById('configPage').style.display='none';
+    const{data:{session}}=await sb.auth.getSession();
+    if(session) await loadUserState(session.user);
+    else showAuthPage('login');
+    sb.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='SIGNED_IN'&&session) await loadUserState(session.user);
+      else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
+    });
+  }catch(e){
+    alert.textContent='Gagal terhubung: '+e.message;alert.style.display='block';
+    alert.style.cssText+='background:rgba(239,68,68,.1);border:1px solid rgba(239,68,46,.2);color:#fca5a5';
+  }
+  setBtn(btn,false,'Simpan & Lanjutkan');
+}
+
+function resetConfig(){
+  if(!confirm('Reset konfigurasi Supabase? Anda akan perlu mengisi ulang URL dan Anon Key.')) return;
+  localStorage.removeItem('salax_sb_url');
+  localStorage.removeItem('salax_sb_anon');
+  try{if(sb)sb.auth.signOut().catch(()=>{});}catch(e){}
+  location.reload();
+}
+
 function showAuthPage(p){
   const appEl=document.getElementById('app');appEl.style.visibility='hidden';appEl.style.position='absolute';appEl.style.width='100%';
   document.getElementById('loginPage').style.display=p==='login'?'flex':'none';
@@ -1219,20 +1340,27 @@ Tugas Anda:
 
     const typingEl=addChatBubble('●●●','ai',true);
 
-    const response=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:CLAUDE_MODEL,
-        max_tokens:1000,
-        system:systemPrompt,
-        messages:chatHistory,
-      })
+    const geminiKey=getGeminiKey();
+    if(!geminiKey) throw new Error('Gemini API key belum diset. Buka halaman Upload → isi Gemini API key.');
+
+    // Build Gemini messages — gabung system prompt ke user message pertama
+    const geminiMsgs=chatHistory.map((m,i)=>{
+      const txt=i===0&&m.role==='user'?systemPrompt+'\n\nPertanyaan: '+m.content:m.content;
+      return{role:m.role==='assistant'?'model':'user',parts:[{text:txt}]};
     });
 
-    if(!response.ok) throw new Error('API error: '+response.status);
+    const response=await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({
+         contents:geminiMsgs,
+         generationConfig:{maxOutputTokens:1024,temperature:0.7}
+       })}
+    );
+
+    if(!response.ok){const e=await response.json().catch(()=>({}));throw new Error(e?.error?.message||'Gemini error '+response.status);}
     const data=await response.json();
-    const reply=data.content?.find(c=>c.type==='text')?.text||'Maaf, tidak ada respons.';
+    const reply=data.candidates?.[0]?.content?.parts?.[0]?.text||'Maaf, tidak ada respons.';
 
     chatHistory.push({role:'assistant',content:reply});
     if(typingEl) typingEl.remove();

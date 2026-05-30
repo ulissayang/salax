@@ -164,7 +164,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- ═══ CONFIG PAGE (first time setup) ═══ -->
 <div id="configPage" style="display:none" class="login-wrap z1">
-  <div style="width:100%;max-width:460px">
+  <div style="width:100%;max-width:420px">
     <div class="text-center mb-6">
       <div class="inline-flex items-center gap-2.5 mb-3">
         <div style="width:38px;height:38px;background:linear-gradient(135deg,#C9A84C,#DFC068);border-radius:11px;display:flex;align-items:center;justify-content:center">
@@ -172,49 +172,28 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         </div>
         <span style="font-family:'Instrument Serif',serif;font-size:24px;color:#e8e8ed">SaLax</span>
       </div>
-      <p style="font-size:13px;color:rgba(255,255,255,.35)">Setup awal — isi sekali, tersimpan selamanya</p>
+      <p style="font-size:13px;color:rgba(255,255,255,.35)">Setup awal — masukkan konfigurasi Supabase</p>
     </div>
     <div class="glass p-6">
-      <!-- Supabase section -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-        <div style="width:24px;height:24px;background:rgba(16,185,129,.2);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
-        </div>
-        <span style="font-size:13px;font-weight:500;color:#e8e8ed">Konfigurasi Supabase</span>
-        <span style="font-size:11px;color:rgba(255,255,255,.3);margin-left:auto">Disimpan di browser</span>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;padding:10px 12px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span style="font-size:12px;color:#a5b4fc">Credentials disimpan di browser Anda saja, tidak dikirim ke mana pun.</span>
       </div>
-      <div class="mb-3">
+      <div class="mb-4">
         <label class="lbl">Supabase Project URL</label>
-        <input id="cfgSbUrl" type="url" class="inp" placeholder="https://xxxxx.supabase.co" autocomplete="off"/>
-        <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">Supabase Dashboard → Project Settings → API → Project URL</p>
+        <input id="cfgSbUrl" type="url" class="inp" placeholder="https://xxxxx.supabase.co"/>
+        <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Supabase Dashboard → Project Settings → API → Project URL</p>
       </div>
-      <div class="mb-5">
+      <div class="mb-6">
         <label class="lbl">Supabase Anon Key</label>
-        <input id="cfgSbAnon" type="password" class="inp" placeholder="eyJhbGciOiJIUzI1NiIsInR5..." autocomplete="new-password"/>
-        <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">Supabase Dashboard → Project Settings → API → anon public</p>
+        <input id="cfgSbAnon" type="password" class="inp" placeholder="eyJhbGciOi..." autocomplete="off"/>
+        <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Supabase Dashboard → Project Settings → API → anon public</p>
       </div>
-
-      <div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:18px"></div>
-
-      <!-- Gemini section -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-        <div style="width:24px;height:24px;background:rgba(99,102,241,.2);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        </div>
-        <span style="font-size:13px;font-weight:500;color:#e8e8ed">Gemini AI <span style="font-weight:400;color:rgba(255,255,255,.4)">(opsional)</span></span>
-        <a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:11px;color:#a5b4fc;margin-left:auto;text-decoration:none">Dapatkan gratis →</a>
-      </div>
-      <div class="mb-5">
-        <label class="lbl">Gemini API Key</label>
-        <input id="cfgGeminiKey" type="password" class="inp" placeholder="AIzaSy..." autocomplete="new-password"/>
-        <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">Digunakan untuk AI chat &amp; deteksi otomatis saat upload. Gratis 1500 req/hari.</p>
-      </div>
-
       <div id="cfgAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px"></div>
-      <button id="btnSaveConfig" onclick="saveConfig()" class="btn btn-gold w-full justify-center" style="font-size:15px">
-        Simpan &amp; Mulai
+      <button id="btnSaveConfig" onclick="saveConfig()" class="btn btn-gold w-full justify-center">
+        Simpan &amp; Lanjutkan
       </button>
-      <p style="font-size:11px;color:rgba(255,255,255,.2);text-align:center;margin-top:10px">Supabase URL &amp; Anon Key disimpan di browser. Gemini key disimpan di Supabase.</p>
+      <p style="font-size:11px;color:rgba(255,255,255,.25);text-align:center;margin-top:12px">Perlu diisi hanya sekali. Reset kapan saja di halaman Profil.</p>
     </div>
   </div>
 </div>
@@ -738,27 +717,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
-<!-- Modal Update Gemini Key -->
-<div id="modalGemini" class="modal-bd" onclick="if(event.target===this)closeModal('modalGemini')">
-  <div class="modal-box" style="max-width:400px">
-    <div class="flex items-center justify-between mb-5">
-      <h3 style="font-family:'Instrument Serif',serif;font-size:19px">Update Gemini API Key</h3>
-      <button onclick="closeModal('modalGemini')" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <p style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:16px">Key disimpan ke Supabase — tidak hilang meski ganti browser.</p>
-    <div class="mb-2">
-      <label class="lbl">Gemini API Key Baru</label>
-      <input id="modalGeminiKey" type="password" class="inp" placeholder="AIzaSy..." autocomplete="new-password"/>
-    </div>
-    <a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:11px;color:#a5b4fc;display:block;margin-bottom:20px">Dapatkan gratis di aistudio.google.com →</a>
-    <div id="modalGeminiAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
-    <div class="flex gap-2">
-      <button onclick="closeModal('modalGemini')" class="btn btn-ghost flex-1 justify-center btn-sm">Batal</button>
-      <button id="btnSaveGemini" onclick="saveGeminiFromModal()" class="btn btn-gold flex-1 justify-center btn-sm">Simpan</button>
-    </div>
-  </div>
-</div>
-
 <!-- Confirm Modal -->
 <div id="modalConfirm" class="modal-bd" onclick="if(event.target===this)closeModal('modalConfirm')">
   <div class="modal-box" style="max-width:340px">
@@ -875,12 +833,6 @@ async function loadUserState(user){
 
     // Load semua config sekaligus
     try{
-      // Cek apakah ada Gemini key sementara dari setup (pindahkan ke Supabase)
-      const tempGemini=localStorage.getItem('salax_gemini_temp');
-      if(tempGemini){
-        await sb.from('app_config').upsert({key:'geminiKey',value:tempGemini},{onConflict:'key'}).catch(()=>{});
-        localStorage.removeItem('salax_gemini_temp');
-      }
       const{data:allCfg}=await sb.from('app_config').select('key,value');
       if(allCfg){
         const wUrl=allCfg.find(r=>r.key==='workerUrl');
@@ -888,7 +840,7 @@ async function loadUserState(user){
         if(wUrl){WORKER_URL=wUrl.value;const el=document.getElementById('workerUrlInp');if(el)el.value=wUrl.value;}
         if(gKey){_cachedGeminiKey=gKey.value;updateGeminiKeyUI();}
       }
-    }catch(e){ console.warn('Config load error:',e.message); }
+    }catch(e){}
 
     // Load data paralel
     try{ await Promise.all([loadKategori(),loadBuckets()]); }catch(e){}
@@ -927,34 +879,26 @@ function showConfigPage(){
 async function saveConfig(){
   const url=document.getElementById('cfgSbUrl').value.trim();
   const anon=document.getElementById('cfgSbAnon').value.trim();
-  const geminiInp=document.getElementById('cfgGeminiKey');
-  const geminiKey=geminiInp?geminiInp.value.trim():'';
   const btn=document.getElementById('btnSaveConfig');
-  const alertEl=document.getElementById('cfgAlert');
-  alertEl.style.display='none';
-
+  const alert=document.getElementById('cfgAlert');
+  alert.style.display='none';
   if(!url||!anon){
-    showCfgAlert('Supabase URL dan Anon Key wajib diisi','err');return;
+    alert.textContent='Kedua field wajib diisi';alert.style.display='block';
+    alert.style.cssText+='background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5';return;
   }
   if(!url.startsWith('https://')||!url.includes('supabase')){
-    showCfgAlert('URL tidak valid — harus https://xxxxx.supabase.co','err');return;
+    alert.textContent='URL tidak valid. Harus dimulai dengan https:// dan mengandung supabase';alert.style.display='block';
+    alert.style.cssText+='background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5';return;
   }
   setBtn(btn,true);
+  // Test connection
   try{
-    // Test koneksi ke Supabase
-    const testRes=await fetch(`${url}/rest/v1/`,{headers:{'apikey':anon,'Authorization':'Bearer '+anon}});
-    if(!testRes.ok&&testRes.status!==400&&testRes.status!==404){
-      throw new Error('Supabase tidak bisa dihubungi (status '+testRes.status+')');
-    }
-    // Simpan ke localStorage
+    const testRes=await fetch(`${url}/auth/v1/settings`,{headers:{'apikey':anon}});
+    if(!testRes.ok&&testRes.status!==401) throw new Error('Koneksi gagal: '+testRes.status);
     localStorage.setItem('salax_sb_url',url);
     localStorage.setItem('salax_sb_anon',anon);
-    // Init Supabase client
+    // Init Supabase
     sb=createClient(url,anon,{auth:{storage:localStorage,storageKey:'salax_auth',autoRefreshToken:true,persistSession:true}});
-    // Simpan Gemini key ke localStorage sementara (akan dipindah ke Supabase setelah login)
-    if(geminiKey){
-      localStorage.setItem('salax_gemini_temp',geminiKey);
-    }
     document.getElementById('configPage').style.display='none';
     // Setup auth listener
     sb.auth.onAuthStateChange(async(event,session)=>{
@@ -966,17 +910,10 @@ async function saveConfig(){
     if(session) await loadUserState(session.user);
     else showAuthPage('login');
   }catch(e){
-    showCfgAlert('Gagal: '+e.message,'err');
+    alert.textContent='Gagal terhubung: '+e.message;alert.style.display='block';
+    alert.style.cssText+='background:rgba(239,68,68,.1);border:1px solid rgba(239,68,46,.2);color:#fca5a5';
   }
-  setBtn(btn,false,'Simpan & Mulai');
-}
-
-function showCfgAlert(msg,type){
-  const el=document.getElementById('cfgAlert');
-  el.textContent=msg;el.style.display='block';
-  el.style.background=type==='ok'?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
-  el.style.border=type==='ok'?'1px solid rgba(16,185,129,.2)':'1px solid rgba(239,68,68,.2)';
-  el.style.color=type==='ok'?'#6ee7b7':'#fca5a5';
+  setBtn(btn,false,'Simpan & Lanjutkan');
 }
 
 function resetConfig(){
@@ -1171,30 +1108,6 @@ async function saveGeminiKey(){
     toast('Gemini API key disimpan ✓','ok');
     updateGeminiKeyUI();
   }catch(e){ toast('Gagal simpan: '+e.message,'err'); }
-}
-
-function showUpdateGemini(){
-  document.getElementById('modalGeminiKey').value='';
-  document.getElementById('modalGeminiAlert').style.display='none';
-  openModal('modalGemini');
-}
-
-async function saveGeminiFromModal(){
-  const key=document.getElementById('modalGeminiKey').value.trim();
-  const btn=document.getElementById('btnSaveGemini');
-  if(!key){showModalAlert('modalGeminiAlert','API key tidak boleh kosong','err');return;}
-  setBtn(btn,true);
-  try{
-    await sb.from('app_config').upsert({key:'geminiKey',value:key},{onConflict:'key'});
-    _cachedGeminiKey=key;
-    // Update juga di halaman upload jika ada
-    const inp=document.getElementById('geminiKeyInp');
-    if(inp) inp.value='●'.repeat(20);
-    updateGeminiKeyUI();
-    closeModal('modalGemini');
-    toast('Gemini API key diperbarui ✓','ok');
-  }catch(e){showModalAlert('modalGeminiAlert','Gagal: '+e.message,'err');}
-  setBtn(btn,false);
 }
 function updateGeminiKeyUI(){
   const key=getGeminiKey();

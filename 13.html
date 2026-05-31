@@ -748,10 +748,14 @@ async function saveGeminiKey(){
   const isDots=/^●+$/.test(raw.trim());
   if(!raw.trim()||isDots){
     toast('Ketik API key baru terlebih dahulu','warn');
-    if(inp){inp.value='';inp.placeholder='Paste API key di sini...';}
+    if(inp){inp.value='';inp.placeholder='AIzaSy...';}
     return;
   }
   const key=raw.trim();
+  if(!key.startsWith('AIza')){
+    toast('Format API key tidak valid — harus diawali AIza...','warn');
+    return;
+  }
   try{
     const{error}=await sb.from('app_config').upsert(
       {key:'geminiKey',value:key,updated_at:new Date().toISOString()},
@@ -1060,8 +1064,8 @@ async function saveGeminiFromModal(){
   if(!key){showModalAlert('modalGeminiAlert','API key tidak boleh kosong','err');return;}
   setBtn(btn,true);
   const isDots=/^●+$/.test(key);
-  if(isDots||key.length<10){
-    showModalAlert('modalGeminiAlert','Masukkan API key yang valid','err');
+  if(isDots||!key.startsWith('AIza')){
+    showModalAlert('modalGeminiAlert','Masukkan API key baru yang valid (diawali AIza...)','err');
     setBtn(btn,false);return;
   }
   try{
@@ -1093,7 +1097,7 @@ function updateGeminiKeyUI(){
   } else if(wrap){
     wrap.style.borderColor='rgba(99,102,241,.2)';
     wrap.style.background='';
-    if(inp){inp.value='';inp.placeholder='Paste API key di sini...';}
+    if(inp){inp.value='';inp.placeholder='AIzaSy...';}
     const statusEl=document.getElementById('geminiStatus');
     if(statusEl) statusEl.innerHTML='<span style="color:rgba(255,255,255,.3)">Belum dikonfigurasi</span>';
   }

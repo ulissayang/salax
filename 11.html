@@ -738,25 +738,6 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
 
 // ── STATE ─────────────────────────────────────────────────────
 let CU=null, allKategori=[], allBuckets=[], WORKER_URL='';
-let _cachedGeminiKey='';
-function getGeminiKey(){ return _cachedGeminiKey; }
-
-async function saveGeminiKey(){
-  const inp=document.getElementById('geminiKeyInp');
-  const key=inp?inp.value.trim():'';
-  if(!key){toast('API key tidak boleh kosong','warn');return;}
-  try{
-    const{error}=await sb.from('app_config').upsert(
-      {key:'geminiKey',value:key,updated_at:new Date().toISOString()},
-      {onConflict:'key'}
-    );
-    if(error) throw new Error(error.message);
-    _cachedGeminiKey=key;
-    if(inp) inp.value='●'.repeat(20);
-    toast('Gemini API key disimpan ✓','ok');
-    updateGeminiKeyUI();
-  }catch(e){ toast('Gagal simpan: '+e.message,'err'); }
-}
 let dokPage=1, dokKatFilter='', dokSearch='';
 let upSelectedFile=null;
 let chatHistory=[]; // for AI context

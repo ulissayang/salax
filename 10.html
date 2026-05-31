@@ -733,7 +733,7 @@ const GEMINI_MODEL = 'gemini-2.0-flash';
 
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
-  auth:{ storage:localStorage, storageKey:'salax-v1', autoRefreshToken:true, persistSession:true }
+  auth:{ storage:localStorage, storageKey:'salax_auth', autoRefreshToken:true, persistSession:true }
 });
 
 // ── STATE ─────────────────────────────────────────────────────
@@ -942,24 +942,18 @@ window.addEventListener('DOMContentLoaded', async()=>{
     zone.ondrop=e=>{e.preventDefault();zone.classList.remove('drag');if(e.dataTransfer.files[0])handleUpFile(e.dataTransfer.files[0])};
   }
 
-  // Fallback: jika 8 detik tidak ada respons, paksa ke login
-  const initTimeout=setTimeout(()=>{
-    console.warn('Init timeout — forcing login page');
-    showAuthPage('login');
-  },8000);
-
   try{
+    // Auth state listener
     sb.auth.onAuthStateChange(async(event,session)=>{
       if(event==='SIGNED_IN'&&session) await loadUserState(session.user);
       else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
     });
+    // Cek session
     const{data:{session},error}=await sb.auth.getSession();
-    clearTimeout(initTimeout);
     if(error) throw error;
     if(session) await loadUserState(session.user);
     else showAuthPage('login');
   }catch(e){
-    clearTimeout(initTimeout);
     console.error('Init error:',e);
     showAuthPage('login');
   }
@@ -987,7 +981,7 @@ async function loadUserState(user){
       // Cek apakah ada Gemini key sementara dari setup (pindahkan ke Supabase)
       const tempGemini=localStorage.getItem('salax_gemini_temp');
       if(tempGemini){
-        await sb.from('app_config').upsert({key:'geminiKey',value:tempGemini,updated_at:new Date().toISOString()},{onConflict:'key'}).catch(()=>{});
+        await sb.from('app_config').upsert({key:'geminiKey',value:tempGemini},{onConflict:'key'}).catch(()=>{});
         localStorage.removeItem('salax_gemini_temp');
       }
       const{data:allCfg}=await sb.from('app_config').select('key,value');
@@ -1051,18 +1045,10 @@ function updateGeminiKeyUI(){
   const key=getGeminiKey();
   const wrap=document.getElementById('geminiKeyWrap');
   const inp=document.getElementById('geminiKeyInp');
-  if(key&&wrap){
+  if(key){
     wrap.style.borderColor='rgba(16,185,129,.3)';
     wrap.style.background='rgba(16,185,129,.04)';
     if(inp) inp.value='●'.repeat(20);
-    // Tampilkan status di halaman upload
-    const statusEl=document.getElementById('geminiStatus');
-    if(statusEl) statusEl.innerHTML='<span style="color:#6ee7b7">✓ Gemini AI aktif</span>';
-  } else if(wrap){
-    wrap.style.borderColor='rgba(99,102,241,.2)';
-    wrap.style.background='';
-    const statusEl=document.getElementById('geminiStatus');
-    if(statusEl) statusEl.innerHTML='<span style="color:rgba(255,255,255,.3)">Gemini AI belum dikonfigurasi</span>';
   }
 }
 

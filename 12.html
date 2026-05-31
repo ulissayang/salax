@@ -733,7 +733,7 @@ const GEMINI_MODEL = 'gemini-2.0-flash';
 
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
-  auth:{ autoRefreshToken:true, persistSession:true, detectSessionInUrl:true }
+  auth:{ storage:localStorage, storageKey:'salax-v1', autoRefreshToken:true, persistSession:true }
 });
 
 // ── STATE ─────────────────────────────────────────────────────
@@ -743,19 +743,8 @@ function getGeminiKey(){ return _cachedGeminiKey; }
 
 async function saveGeminiKey(){
   const inp=document.getElementById('geminiKeyInp');
-  const raw=inp?inp.value:'';
-  // Jangan simpan jika masih dots (placeholder) atau kosong
-  const isDots=/^●+$/.test(raw.trim());
-  if(!raw.trim()||isDots){
-    toast('Ketik API key baru terlebih dahulu','warn');
-    if(inp){inp.value='';inp.placeholder='AIzaSy...';}
-    return;
-  }
-  const key=raw.trim();
-  if(!key.startsWith('AIza')){
-    toast('Format API key tidak valid — harus diawali AIza...','warn');
-    return;
-  }
+  const key=inp?inp.value.trim():'';
+  if(!key){toast('API key tidak boleh kosong','warn');return;}
   try{
     const{error}=await sb.from('app_config').upsert(
       {key:'geminiKey',value:key,updated_at:new Date().toISOString()},
@@ -763,8 +752,8 @@ async function saveGeminiKey(){
     );
     if(error) throw new Error(error.message);
     _cachedGeminiKey=key;
-    if(inp){inp.value='';inp.placeholder='Tersimpan ✓';}
-    toast('Gemini API key disimpan ke Supabase ✓','ok');
+    if(inp) inp.value='●'.repeat(20);
+    toast('Gemini API key disimpan ✓','ok');
     updateGeminiKeyUI();
   }catch(e){ toast('Gagal simpan: '+e.message,'err'); }
 }
@@ -972,22 +961,24 @@ window.addEventListener('DOMContentLoaded', async()=>{
     zone.ondrop=e=>{e.preventDefault();zone.classList.remove('drag');if(e.dataTransfer.files[0])handleUpFile(e.dataTransfer.files[0])};
   }
 
+  // Fallback: jika 8 detik tidak ada respons, paksa ke login
+  const initTimeout=setTimeout(()=>{
+    console.warn('Init timeout — forcing login page');
+    showAuthPage('login');
+  },8000);
+
   try{
-    // Cek session yang sudah ada di localStorage
-    const{data:{session},error}=await sb.auth.getSession();
-    if(error) throw error;
-    if(session){
-      await loadUserState(session.user);
-    } else {
-      showAuthPage('login');
-    }
-    // Auth state listener untuk perubahan berikutnya
     sb.auth.onAuthStateChange(async(event,session)=>{
-      if(event==='SIGNED_IN'&&session&&!CU) await loadUserState(session.user);
+      if(event==='SIGNED_IN'&&session) await loadUserState(session.user);
       else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
-      else if(event==='TOKEN_REFRESHED'&&session) CU=session.user;
     });
+    const{data:{session},error}=await sb.auth.getSession();
+    clearTimeout(initTimeout);
+    if(error) throw error;
+    if(session) await loadUserState(session.user);
+    else showAuthPage('login');
   }catch(e){
+    clearTimeout(initTimeout);
     console.error('Init error:',e);
     showAuthPage('login');
   }
@@ -1063,20 +1054,12 @@ async function saveGeminiFromModal(){
   const btn=document.getElementById('btnSaveGemini');
   if(!key){showModalAlert('modalGeminiAlert','API key tidak boleh kosong','err');return;}
   setBtn(btn,true);
-  const isDots=/^●+$/.test(key);
-  if(isDots||!key.startsWith('AIza')){
-    showModalAlert('modalGeminiAlert','Masukkan API key baru yang valid (diawali AIza...)','err');
-    setBtn(btn,false);return;
-  }
   try{
-    const{error}=await sb.from('app_config').upsert(
-      {key:'geminiKey',value:key,updated_at:new Date().toISOString()},
-      {onConflict:'key'}
-    );
-    if(error) throw new Error(error.message);
+    await sb.from('app_config').upsert({key:'geminiKey',value:key},{onConflict:'key'});
     _cachedGeminiKey=key;
+    // Update juga di halaman upload jika ada
     const inp=document.getElementById('geminiKeyInp');
-    if(inp){inp.value='';inp.placeholder='Tersimpan ✓';}
+    if(inp) inp.value='●'.repeat(20);
     updateGeminiKeyUI();
     closeModal('modalGemini');
     toast('Gemini API key diperbarui ✓','ok');
@@ -1090,16 +1073,15 @@ function updateGeminiKeyUI(){
   if(key&&wrap){
     wrap.style.borderColor='rgba(16,185,129,.3)';
     wrap.style.background='rgba(16,185,129,.04)';
-    // Jangan isi dots ke input — biarkan kosong dengan placeholder
-    if(inp){inp.value='';inp.placeholder='Sudah tersimpan — ketik untuk mengganti';}
+    if(inp) inp.value='●'.repeat(20);
+    // Tampilkan status di halaman upload
     const statusEl=document.getElementById('geminiStatus');
     if(statusEl) statusEl.innerHTML='<span style="color:#6ee7b7">✓ Gemini AI aktif</span>';
   } else if(wrap){
     wrap.style.borderColor='rgba(99,102,241,.2)';
     wrap.style.background='';
-    if(inp){inp.value='';inp.placeholder='AIzaSy...';}
     const statusEl=document.getElementById('geminiStatus');
-    if(statusEl) statusEl.innerHTML='<span style="color:rgba(255,255,255,.3)">Belum dikonfigurasi</span>';
+    if(statusEl) statusEl.innerHTML='<span style="color:rgba(255,255,255,.3)">Gemini AI belum dikonfigurasi</span>';
   }
 }
 

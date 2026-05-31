@@ -771,62 +771,6 @@ window.addEventListener('DOMContentLoaded', async()=>{
   }
 });
 
-
-// ── AUTH FUNCTIONS ────────────────────────────────────────────
-function showAuthPage(p){
-  document.getElementById('loadingPage').style.display='none';
-  document.getElementById('app').style.display='none';
-  document.getElementById('loginPage').style.display=p==='login'?'flex':'none';
-  document.getElementById('forgotPage').style.display=p==='forgot'?'flex':'none';
-}
-
-async function doLogin(){
-  const email=document.getElementById('loginEmail').value.trim();
-  const pass=document.getElementById('loginPass').value;
-  const btn=document.getElementById('btnLogin');
-  const errEl=document.getElementById('loginErr');
-  errEl.style.display='none';
-  if(!email||!pass){errEl.textContent='Email dan password wajib diisi';errEl.style.display='block';return;}
-  setBtn(btn,true);
-  try{
-    const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
-    if(error){
-      errEl.textContent=error.message==='Invalid login credentials'?'Email atau password salah':error.message;
-      errEl.style.display='block';
-      setBtn(btn,false,'Masuk');return;
-    }
-    if(data?.user) await loadUserState(data.user);
-  }catch(e){
-    errEl.textContent='Gagal terhubung: '+e.message;errEl.style.display='block';
-    setBtn(btn,false,'Masuk');
-  }
-}
-
-async function doForgot(){
-  const email=document.getElementById('forgotEmail').value.trim();
-  const btn=document.getElementById('btnForgot');
-  if(!email){showForgotMsg('Email wajib diisi','err');return;}
-  setBtn(btn,true);
-  try{
-    const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/'});
-    if(error) showForgotMsg(error.message,'err');
-    else showForgotMsg('Link reset dikirim. Cek inbox atau spam.','ok');
-  }catch(e){showForgotMsg('Gagal mengirim email','err');}
-  setBtn(btn,false,'Kirim Link Reset');
-}
-
-function showForgotMsg(text,type){
-  const el=document.getElementById('forgotMsg');el.textContent=text;el.style.display='block';
-  el.style.background=type==='ok'?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
-  el.style.border=type==='ok'?'1px solid rgba(16,185,129,.2)':'1px solid rgba(239,68,68,.2)';
-  el.style.color=type==='ok'?'#6ee7b7':'#fca5a5';
-}
-
-async function doLogout(){
-  try{await sb.auth.signOut();}catch(e){}
-  showAuthPage('login');
-}
-
 async function loadUserState(user){
   try{
     CU=user;

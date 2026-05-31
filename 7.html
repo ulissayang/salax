@@ -163,6 +163,61 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div>
 
 <!-- ═══ CONFIG PAGE (first time setup) ═══ -->
+<div id="configPage" style="display:none" class="login-wrap z1">
+  <div style="width:100%;max-width:460px">
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center gap-2.5 mb-3">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#C9A84C,#DFC068);border-radius:11px;display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#0A0A0F" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="#0A0A0F" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <span style="font-family:'Instrument Serif',serif;font-size:24px;color:#e8e8ed">SaLax</span>
+      </div>
+      <p style="font-size:13px;color:rgba(255,255,255,.35)">Setup awal — isi sekali, tersimpan selamanya</p>
+    </div>
+    <div class="glass p-6">
+      <!-- Supabase section -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <div style="width:24px;height:24px;background:rgba(16,185,129,.2);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <span style="font-size:13px;font-weight:500;color:#e8e8ed">Konfigurasi Supabase</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.3);margin-left:auto">Disimpan di browser</span>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">Supabase Project URL</label>
+        <input id="cfgSbUrl" type="url" class="inp" placeholder="https://xxxxx.supabase.co" autocomplete="off"/>
+        <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">Supabase Dashboard → Project Settings → API → Project URL</p>
+      </div>
+      <div class="mb-5">
+        <label class="lbl">Supabase Anon Key</label>
+        <input id="cfgSbAnon" type="password" class="inp" placeholder="eyJhbGciOiJIUzI1NiIsInR5..." autocomplete="new-password"/>
+        <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">Supabase Dashboard → Project Settings → API → anon public</p>
+      </div>
+
+      <div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:18px"></div>
+
+      <!-- Gemini section -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <div style="width:24px;height:24px;background:rgba(99,102,241,.2);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <span style="font-size:13px;font-weight:500;color:#e8e8ed">Gemini AI <span style="font-weight:400;color:rgba(255,255,255,.4)">(opsional)</span></span>
+        <a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:11px;color:#a5b4fc;margin-left:auto;text-decoration:none">Dapatkan gratis →</a>
+      </div>
+      <div class="mb-5">
+        <label class="lbl">Gemini API Key</label>
+        <input id="cfgGeminiKey" type="password" class="inp" placeholder="AIzaSy..." autocomplete="new-password"/>
+        <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">Digunakan untuk AI chat &amp; deteksi otomatis saat upload. Gratis 1500 req/hari.</p>
+      </div>
+
+      <div id="cfgAlert" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px"></div>
+      <button id="btnSaveConfig" onclick="saveConfig()" class="btn btn-gold w-full justify-center" style="font-size:15px">
+        Simpan &amp; Mulai
+      </button>
+      <p style="font-size:11px;color:rgba(255,255,255,.2);text-align:center;margin-top:10px">Supabase URL &amp; Anon Key disimpan di browser. Gemini key disimpan di Supabase.</p>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ LOGIN PAGE ═══ -->
 <div id="loginPage" class="login-wrap z1">
@@ -720,21 +775,34 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
      JAVASCRIPT
 ════════════════════════════════════════════ -->
 <script>
-// ── CONFIG — isi sesuai project Supabase Anda ─────────────────
-const SUPABASE_URL  = 'https://oxttycjpgjylkjwhocuv.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94dHR5Y2pwZ2p5bGtqd2hvY3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NDc5MjYsImV4cCI6MjA5NTUyMzkyNn0.bXv3QBHjEXPCEDgHrOQbzI5ATJRZpOf93b10GRcGThI';
-// Contoh:
-// const SUPABASE_URL  = 'https://abcdefgh.supabase.co';
-// const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+// ── CONFIG — dari Cloudflare Pages env variables ─────────────
+// Set di: Pages → Settings → Environment Variables
+SALAX_SUPABASE_URL  = 'https://oxttycjpgjylkjwhocuv.supabase.co';
+SALAX_SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94dHR5Y2pwZ2p5bGtqd2hvY3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NDc5MjYsImV4cCI6MjA5NTUyMzkyNn0.bXv3QBHjEXPCEDgHrOQbzI5ATJRZpOf93b10GRcGThI';
+// Cloudflare Pages otomatis inject sebagai window.__CF_PAGES_ENV__ (tidak)
+// Cara terbaik: pakai _worker.js atau taruh di HTML via Pages Functions
+// Untuk single-file, kita ambil dari meta tag yang di-inject saat build
+// ATAU user isi sekali di Settings page dan simpan ke localStorage
 
 const MAX_BUCKET_BYTES = 9 * 1024 * 1024 * 1024;
 const PAGE_SIZE = 20;
 const GEMINI_MODEL = 'gemini-2.0-flash';
 
+// Ambil config: coba dari meta tag (jika pakai Pages Functions),
+// fallback ke localStorage (user isi manual di Settings)
+function getConfig() {
+  const metaUrl  = document.querySelector('meta[name="sb-url"]')?.content;
+  const metaAnon = document.querySelector('meta[name="sb-anon"]')?.content;
+  const storedUrl  = localStorage.getItem('salax_sb_url');
+  const storedAnon = localStorage.getItem('salax_sb_anon');
+  return {
+    sbUrl:  metaUrl  || storedUrl  || '',
+    sbAnon: metaAnon || storedAnon || '',
+  };
+}
+
 const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
-  auth:{ storage:localStorage, storageKey:'salax_auth', autoRefreshToken:true, persistSession:true }
-});
+let sb = null; // initialized after config loaded
 
 // ── STATE ─────────────────────────────────────────────────────
 let CU=null, allKategori=[], allBuckets=[], WORKER_URL='';
@@ -744,6 +812,7 @@ let chatHistory=[]; // for AI context
 
 // ── INIT ──────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async()=>{
+  // Mulai dari loading splash — tidak ada flash login
   document.getElementById('loadingPage').style.display='flex';
 
   // Setup drag zone upload
@@ -754,18 +823,34 @@ window.addEventListener('DOMContentLoaded', async()=>{
     zone.ondrop=e=>{e.preventDefault();zone.classList.remove('drag');if(e.dataTransfer.files[0])handleUpFile(e.dataTransfer.files[0])};
   }
 
-  try{
+  // Cek config Supabase
+  const cfg = getConfig();
+  if (!cfg.sbUrl || !cfg.sbAnon) {
+    showConfigPage();
+    return;
+  }
+
+  // Init Supabase
+  try {
+    sb = createClient(cfg.sbUrl, cfg.sbAnon, {
+      auth:{ storage:localStorage, storageKey:'salax_auth', autoRefreshToken:true, persistSession:true }
+    });
+
     // Auth state listener
     sb.auth.onAuthStateChange(async(event,session)=>{
-      if(event==='SIGNED_IN'&&session) await loadUserState(session.user);
-      else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
+      if(event==='SIGNED_IN'&&session){ await loadUserState(session.user); }
+      else if(event==='SIGNED_OUT'){ CU=null; showAuthPage('login'); }
     });
-    // Cek session
-    const{data:{session},error}=await sb.auth.getSession();
+
+    // Cek session yang sudah ada
+    const {data:{session},error}=await sb.auth.getSession();
     if(error) throw error;
-    if(session) await loadUserState(session.user);
-    else showAuthPage('login');
-  }catch(e){
+    if(session){
+      await loadUserState(session.user);
+    } else {
+      showAuthPage('login');
+    }
+  } catch(e) {
     console.error('Init error:',e);
     showAuthPage('login');
   }
@@ -809,7 +894,7 @@ async function loadUserState(user){
     try{ await Promise.all([loadKategori(),loadBuckets()]); }catch(e){}
 
     // Tampilkan app
-    ['loadingPage','loginPage','forgotPage'].forEach(id=>{
+    ['loadingPage','loginPage','forgotPage','configPage'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
     document.getElementById('app').style.display='flex';
@@ -818,7 +903,7 @@ async function loadUserState(user){
   }catch(e){
     console.error('loadUserState error:',e);
     // Tetap tampilkan app meski ada error
-    ['loadingPage','loginPage','forgotPage'].forEach(id=>{
+    ['loadingPage','loginPage','forgotPage','configPage'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
     document.getElementById('app').style.display='flex';
@@ -827,8 +912,266 @@ async function loadUserState(user){
 }
 
 // ── AUTH ──────────────────────────────────────────────────────
-// showConfigPage dihapus — config sekarang hardcode di kode
+function showConfigPage(){
+  document.getElementById('loadingPage').style.display='none';
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('forgotPage').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('configPage').style.display='flex';
+  // Pre-fill if already have values
+  const cfg=getConfig();
+  if(cfg.sbUrl) document.getElementById('cfgSbUrl').value=cfg.sbUrl;
+  if(cfg.sbAnon) document.getElementById('cfgSbAnon').value='';
+}
 
+async function saveConfig(){
+  const url=document.getElementById('cfgSbUrl').value.trim();
+  const anon=document.getElementById('cfgSbAnon').value.trim();
+  const geminiInp=document.getElementById('cfgGeminiKey');
+  const geminiKey=geminiInp?geminiInp.value.trim():'';
+  const btn=document.getElementById('btnSaveConfig');
+  const alertEl=document.getElementById('cfgAlert');
+  alertEl.style.display='none';
+
+  if(!url||!anon){
+    showCfgAlert('Supabase URL dan Anon Key wajib diisi','err');return;
+  }
+  if(!url.startsWith('https://')||!url.includes('supabase')){
+    showCfgAlert('URL tidak valid — harus https://xxxxx.supabase.co','err');return;
+  }
+  setBtn(btn,true);
+  try{
+    // Test koneksi ke Supabase
+    const testRes=await fetch(`${url}/rest/v1/`,{headers:{'apikey':anon,'Authorization':'Bearer '+anon}});
+    if(!testRes.ok&&testRes.status!==400&&testRes.status!==404){
+      throw new Error('Supabase tidak bisa dihubungi (status '+testRes.status+')');
+    }
+    // Simpan ke localStorage
+    localStorage.setItem('salax_sb_url',url);
+    localStorage.setItem('salax_sb_anon',anon);
+    // Init Supabase client
+    sb=createClient(url,anon,{auth:{storage:localStorage,storageKey:'salax_auth',autoRefreshToken:true,persistSession:true}});
+    // Simpan Gemini key ke localStorage sementara (akan dipindah ke Supabase setelah login)
+    if(geminiKey){
+      localStorage.setItem('salax_gemini_temp',geminiKey);
+    }
+    document.getElementById('configPage').style.display='none';
+    // Setup auth listener
+    sb.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='SIGNED_IN'&&session) await loadUserState(session.user);
+      else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
+    });
+    const{data:{session},error:sErr}=await sb.auth.getSession();
+    if(sErr) throw sErr;
+    if(session) await loadUserState(session.user);
+    else showAuthPage('login');
+  }catch(e){
+    showCfgAlert('Gagal: '+e.message,'err');
+  }
+  setBtn(btn,false,'Simpan & Mulai');
+}
+
+function showCfgAlert(msg,type){
+  const el=document.getElementById('cfgAlert');
+  el.textContent=msg;el.style.display='block';
+  el.style.background=type==='ok'?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
+  el.style.border=type==='ok'?'1px solid rgba(16,185,129,.2)':'1px solid rgba(239,68,68,.2)';
+  el.style.color=type==='ok'?'#6ee7b7':'#fca5a5';
+}
+
+function resetConfig(){
+  if(!confirm('Reset konfigurasi Supabase? Anda akan perlu mengisi ulang URL dan Anon Key.')) return;
+  localStorage.removeItem('salax_sb_url');
+  localStorage.removeItem('salax_sb_anon');
+  try{if(sb)sb.auth.signOut().catch(()=>{});}catch(e){}
+  location.reload();
+}
+
+function showAuthPage(p){
+  document.getElementById('loadingPage').style.display='none';
+  document.getElementById('configPage').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginPage').style.display=p==='login'?'flex':'none';
+  document.getElementById('forgotPage').style.display=p==='forgot'?'flex':'none';
+}
+
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const btn=document.getElementById('btnLogin');
+  document.getElementById('loginErr').style.display='none';
+  if(!email||!pass){showLoginErr('Email dan password wajib diisi');return;}
+  if(!sb){showLoginErr('Konfigurasi Supabase belum siap. Refresh halaman.');return;}
+  setBtn(btn,true);
+  try{
+    const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error){
+      showLoginErr(error.message==='Invalid login credentials'?'Email atau password salah':error.message);
+      setBtn(btn,false,'Masuk');
+      return;
+    }
+    // loadUserState akan dipanggil oleh onAuthStateChange
+    // Jika tidak, panggil manual
+    if(data?.user) await loadUserState(data.user);
+  }catch(e){
+    showLoginErr('Gagal terhubung: '+e.message);
+    setBtn(btn,false,'Masuk');
+  }
+}
+function showLoginErr(msg){const el=document.getElementById('loginErr');el.textContent=msg;el.style.display='block';}
+
+async function doForgot(){
+  const email=document.getElementById('forgotEmail').value.trim();
+  const btn=document.getElementById('btnForgot');
+  if(!email){showForgotMsg('Email wajib diisi','err');return;}
+  setBtn(btn,true);
+  try{
+    const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/'});
+    if(error) showForgotMsg(error.message,'err');
+    else showForgotMsg('Link reset dikirim. Cek inbox atau spam.','ok');
+  }catch(e){showForgotMsg('Gagal mengirim email','err');}
+  setBtn(btn,false,'Kirim Link Reset');
+}
+function showForgotMsg(text,type){
+  const el=document.getElementById('forgotMsg');el.textContent=text;el.style.display='block';
+  el.style.background=type==='ok'?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
+  el.style.border=type==='ok'?'1px solid rgba(16,185,129,.2)':'1px solid rgba(239,68,68,.2)';
+  el.style.color=type==='ok'?'#6ee7b7':'#fca5a5';
+}
+async function doLogout(){try{await sb.auth.signOut();}catch(e){}showAuthPage('login');}
+
+// ── NAVIGATION ────────────────────────────────────────────────
+const PAGE_TITLES={'dash':'SaLax','dokumen':'Dokumen','upload':'Upload','ai':'AI Asisten','kategori':'Kategori','download':'Download','storage':'Storage','profil':'Profil'};
+const PAGE_LOADERS={
+  dash:loadDash, dokumen:()=>loadDokumen(1), upload:loadUploadPage,
+  ai:loadAiPage, kategori:loadKategoriPage, download:loadDownloadPage,
+  storage:loadStoragePage, profil:loadProfilPage,
+};
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('[data-page]').forEach(n=>n.classList.remove('active'));
+  const page=document.getElementById('page'+name[0].toUpperCase()+name.slice(1));
+  if(page) page.classList.add('active');
+  document.querySelectorAll(`[data-page="${name}"]`).forEach(el=>el.classList.add('active'));
+  const titleEl=document.getElementById('mobilePageTitle');
+  if(titleEl) titleEl.textContent=PAGE_TITLES[name]||'SaLax';
+  try{if(PAGE_LOADERS[name])PAGE_LOADERS[name]();}
+  catch(e){toast('Gagal memuat halaman: '+e.message,'err');}
+  // Scroll to top on mobile
+  const mc=document.getElementById('mainContent')||document.getElementById('mainScroll');
+  if(mc) mc.scrollTop=0;
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function loadDash(){
+  const hr=new Date().getHours();
+  const g=hr<11?'Selamat pagi':hr<15?'Selamat siang':hr<18?'Selamat sore':'Selamat malam';
+  document.getElementById('dashGreet').textContent=`${g}, ${CU.nama}`;
+  try{
+    const[{count:totalDok},{count:totalKat},{data:sizeData}]=await Promise.all([
+      sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
+      sb.from('kategori').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
+      sb.from('dokumen').select('ukuran_file').eq('user_id',CU.id),
+    ]);
+    document.getElementById('statDok').textContent=totalDok||0;
+    document.getElementById('statKat').textContent=totalKat||0;
+    const totalSize=(sizeData||[]).reduce((a,d)=>a+(d.ukuran_file||0),0);
+    document.getElementById('statSize').textContent=fmtSz(totalSize);
+    document.getElementById('statBuckets').textContent=allBuckets.filter(b=>b.aktif).length;
+    await renderDashStorageBars();
+    const{data:recent}=await sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,storage_bucket_id,kategori:kategori_id(nama)').eq('user_id',CU.id).order('uploaded_at',{ascending:false}).limit(5);
+    const el=document.getElementById('dashRecentDok');
+    if(!recent||!recent.length){el.innerHTML='<div class="text-center py-5" style="color:rgba(255,255,255,.3);font-size:13px">Belum ada dokumen</div>';return;}
+    el.innerHTML=recent.map(d=>`
+      <div class="dok-card">
+        <div style="font-size:22px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
+        <div class="flex-1 min-w-0">
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.nama_file)}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">${d.kategori?.nama||'—'} · ${fmtSz(d.ukuran_file)}</div>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);flex-shrink:0">${fmtDate(d.uploaded_at)}</div>
+      </div>`).join('');
+  }catch(e){toast('Gagal memuat dashboard: '+e.message,'err');}
+}
+
+async function renderDashStorageBars(){
+  const el=document.getElementById('dashStorageBars');
+  if(!allBuckets.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:13px">Belum ada bucket R2</div>';return;}
+  const{data:usageData}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id',CU.id);
+  const usageMap={};
+  (usageData||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
+  el.innerHTML=allBuckets.map(b=>{
+    const used=usageMap[b.id]||0,limit=b.limit_bytes||MAX_BUCKET_BYTES;
+    const pct=Math.min((used/limit)*100,100);
+    const clr=pct>90?'#f87171':pct>70?'#fbbf24':'#C9A84C';
+    return`<div><div class="flex justify-between items-center mb-1.5"><span style="font-size:13px;font-weight:500">${esc(b.label)}</span><span style="font-size:11px;color:rgba(255,255,255,.4)">${fmtSz(used)} / ${fmtSz(limit)}</span></div><div class="sbar"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${clr}"></div></div><div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">${pct.toFixed(1)}%${b.aktif?'':' · <span style="color:#f87171">Nonaktif</span>'}</div></div>`;
+  }).join('');
+}
+
+// ── DOKUMEN ───────────────────────────────────────────────────
+async function loadDokumen(p=1){
+  dokPage=p;
+  const from=(p-1)*PAGE_SIZE,to=from+PAGE_SIZE-1;
+  let q=sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,kategori:kategori_id(id,nama)',{count:'exact'}).eq('user_id',CU.id);
+  if(dokKatFilter) q=q.eq('kategori_id',dokKatFilter);
+  if(dokSearch) q=q.or(`nama_file.ilike.%${dokSearch}%,keterangan.ilike.%${dokSearch}%`);
+  q=q.order('uploaded_at',{ascending:false}).range(from,to);
+  const{data:docs,count,error}=await q;
+  // Tabs
+  document.getElementById('dokKatTabs').innerHTML=[{id:'',nama:'Semua'},...allKategori].map(k=>
+    `<button onclick="setDokKatFilter('${k.id}')" class="btn btn-xs ${dokKatFilter===k.id?'btn-gold':'btn-ghost'}" style="${dokKatFilter===k.id?'':'border:1px solid rgba(255,255,255,.08)'}">${esc(k.nama)}</button>`
+  ).join('');
+  document.getElementById('dokKatFilter').innerHTML='<option value="">Semua Kategori</option>'+allKategori.map(k=>`<option value="${k.id}" ${dokKatFilter===k.id?'selected':''}>${esc(k.nama)}</option>`).join('');
+  if(error){toast('Gagal memuat dokumen: '+error.message,'err');return;}
+  const list=document.getElementById('dokList'),empty=document.getElementById('dokEmpty');
+  if(!docs||!docs.length){list.innerHTML='';empty.style.display='block';document.getElementById('dokPagination').innerHTML='';return;}
+  empty.style.display='none';
+  list.innerHTML=docs.map(d=>{
+    const bkt=allBuckets.find(b=>b.id===d.storage_bucket_id);
+    return`<div class="dok-card">
+      <div style="font-size:24px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
+      <div class="flex-1 min-w-0">
+        <div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.nama_file)}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;display:flex;flex-wrap:wrap;gap:5px">
+          <span>${d.kategori?.nama||'—'}</span><span>·</span><span>${fmtSz(d.ukuran_file)}</span><span>·</span><span>${fmtDate(d.uploaded_at)}</span>
+          ${bkt?`<span>·</span><span style="color:rgba(201,168,76,.6)">${esc(bkt.label)}</span>`:''}
+        </div>
+        ${d.keterangan?`<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.keterangan)}</div>`:''}
+      </div>
+      <div class="flex gap-1.5 flex-shrink-0">
+        <button onclick="openDok('${esc(d.r2_key)}','${esc(d.nama_file)}','${d.storage_bucket_id}')" class="btn btn-ghost btn-xs" title="Buka">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button onclick="openModalEditDok('${d.id}','${esc(d.nama_file)}','${d.kategori?.id||''}','${esc(d.keterangan||'')}')" class="btn btn-ghost btn-xs" title="Edit">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button onclick="confirmDel('${d.id}','${esc(d.r2_key)}','${d.storage_bucket_id}')" class="btn btn-danger btn-xs" title="Hapus">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+  renderPagination(count||0,p,PAGE_SIZE,'loadDokumen','dokPagination');
+}
+function setDokKatFilter(id){dokKatFilter=id;loadDokumen(1);}
+function filterDok(){dokSearch=document.getElementById('dokSearch').value;dokKatFilter=document.getElementById('dokKatFilter').value;loadDokumen(1);}
+
+// ── UPLOAD ────────────────────────────────────────────────────
+// ── GEMINI KEY ───────────────────────────────────────────────
+// Gemini key disimpan di Supabase app_config (bukan localStorage)
+let _cachedGeminiKey = '';
+function getGeminiKey(){ return _cachedGeminiKey; }
+async function saveGeminiKey(){
+  const key=document.getElementById('geminiKeyInp').value.trim();
+  if(!key){toast('API key tidak boleh kosong','warn');return;}
+  try{
+    await sb.from('app_config').upsert({key:'geminiKey',value:key},{onConflict:'key'});
+    _cachedGeminiKey=key;
+    toast('Gemini API key disimpan ✓','ok');
+    updateGeminiKeyUI();
+  }catch(e){ toast('Gagal simpan: '+e.message,'err'); }
+}
 
 function showUpdateGemini(){
   document.getElementById('modalGeminiKey').value='';

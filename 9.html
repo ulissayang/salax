@@ -743,37 +743,36 @@ let upSelectedFile=null;
 let chatHistory=[]; // for AI context
 
 // ── INIT ──────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async()=>{
+  document.getElementById('loadingPage').style.display='flex';
 
-// ── NAVIGATION ────────────────────────────────────────────────
-const PAGE_TITLES={'dash':'SaLax','dokumen':'Dokumen','upload':'Upload','ai':'AI Asisten',
-  'kategori':'Kategori','download':'Download','storage':'Storage','profil':'Profil'};
-const PAGE_LOADERS={
-  dash:()=>loadDash(),
-  dokumen:()=>loadDokumen(1),
-  upload:()=>loadUploadPage(),
-  ai:()=>loadAiPage(),
-  kategori:()=>loadKategoriPage(),
-  download:()=>loadDownloadPage(),
-  storage:()=>loadStoragePage(),
-  profil:()=>loadProfilPage(),
-};
+  // Setup drag zone upload
+  const zone=document.getElementById('upZone');
+  if(zone){
+    zone.ondragover=e=>{e.preventDefault();zone.classList.add('drag')};
+    zone.ondragleave=()=>zone.classList.remove('drag');
+    zone.ondrop=e=>{e.preventDefault();zone.classList.remove('drag');if(e.dataTransfer.files[0])handleUpFile(e.dataTransfer.files[0])};
+  }
 
-function showPage(name){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('[data-page]').forEach(n=>n.classList.remove('active'));
-  const pageId='page'+name[0].toUpperCase()+name.slice(1);
-  const page=document.getElementById(pageId);
-  if(page) page.classList.add('active');
-  document.querySelectorAll('[data-page="'+name+'"]').forEach(el=>el.classList.add('active'));
-  const titleEl=document.getElementById('mobilePageTitle');
-  if(titleEl) titleEl.textContent=PAGE_TITLES[name]||'SaLax';
-  try{if(PAGE_LOADERS[name])PAGE_LOADERS[name]();}
-  catch(e){toast('Gagal memuat: '+e.message,'err');}
-  const mc=document.getElementById('mainContent');
-  if(mc) mc.scrollTop=0;
-}
+  try{
+    // Auth state listener
+    sb.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='SIGNED_IN'&&session) await loadUserState(session.user);
+      else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
+    });
+    // Cek session
+    const{data:{session},error}=await sb.auth.getSession();
+    if(error) throw error;
+    if(session) await loadUserState(session.user);
+    else showAuthPage('login');
+  }catch(e){
+    console.error('Init error:',e);
+    showAuthPage('login');
+  }
+});
 
-// ── AUTH ──────────────────────────────────────────────────────
+
+// ── AUTH FUNCTIONS ────────────────────────────────────────────
 function showAuthPage(p){
   document.getElementById('loadingPage').style.display='none';
   document.getElementById('app').style.display='none';
@@ -817,8 +816,7 @@ async function doForgot(){
 }
 
 function showForgotMsg(text,type){
-  const el=document.getElementById('forgotMsg');if(!el)return;
-  el.textContent=text;el.style.display='block';
+  const el=document.getElementById('forgotMsg');el.textContent=text;el.style.display='block';
   el.style.background=type==='ok'?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
   el.style.border=type==='ok'?'1px solid rgba(16,185,129,.2)':'1px solid rgba(239,68,68,.2)';
   el.style.color=type==='ok'?'#6ee7b7':'#fca5a5';
@@ -828,136 +826,6 @@ async function doLogout(){
   try{await sb.auth.signOut();}catch(e){}
   showAuthPage('login');
 }
-
-// ── DASHBOARD ─────────────────────────────────────────────────
-async function renderDashStorageBars(){
-  const el=document.getElementById('dashStorageBars');
-  if(!allBuckets.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:13px">Belum ada bucket R2 — tambah di Storage</div>';return;}
-  const{data:ud}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id',CU.id);
-  const usageMap={};(ud||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
-  el.innerHTML=allBuckets.map(b=>{
-    const used=usageMap[b.id]||0,limit=b.limit_bytes||MAX_BUCKET_BYTES;
-    const pct=Math.min((used/limit)*100,100);
-    const clr=pct>90?'#f87171':pct>70?'#fbbf24':'#C9A84C';
-    return `<div><div class="flex justify-between items-center mb-1.5"><span style="font-size:13px;font-weight:500">${esc(b.label)}</span><span style="font-size:11px;color:rgba(255,255,255,.4)">${fmtSz(used)} / ${fmtSz(limit)}</span></div><div class="sbar"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${clr}"></div></div><div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">${pct.toFixed(1)}%${b.aktif?'':' · <span style="color:#f87171">Nonaktif</span>'}</div></div>`;
-  }).join('');
-}
-
-async function loadDash(){
-  try{
-    const hr=new Date().getHours();
-    const g=hr<11?'Selamat pagi':hr<15?'Selamat siang':hr<18?'Selamat sore':'Selamat malam';
-    document.getElementById('dashGreet').textContent=g+', '+(CU?.nama||'');
-    const[{count:totalDok},{count:totalKat},{data:sizeData}]=await Promise.all([
-      sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
-      sb.from('kategori').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
-      sb.from('dokumen').select('ukuran_file').eq('user_id',CU.id),
-    ]);
-    document.getElementById('statDok').textContent=totalDok||0;
-    document.getElementById('statKat').textContent=totalKat||0;
-    const totalSize=(sizeData||[]).reduce((a,d)=>a+(d.ukuran_file||0),0);
-    document.getElementById('statSize').textContent=fmtSz(totalSize);
-    document.getElementById('statBuckets').textContent=allBuckets.filter(b=>b.aktif).length;
-    await renderDashStorageBars();
-    const{data:recent}=await sb.from('dokumen')
-      .select('id,nama_file,ukuran_file,uploaded_at,kategori:kategori_id(nama)')
-      .eq('user_id',CU.id).order('uploaded_at',{ascending:false}).limit(5);
-    const el=document.getElementById('dashRecentDok');
-    if(!recent||!recent.length){
-      el.innerHTML='<div class="text-center py-5" style="color:rgba(255,255,255,.3);font-size:13px">Belum ada dokumen</div>';
-      return;
-    }
-    el.innerHTML=recent.map(d=>`
-      <div class="dok-card">
-        <div style="font-size:22px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
-        <div class="flex-1 min-w-0">
-          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.nama_file)}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">${d.kategori?.nama||'—'} · ${fmtSz(d.ukuran_file)}</div>
-        </div>
-        <div style="font-size:11px;color:rgba(255,255,255,.3);flex-shrink:0">${fmtDate(d.uploaded_at)}</div>
-      </div>`).join('');
-  }catch(e){toast('Gagal memuat dashboard: '+e.message,'err');}
-}
-
-// ── DOKUMEN ───────────────────────────────────────────────────
-async function loadDokumen(p=1){
-  try{
-    dokPage=p;
-    const from=(p-1)*PAGE_SIZE,to=from+PAGE_SIZE-1;
-    let q=sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,kategori:kategori_id(id,nama)',{count:'exact'}).eq('user_id',CU.id);
-    if(dokKatFilter) q=q.eq('kategori_id',dokKatFilter);
-    if(dokSearch) q=q.or('nama_file.ilike.%'+dokSearch+'%,keterangan.ilike.%'+dokSearch+'%');
-    q=q.order('uploaded_at',{ascending:false}).range(from,to);
-    const{data:docs,count,error}=await q;
-    document.getElementById('dokKatTabs').innerHTML=[{id:'',nama:'Semua'},...allKategori].map(k=>{
-      const isActive=dokKatFilter===k.id;
-      return `<button onclick="setDokKatFilter('${k.id}')" class="btn btn-xs ${isActive?'btn-gold':'btn-ghost'}" style="${isActive?'':'border:1px solid rgba(255,255,255,.08)'}">${esc(k.nama)}</button>`;
-    }).join('');
-    document.getElementById('dokKatFilter').innerHTML='<option value="">Semua Kategori</option>'+allKategori.map(k=>'<option value="'+k.id+'" '+(dokKatFilter===k.id?'selected':'')+'>'+esc(k.nama)+'</option>').join('');
-    if(error){toast('Gagal memuat dokumen: '+error.message,'err');return;}
-    const list=document.getElementById('dokList');
-    const empty=document.getElementById('dokEmpty');
-    if(!docs||!docs.length){list.innerHTML='';empty.style.display='block';document.getElementById('dokPagination').innerHTML='';return;}
-    empty.style.display='none';
-    list.innerHTML=docs.map(d=>{
-      const bkt=allBuckets.find(b=>b.id===d.storage_bucket_id);
-      const rk=esc(d.r2_key||''),fn=esc(d.nama_file||''),ki=d.kategori?.id||'',ket=esc(d.keterangan||''),bid=String(d.storage_bucket_id||'');
-      return `<div class="dok-card">
-        <div style="font-size:24px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
-        <div class="flex-1 min-w-0">
-          <div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fn}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;display:flex;flex-wrap:wrap;gap:5px">
-            <span>${d.kategori?.nama||'—'}</span><span>·</span><span>${fmtSz(d.ukuran_file)}</span><span>·</span><span>${fmtDate(d.uploaded_at)}</span>
-            ${bkt?`<span>·</span><span style="color:rgba(201,168,76,.6)">${esc(bkt.label)}</span>`:''}
-          </div>
-          ${ket?`<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ket}</div>`:''}
-        </div>
-        <div class="flex gap-1.5 flex-shrink-0">
-          <button onclick="openDok('${rk}','${fn}','${bid}')" class="btn btn-ghost btn-xs" title="Unduh">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          </button>
-          <button onclick="openModalEditDok('${d.id}','${fn}','${ki}','${ket}')" class="btn btn-ghost btn-xs" title="Edit">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button onclick="confirmDel('${d.id}','${rk}','${bid}')" class="btn btn-danger btn-xs" title="Hapus">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-          </button>
-        </div>
-      </div>`;
-    }).join('');
-    renderPagination(count||0,p,PAGE_SIZE,'loadDokumen','dokPagination');
-  }catch(e){toast('Gagal: '+e.message,'err');}
-}
-function setDokKatFilter(id){dokKatFilter=id;loadDokumen(1);}
-function filterDok(){dokSearch=document.getElementById('dokSearch').value;dokKatFilter=document.getElementById('dokKatFilter').value;loadDokumen(1);}
-
-window.addEventListener('DOMContentLoaded', async()=>{
-  document.getElementById('loadingPage').style.display='flex';
-
-  // Setup drag zone upload
-  const zone=document.getElementById('upZone');
-  if(zone){
-    zone.ondragover=e=>{e.preventDefault();zone.classList.add('drag')};
-    zone.ondragleave=()=>zone.classList.remove('drag');
-    zone.ondrop=e=>{e.preventDefault();zone.classList.remove('drag');if(e.dataTransfer.files[0])handleUpFile(e.dataTransfer.files[0])};
-  }
-
-  try{
-    // Auth state listener
-    sb.auth.onAuthStateChange(async(event,session)=>{
-      if(event==='SIGNED_IN'&&session) await loadUserState(session.user);
-      else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
-    });
-    // Cek session
-    const{data:{session},error}=await sb.auth.getSession();
-    if(error) throw error;
-    if(session) await loadUserState(session.user);
-    else showAuthPage('login');
-  }catch(e){
-    console.error('Init error:',e);
-    showAuthPage('login');
-  }
-});
 
 async function loadUserState(user){
   try{

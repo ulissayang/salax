@@ -2013,6 +2013,23 @@ async function loadUserState(user){
   }
 }
 
+const PAGE_TITLES={
+  dash:'SaLax', dokumen:'Dokumen', upload:'Upload', ai:'AI Asisten',
+  kategori:'Kategori', download:'Download', storage:'Storage',
+  settings:'Pengaturan', profil:'Profil'
+};
+const PAGE_LOADERS={
+  dash:()=>loadDash(),
+  dokumen:()=>loadDokumen(1),
+  upload:()=>loadUploadPage(),
+  ai:()=>loadAiPage(),
+  kategori:()=>loadKategoriPage(),
+  download:()=>loadDownloadPage(),
+  storage:()=>loadStoragePage(),
+  settings:()=>loadSettingsPage(),
+  profil:()=>loadProfilPage(),
+};
+
 function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('[data-page]').forEach(n=>n.classList.remove('active'));

@@ -932,7 +932,6 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
 let GEMINI_MODEL='deepseek-chat'; // diubah dari Pengaturan
 let CU=null, allKategori=[], allBuckets=[], WORKER_URL='';
 let dokPage=1, dokKatFilter='', dokSearch='';
-let chatHistory=[];
 let _cachedGeminiKey='';   // untuk scan dokumen (vision)
 let _cachedDeepseekKey=''; // untuk chat AI
 function getGeminiKey(){ return _cachedGeminiKey; }

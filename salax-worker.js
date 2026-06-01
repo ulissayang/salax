@@ -1,12 +1,14 @@
-// SaLax R2 Worker — Fixed AWS Signature V4
+// SaLax R2 Worker v4 — Fixed SignatureDoesNotMatch
 const MAX_BUCKET_BYTES = 9 * 1024 * 1024 * 1024;
 
 export default {
   async fetch(req, env) {
+    const origin = env.ALLOWED_ORIGIN || '*';
     const cors = {
-      'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || '*',
+      'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Methods': 'GET,PUT,DELETE,OPTIONS',
       'Access-Control-Allow-Headers': 'Authorization,Content-Type,X-Bucket-Id,X-R2-Limit',
+      'Access-Control-Max-Age': '86400',
     };
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
@@ -15,80 +17,68 @@ export default {
     const path = url.pathname;
 
     try {
-      const auth = req.headers.get('Authorization') || '';
-      const token = auth.replace('Bearer ', '').trim();
+      const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
       if (!token) return jres({ error: 'Unauthorized' }, 401, cors);
-
       const { user, error: authErr } = await verifyToken(env, token);
       if (authErr || !user) return jres({ error: 'Unauthorized' }, 401, cors);
       const uid = user.id;
 
       // PUT /upload/:key
       if (req.method === 'PUT' && path.startsWith('/upload/')) {
-        const key = decodeURIComponent(path.slice('/upload/'.length));
+        const key = decodeURIComponent(path.slice(8));
         if (!key.startsWith(uid + '/')) return jres({ error: 'Forbidden' }, 403, cors);
-
         const bucketId = req.headers.get('X-Bucket-Id') || '';
-        const limitOverride = parseInt(req.headers.get('X-R2-Limit') || '0');
-        if (limitOverride <= 0) return jres({ error: 'X-R2-Limit wajib dikirim' }, 400, cors);
-
-        const bucket = await getBucketConfig(env, bucketId, uid);
+        const limitBytes = parseInt(req.headers.get('X-R2-Limit') || '0');
+        if (limitBytes <= 0) return jres({ error: 'X-R2-Limit required' }, 400, cors);
+        const bucket = await getBucket(env, bucketId, uid);
         if (!bucket) return jres({ error: 'Bucket tidak ditemukan' }, 404, cors);
-        if (!bucket.secret_key) return jres({ error: 'Secret key R2 kosong — edit bucket di Storage' }, 500, cors);
-
+        if (!bucket.secret_key) return jres({ error: 'Secret key kosong' }, 500, cors);
+        // Trim whitespace/newline dari secret key
+        bucket.secret_key = bucket.secret_key.trim();
+        bucket.access_key = bucket.access_key.trim();
         const body = await req.arrayBuffer();
-        const cap = await checkCapacity(env, uid, bucket.id, body.byteLength, Math.min(limitOverride, MAX_BUCKET_BYTES));
+        const cap = await checkCap(env, uid, bucket.id, body.byteLength, Math.min(limitBytes, MAX_BUCKET_BYTES));
         if (!cap.ok) return jres({ error: cap.msg }, 413, cors);
-
-        await putR2(bucket, key, body, req.headers.get('Content-Type') || 'application/octet-stream');
+        // Gunakan content-type yang diterima dari request
+        const ct = req.headers.get('Content-Type') || 'application/octet-stream';
+        await r2Put(bucket, key, body, ct);
         return jres({ ok: true, key }, 200, cors);
       }
 
       // GET /file/:key
       if (req.method === 'GET' && path.startsWith('/file/')) {
-        const key = decodeURIComponent(path.slice('/file/'.length));
+        const key = decodeURIComponent(path.slice(6));
         if (!key.startsWith(uid + '/')) return jres({ error: 'Forbidden' }, 403, cors);
-
         const bucketId = req.headers.get('X-Bucket-Id') || '';
-        const bucket = bucketId
-          ? await getBucketConfig(env, bucketId, uid)
-          : await findBucketByKey(env, uid, key);
+        const bucket = bucketId ? await getBucket(env, bucketId, uid) : await findBucket(env, uid, key);
         if (!bucket) return jres({ error: 'Bucket tidak ditemukan' }, 404, cors);
-
-        const obj = await getR2(bucket, key);
-        if (!obj || !obj.ok) return jres({ error: 'File tidak ditemukan' }, 404, cors);
-
-        const headers = new Headers(cors);
-        headers.set('Content-Type', obj.headers.get('Content-Type') || 'application/octet-stream');
-        headers.set('Content-Disposition', `attachment; filename="${encodeURIComponent(key.split('/').pop())}"`);
-        return new Response(obj.body, { status: 200, headers });
+        const res = await r2Get(bucket, key);
+        if (!res.ok) return jres({ error: 'File tidak ditemukan' }, 404, cors);
+        const h = new Headers(cors);
+        h.set('Content-Type', res.headers.get('Content-Type') || 'application/octet-stream');
+        h.set('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(key.split('/').pop())}`);
+        return new Response(res.body, { status: 200, headers: h });
       }
 
       // DELETE /file/:key
       if (req.method === 'DELETE' && path.startsWith('/file/')) {
-        const key = decodeURIComponent(path.slice('/file/'.length));
+        const key = decodeURIComponent(path.slice(6));
         if (!key.startsWith(uid + '/')) return jres({ error: 'Forbidden' }, 403, cors);
-
         const bucketId = req.headers.get('X-Bucket-Id') || '';
-        const bucket = bucketId
-          ? await getBucketConfig(env, bucketId, uid)
-          : await findBucketByKey(env, uid, key);
-        if (bucket) await deleteR2(bucket, key).catch(() => {});
+        const bucket = bucketId ? await getBucket(env, bucketId, uid) : await findBucket(env, uid, key);
+        if (bucket) await r2Del(bucket, key).catch(() => {});
         return jres({ ok: true }, 200, cors);
       }
 
       return jres({ error: 'Not found' }, 404, cors);
-
     } catch (e) {
-      console.error('Worker error:', e.message);
+      console.error(e.message);
       return jres({ error: e.message }, 500, cors);
     }
   }
 };
 
-// ── Helpers ──────────────────────────────────────────────────────
-
-function jres(data, status = 200, cors = {}) {
+function jres(data, status, cors) {
   return new Response(JSON.stringify(data), {
     status,
     headers: { 'Content-Type': 'application/json', ...cors }
@@ -96,164 +86,182 @@ function jres(data, status = 200, cors = {}) {
 }
 
 async function verifyToken(env, token) {
-  try {
-    const res = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
-      headers: { 'Authorization': `Bearer ${token}`, 'apikey': env.SUPABASE_KEY }
-    });
-    if (!res.ok) return { error: 'Token invalid' };
-    const user = await res.json();
-    return { user };
-  } catch(e) {
-    return { error: e.message };
-  }
+  const res = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
+    headers: { Authorization: `Bearer ${token}`, apikey: env.SUPABASE_KEY }
+  });
+  if (!res.ok) return { error: 'invalid token' };
+  return { user: await res.json() };
 }
 
-async function getBucketConfig(env, bucketId, uid) {
-  const svcKey = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
+async function getBucket(env, id, uid) {
+  const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
   const res = await fetch(
-    `${env.SUPABASE_URL}/rest/v1/r2_buckets?id=eq.${bucketId}&user_id=eq.${uid}&select=*`,
-    { headers: { 'apikey': svcKey, 'Authorization': `Bearer ${svcKey}` } }
+    `${env.SUPABASE_URL}/rest/v1/r2_buckets?id=eq.${id}&user_id=eq.${uid}&select=*`,
+    { headers: { apikey: k, Authorization: `Bearer ${k}` } }
   );
-  const data = await res.json();
-  return Array.isArray(data) ? data[0] || null : null;
+  const d = await res.json();
+  return Array.isArray(d) && d.length ? d[0] : null;
 }
 
-async function findBucketByKey(env, uid, r2Key) {
-  const svcKey = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
+async function findBucket(env, uid, r2Key) {
+  const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
   const res = await fetch(
     `${env.SUPABASE_URL}/rest/v1/dokumen?user_id=eq.${uid}&r2_key=eq.${encodeURIComponent(r2Key)}&select=storage_bucket_id`,
-    { headers: { 'apikey': svcKey, 'Authorization': `Bearer ${svcKey}` } }
+    { headers: { apikey: k, Authorization: `Bearer ${k}` } }
   );
-  const data = await res.json();
-  if (!Array.isArray(data) || !data[0]?.storage_bucket_id) return null;
-  return getBucketConfig(env, data[0].storage_bucket_id, uid);
+  const d = await res.json();
+  if (!Array.isArray(d) || !d[0]?.storage_bucket_id) return null;
+  return getBucket(env, d[0].storage_bucket_id, uid);
 }
 
-async function checkCapacity(env, uid, bucketId, incoming, limit) {
-  const svcKey = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
+async function checkCap(env, uid, bucketId, incoming, limit) {
+  const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
   const res = await fetch(
     `${env.SUPABASE_URL}/rest/v1/dokumen?user_id=eq.${uid}&storage_bucket_id=eq.${bucketId}&select=ukuran_file`,
-    { headers: { 'apikey': svcKey, 'Authorization': `Bearer ${svcKey}` } }
+    { headers: { apikey: k, Authorization: `Bearer ${k}` } }
   );
-  const data = await res.json();
-  const total = Array.isArray(data) ? data.reduce((a, d) => a + (d.ukuran_file || 0), 0) : 0;
-  const effective = Math.min(limit, MAX_BUCKET_BYTES);
-  if (total + incoming > effective) {
-    return { ok: false, msg: `Storage penuh. Terpakai: ${fmtSz(total)}, Limit: ${fmtSz(effective)}` };
-  }
+  const d = await res.json();
+  const used = Array.isArray(d) ? d.reduce((a, x) => a + (x.ukuran_file || 0), 0) : 0;
+  const eff = Math.min(limit, MAX_BUCKET_BYTES);
+  if (used + incoming > eff) return { ok: false, msg: `Storage penuh (${fmt(used)} / ${fmt(eff)})` };
   return { ok: true };
 }
 
-// ── R2 S3 Operations ─────────────────────────────────────────────
+// ── R2 operations ──────────────────────────────────────────────────
 
-async function putR2(bkt, key, body, contentType) {
-  const url = `https://${bkt.account_id}.r2.cloudflarestorage.com/${bkt.bucket}/${key}`;
-  const headers = await signRequest('PUT', url, bkt.access_key, bkt.secret_key, body, contentType);
-  const res = await fetch(url, { method: 'PUT', headers, body });
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(`R2 PUT ${res.status}: ${txt.slice(0, 200)}`);
-  }
+// AWS S3 strict URI encode - encode semua kecuali unreserved chars
+// encodeURIComponent tidak encode: ! ' ( ) * ~ tapi AWS mengharuskan encode
+function awsEncode(str) {
+  return encodeURIComponent(str)
+    .replace(/[!'()*~]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
 }
 
-async function getR2(bkt, key) {
-  const url = `https://${bkt.account_id}.r2.cloudflarestorage.com/${bkt.bucket}/${key}`;
-  const headers = await signRequest('GET', url, bkt.access_key, bkt.secret_key, null, '');
-  return fetch(url, { method: 'GET', headers });
+function r2Url(b, key) {
+  const encodedKey = key.split('/').map(s => awsEncode(s)).join('/');
+  return `https://${b.account_id}.r2.cloudflarestorage.com/${b.bucket}/${encodedKey}`;
 }
 
-async function deleteR2(bkt, key) {
-  const url = `https://${bkt.account_id}.r2.cloudflarestorage.com/${bkt.bucket}/${key}`;
-  const headers = await signRequest('DELETE', url, bkt.access_key, bkt.secret_key, null, '');
-  return fetch(url, { method: 'DELETE', headers });
+async function r2Put(b, key, body, ct) {
+  const url = r2Url(b, key);
+  const h = await signV4('PUT', url, b.access_key, b.secret_key, body, ct);
+  const res = await fetch(url, { method: 'PUT', headers: h, body });
+  if (!res.ok) throw new Error(`R2 PUT ${res.status}: ${(await res.text()).slice(0, 300)}`);
 }
 
-// ── AWS Signature V4 — simplified & fixed ────────────────────────
+async function r2Get(b, key) {
+  const url = r2Url(b, key);
+  const h = await signV4('GET', url, b.access_key, b.secret_key, null, null);
+  return fetch(url, { method: 'GET', headers: h });
+}
 
-async function signRequest(method, urlStr, accessKey, secretKey, body, contentType) {
+async function r2Del(b, key) {
+  const url = r2Url(b, key);
+  const h = await signV4('DELETE', url, b.access_key, b.secret_key, null, null);
+  return fetch(url, { method: 'DELETE', headers: h });
+}
+
+// ── AWS Signature V4 ──────────────────────────────────────────────
+
+async function signV4(method, urlStr, accessKey, secretKey, body, contentType) {
   const u = new URL(urlStr);
   const now = new Date();
-  const amzDate = now.toISOString().replace(/[:-]/g, '').replace(/\.\d{3}/, '');
-  const dateStamp = amzDate.slice(0, 8);
 
-  // Body hash
-  let bodyHash;
-  if (body && body.byteLength > 0) {
-    const hashBuf = await crypto.subtle.digest('SHA-256', body);
-    bodyHash = bufToHex(hashBuf);
-  } else {
-    bodyHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-  }
+  // Format tanggal dengan benar
+  const pad = n => String(n).padStart(2, '0');
+  const ymd = `${now.getUTCFullYear()}${pad(now.getUTCMonth()+1)}${pad(now.getUTCDate())}`;
+  const amzDate = `${ymd}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
 
-  // Headers to sign
-  const signedHeadersMap = {
+  // Hash body
+  const bodyBuf = (body instanceof ArrayBuffer && body.byteLength > 0) ? body : null;
+  const bodyHash = bodyBuf
+    ? hex(await sha256(bodyBuf))
+    : 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+
+  // Bangun headers yang akan di-sign
+  // PENTING: hanya sign host, x-amz-content-sha256, x-amz-date
+  // content-type TIDAK di-sign untuk menghindari mismatch
+  const signHdrs = {
     'host': u.host,
     'x-amz-content-sha256': bodyHash,
     'x-amz-date': amzDate,
   };
-  if (contentType) signedHeadersMap['content-type'] = contentType;
 
-  const sortedKeys = Object.keys(signedHeadersMap).sort();
-  const canonicalHeaders = sortedKeys.map(k => `${k}:${signedHeadersMap[k]}`).join('\n') + '\n';
-  const signedHeadersStr = sortedKeys.join(';');
+  const sortedKeys = Object.keys(signHdrs).sort();
+  const canonHdrs = sortedKeys.map(k => `${k}:${signHdrs[k]}\n`).join('');
+  const signedHdrsStr = sortedKeys.join(';');
+
+  // Canonical URI - re-encode pakai AWS strict encoding
+  // Decode dulu (URL constructor mungkin encode berbeda) lalu encode ulang dengan AWS rules
+  const canonUri = u.pathname.split('/').map(seg => {
+    const decoded = decodeURIComponent(seg);
+    return encodeURIComponent(decoded)
+      .replace(/[!'()*~]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+  }).join('/');
 
   // Canonical request
-  // S3 butuh URI-encode path (tapi tidak encode slash pemisah bucket/key)
-  // pathname sudah ter-encode dari URL constructor, tapi perlu encode ulang karakter khusus
-  const encodedPath = u.pathname.split('/').map(seg => 
-    encodeURIComponent(decodeURIComponent(seg))
-  ).join('/');
-  
-  const canonicalRequest = [
-    method,
-    encodedPath,
-    '',  // query string
-    canonicalHeaders,
-    signedHeadersStr,
-    bodyHash,
-  ].join('\n');
+  const canonReq = [method, canonUri, '', canonHdrs, signedHdrsStr, bodyHash].join('\n');
+
+  // Credential scope
+  const region = 'auto';
+  const service = 's3';
+  const scope = `${ymd}/${region}/${service}/aws4_request`;
 
   // String to sign
-  const credScope = `${dateStamp}/auto/s3/aws4_request`;
-  const canonicalHash = bufToHex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonicalRequest)));
-  const stringToSign = `AWS4-HMAC-SHA256\n${amzDate}\n${credScope}\n${canonicalHash}`;
+  const strToSign = [
+    'AWS4-HMAC-SHA256',
+    amzDate,
+    scope,
+    hex(await sha256(str2buf(canonReq)))
+  ].join('\n');
 
-  // Derive signing key — all steps using raw bytes
-  const kDate    = await hmac(new TextEncoder().encode('AWS4' + secretKey), dateStamp);
-  const kRegion  = await hmac(kDate, 'auto');
-  const kService = await hmac(kRegion, 's3');
-  const kSigning = await hmac(kService, 'aws4_request');
-  const sigBuf   = await hmac(kSigning, stringToSign);
-  const signature = bufToHex(sigBuf);
+  // Derive signing key
+  const kDate    = await hmacBuf(str2buf('AWS4' + secretKey.trim()), ymd);
+  const kRegion  = await hmacBuf(kDate, region);
+  const kService = await hmacBuf(kRegion, service);
+  const kSign    = await hmacBuf(kService, 'aws4_request');
+  const sig      = hex(await hmacBuf(kSign, strToSign));
 
-  const authHeader = `AWS4-HMAC-SHA256 Credential=${accessKey}/${credScope},SignedHeaders=${signedHeadersStr},Signature=${signature}`;
+  // Return headers untuk fetch
+  const result = {
+    ...signHdrs,
+    'authorization': `AWS4-HMAC-SHA256 Credential=${accessKey}/${scope},SignedHeaders=${signedHdrsStr},Signature=${sig}`,
+  };
 
-  const result = { ...signedHeadersMap, 'authorization': authHeader };
+  // Tambah content-type ke request tapi TIDAK di-sign
+  if (contentType) result['content-type'] = contentType;
+
   return result;
 }
 
-// hmac: key=ArrayBuffer|Uint8Array, msg=string → ArrayBuffer
-async function hmac(key, msg) {
-  const keyData = key instanceof ArrayBuffer ? key : key.buffer || key;
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
+// Crypto helpers
+function str2buf(s) { return new TextEncoder().encode(s); }
+async function sha256(data) {
+  return crypto.subtle.digest('SHA-256', data instanceof ArrayBuffer ? data : str2buf(data));
+}
+async function hmacBuf(keyBuf, msg) {
+  // Pastikan keyBuf selalu ArrayBuffer murni
+  let rawKey;
+  if (keyBuf instanceof ArrayBuffer) {
+    rawKey = keyBuf;
+  } else if (ArrayBuffer.isView(keyBuf)) {
+    // Uint8Array atau TypedArray lain - ambil buffer dengan offset yang benar
+    rawKey = keyBuf.buffer.slice(keyBuf.byteOffset, keyBuf.byteOffset + keyBuf.byteLength);
+  } else {
+    rawKey = keyBuf;
+  }
+  const k = await crypto.subtle.importKey(
+    'raw', rawKey,
+    { name: 'HMAC', hash: { name: 'SHA-256' } },
+    false, ['sign']
   );
-  const msgBuf = typeof msg === 'string' ? new TextEncoder().encode(msg) : msg;
-  return crypto.subtle.sign('HMAC', cryptoKey, msgBuf);
+  const msgBuf = typeof msg === 'string' ? str2buf(msg) : msg;
+  return crypto.subtle.sign('HMAC', k, msgBuf);
 }
-
-function bufToHex(buf) {
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+function hex(buf) {
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
-
-function fmtSz(bytes) {
-  if (!bytes) return '0 B';
-  const u = ['B', 'KB', 'MB', 'GB'];
-  let i = 0;
+function fmt(bytes) {
+  const u = ['B','KB','MB','GB']; let i = 0;
   while (bytes >= 1024 && i < 3) { bytes /= 1024; i++; }
-  return bytes.toFixed(i > 0 ? 1 : 0) + ' ' + u[i];
+  return bytes.toFixed(i ? 1 : 0) + ' ' + u[i];
 }

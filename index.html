@@ -889,39 +889,9 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 
 // ── SUPABASE CLIENT ──────────────────────────────────────────
 const { createClient } = supabase;
-let sb = null; // diinit di DOMContentLoaded setelah cek config
-
-// Ambil config dari localStorage
-function getConfig(){
-  return {
-    sbUrl: localStorage.getItem('salax_sb_url')||'',
-    sbAnon: localStorage.getItem('salax_sb_anon')||'',
-  };
-}
-
-function showSetupPrompt(){
-  document.getElementById('loadingPage').style.display='none';
-  // Redirect ke login — login page akan handle
-  // Jika tidak ada config sama sekali, arahkan ke halaman setup
-  const lp = document.getElementById('loginPage');
-  if(lp) {
-    lp.style.display='flex';
-    // Tambah info setup di login page
-    const err = document.getElementById('loginErr');
-    if(err){
-      err.textContent='Pertama kali? Hubungi administrator untuk mendapatkan akses.';
-      err.style.display='block';
-    }
-  }
-}
-
-async function saveConfig(url, anon){
-  localStorage.setItem('salax_sb_url', url);
-  localStorage.setItem('salax_sb_anon', anon);
-  sb = createClient(url, anon, {
-    auth:{ autoRefreshToken:true, persistSession:true, detectSessionInUrl:true }
-  });
-}
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth:{ autoRefreshToken:true, persistSession:true, detectSessionInUrl:true }
+});
 
 // ── STATE ─────────────────────────────────────────────────────
 let GEMINI_MODEL='deepseek-chat'; // diubah dari Pengaturan
@@ -1158,21 +1128,6 @@ window.addEventListener('DOMContentLoaded', async()=>{
     zone.ondragleave=()=>zone.classList.remove('drag');
     zone.ondrop=e=>{e.preventDefault();zone.classList.remove('drag');if(e.dataTransfer.files[0])handleUpFile(e.dataTransfer.files[0])};
   }
-
-  // Init Supabase client dari credentials yang tersimpan
-  const cfg = getConfig();
-  if(!cfg.sbUrl || !cfg.sbAnon){
-    showAuthPage('login'); // akan redirect ke config page jika diperlukan
-    document.getElementById('loadingPage').style.display='none';
-    // Tampilkan pesan setup
-    document.getElementById('loginPage').style.display='none';
-    // Buat halaman setup sederhana inline
-    showSetupPrompt();
-    return;
-  }
-  sb = createClient(cfg.sbUrl, cfg.sbAnon, {
-    auth:{ autoRefreshToken:true, persistSession:true, detectSessionInUrl:true }
-  });
 
   try{
     const{data:{session},error}=await sb.auth.getSession();

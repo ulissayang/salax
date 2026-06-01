@@ -463,14 +463,14 @@ select.inp option{background:#1a1a2e;color:var(--text)}
                 <div style="width:24px;height:24px;background:linear-gradient(135deg,#7C3AED,#DB2777);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                 </div>
-                <span style="font-size:13px;font-weight:700">AI API Key</span>
+                <span style="font-size:13px;font-weight:700">Gemini API Key</span>
                 <span id="geminiStatus" style="font-size:11px;color:var(--muted);margin-left:auto"></span>
               </div>
               <div style="display:flex;gap:8px">
                 <input id="geminiKeyInp" type="password" class="inp" placeholder="Paste API key di sini..." style="flex:1;font-size:13px" autocomplete="new-password"/>
                 <button onclick="saveGeminiKey()" class="btn btn-sm" style="background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);color:#a78bfa;flex-shrink:0">Simpan</button>
               </div>
-              <p style="font-size:11px;color:var(--faint);margin-top:6px">Dapatkan di <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#a78bfa">platform.deepseek.com</a></p>
+              <p style="font-size:11px;color:var(--faint);margin-top:6px">Dapatkan gratis di <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#a78bfa">aistudio.google.com</a></p>
             </div>
             <div id="upStorageInfo" style="font-size:12px;color:var(--muted);padding:10px 14px;background:rgba(255,255,255,.03);border-radius:var(--r);border:1px solid var(--border)"></div>
           </div>
@@ -537,14 +537,14 @@ select.inp option{background:#1a1a2e;color:var(--text)}
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
             </div>
             <div>
-              <div style="font-size:14px;font-weight:700">DeepSeek AI</div>
+              <div style="font-size:14px;font-weight:700">Gemini AI</div>
               <div id="aiStatus" style="font-size:11px;color:var(--muted)">Siap membantu</div>
             </div>
             <button onclick="clearChat()" class="btn btn-ghost btn-xs" style="margin-left:auto">Hapus Chat</button>
           </div>
           <div id="chatMessages" class="chat-msgs">
             <div class="chat-bubble bubble-ai">
-              <div style="font-size:13px;font-weight:700;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px">Halo! Saya DeepSeek AI 👋</div>
+              <div style="font-size:13px;font-weight:700;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px">Halo! Saya Gemini AI 👋</div>
               <div style="font-size:13px">Saya bisa membantu Anda dengan:<br><br>📂 Cari dokumen berdasarkan nama atau kategori<br>📊 Rangkum statistik arsip Anda<br>💡 Saran organisasi dokumen<br>❓ Jawab pertanyaan tentang sistem</div>
             </div>
           </div>
@@ -653,14 +653,14 @@ select.inp option{background:#1a1a2e;color:var(--text)}
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
               </div>
               <div>
-                <div style="font-size:14px;font-weight:700">Model DeepSeek AI</div>
+                <div style="font-size:14px;font-weight:700">Model Gemini AI</div>
                 <div style="font-size:12px;color:var(--muted)">Pilih model yang digunakan untuk AI chat &amp; scan</div>
               </div>
             </div>
             <div style="margin-bottom:12px">
               <label class="lbl">Model</label>
               <select id="settingGeminiModel" class="inp" onchange="saveGeminiModel()">
-                <option value="gemini-2.5-flash">deepseek-chat (V3, Terbaik)</option>
+                <option value="gemini-2.5-flash">gemini-2.5-flash (Terbaru, Gratis)</option>
                 <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview-05-20</option>
                 <option value="gemini-2.0-flash">gemini-2.0-flash</option>
                 <option value="gemini-1.5-flash-latest">gemini-1.5-flash-latest</option>
@@ -671,7 +671,7 @@ select.inp option{background:#1a1a2e;color:var(--text)}
             <div id="customModelWrap" style="display:none;margin-bottom:12px">
               <label class="lbl">Nama Model Custom</label>
               <div style="display:flex;gap:8px">
-                <input id="customModelInp" type="text" class="inp" style="flex:1;font-size:13px" placeholder="cth: deepseek-chat"/>
+                <input id="customModelInp" type="text" class="inp" style="flex:1;font-size:13px" placeholder="cth: gemini-3.0-flash"/>
                 <button onclick="applyCustomModel()" class="btn btn-primary btn-sm">Pakai</button>
               </div>
             </div>
@@ -682,19 +682,12 @@ select.inp option{background:#1a1a2e;color:var(--text)}
           </div>
           <!-- Gemini Key di Settings -->
           <div class="card" style="padding:20px">
-            <div style="font-size:14px;font-weight:700;margin-bottom:12px">AI API Key</div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:12px">Gemini API Key</div>
             <div style="display:flex;gap:8px;margin-bottom:8px">
-              <input id="settingsGeminiKeyInp" type="password" class="inp" style="flex:1;font-size:13px" placeholder="sk-... (DeepSeek API key)"/>
+              <input id="settingsGeminiKeyInp" type="password" class="inp" style="flex:1;font-size:13px" placeholder="Paste key baru untuk mengganti..."/>
               <button onclick="saveGeminiKeyFromSettings()" class="btn btn-primary btn-sm">Simpan</button>
             </div>
             <div id="settingsGeminiStatus" style="font-size:12px;color:var(--muted)">—</div>
-            <div style="margin-top:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r)">
-              <div style="font-size:12px;color:var(--muted);line-height:1.7">
-                📌 <strong>DeepSeek:</strong> <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#a78bfa">platform.deepseek.com</a> → API Keys → Create<br>
-                📌 <strong>Gemini:</strong> <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#a78bfa">aistudio.google.com/apikey</a> → Create API key<br>
-                <span style="color:var(--faint);font-size:11px">💡 Scan dokumen otomatis selalu pakai Gemini (butuh vision). Chat AI pakai model yang dipilih.</span>
-              </div>
-            </div>
           </div>
           <!-- Reset -->
           <div class="card" style="padding:20px">
@@ -832,47 +825,6 @@ select.inp option{background:#1a1a2e;color:var(--text)}
   </div>
 </div>
 
-<!-- Modal Transfer Bucket -->
-<div id="modalTransfer" class="modal-bd" onclick="if(event.target===this)closeModal('modalTransfer')">
-  <div class="modal-box" style="max-width:480px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h3 class="modal-title">Transfer File Antar Bucket</h3>
-      <button onclick="closeModal('modalTransfer')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div style="padding:12px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--r);margin-bottom:16px">
-      <div style="font-size:12px;color:#fcd34d">⚠️ Transfer akan memindahkan semua file dari bucket asal ke bucket tujuan. Proses ini tidak bisa dibatalkan.</div>
-    </div>
-    <div style="margin-bottom:14px">
-      <label class="lbl">Dari Bucket</label>
-      <select id="transferFrom" class="inp" onchange="updateTransferInfo()">
-        <option value="">Pilih bucket asal...</option>
-      </select>
-    </div>
-    <div style="margin-bottom:14px">
-      <label class="lbl">Ke Bucket</label>
-      <select id="transferTo" class="inp" onchange="updateTransferInfo()">
-        <option value="">Pilih bucket tujuan...</option>
-      </select>
-    </div>
-    <div id="transferInfo" style="display:none;padding:12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);margin-bottom:16px;font-size:13px;color:var(--muted)"></div>
-    <div id="transferPrgWrap" style="display:none;margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px">
-        <span id="transferPrgLabel">Mentransfer...</span>
-        <span id="transferPrgPct">0%</span>
-      </div>
-      <div class="prg-wrap"><div id="transferPrgFill" class="prg-fill"></div></div>
-    </div>
-    <div id="modalTransferAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="closeModal('modalTransfer')" class="btn btn-secondary" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnDoTransfer" onclick="doTransfer()" class="btn btn-primary" style="flex:1;justify-content:center" disabled>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        Mulai Transfer
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- Responsive helper CSS -->
 <style>
 @media(min-width:640px){.sm-4col{grid-template-columns:repeat(4,1fr)!important}}
@@ -885,10 +837,19 @@ select.inp option{background:#1a1a2e;color:var(--text)}
 const SUPABASE_URL  = 'https://oxttycjpgjylkjwhocuv.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94dHR5Y2pwZ2p5bGtqd2hvY3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NDc5MjYsImV4cCI6MjA5NTUyMzkyNn0.bXv3QBHjEXPCEDgHrOQbzI5ATJRZpOf93b10GRcGThI';
 // Contoh:
-// 
+// const SUPABASE_URL  = 'https://abcdefgh.supabase.co';
+// const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+
+const MAX_BUCKET_BYTES = 9 * 1024 * 1024 * 1024;
+const PAGE_SIZE = 20;
+let GEMINI_MODEL = 'gemini-2.5-flash';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth:{ autoRefreshToken:true, persistSession:true, detectSessionInUrl:true }
+});
 
 // ── STATE ─────────────────────────────────────────────────────
-let GEMINI_MODEL='deepseek-chat'; // diubah dari Pengaturan
 let CU=null, allKategori=[], allBuckets=[], WORKER_URL='';
 let _cachedGeminiKey='';
 function getGeminiKey(){ return _cachedGeminiKey; }
@@ -1250,7 +1211,7 @@ function updateGeminiKeyUI(){
     // Jangan isi dots ke input — biarkan kosong dengan placeholder
     if(inp){inp.value='';inp.placeholder='Sudah tersimpan — ketik untuk mengganti';}
     const statusEl=document.getElementById('geminiStatus');
-    if(statusEl) statusEl.innerHTML='<span style="color:#6ee7b7">✓ DeepSeek AI aktif</span>';
+    if(statusEl) statusEl.innerHTML='<span style="color:#6ee7b7">✓ Gemini AI aktif</span>';
   } else if(wrap){
     wrap.style.borderColor='rgba(99,102,241,.2)';
     wrap.style.background='';
@@ -1366,11 +1327,8 @@ ${prompt}`}]}]
       };
     }
 
-    // Scan dokumen selalu pakai Gemini (karena support vision/PDF)
-    // Jika model bukan Gemini, fallback ke gemini-2.5-flash untuk scan
-    const scanModel = GEMINI_MODEL.startsWith('gemini') ? GEMINI_MODEL : 'gemini-2.5-flash';
     const res=await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${scanModel}:generateContent?key=${geminiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
       {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(requestBody)}
     );
 
@@ -1689,13 +1647,7 @@ async function loadKategoriPage(){
   const cMap={};(counts||[]).forEach(d=>{cMap[d.kategori_id]=(cMap[d.kategori_id]||0)+1;});
   document.getElementById('katList').innerHTML=!allKategori.length
     ?'<tr><td colspan="4" class="text-center py-10" style="color:rgba(255,255,255,.3)">Belum ada kategori</td></tr>'
-    :allKategori.map(k=>{
-      const n=cMap[k.id]||0;
-      const delBtn=n>0
-        ?`<button class="btn btn-danger btn-xs" disabled style="opacity:.35" title="${n} file masih ada">Hapus</button>`
-        :`<button onclick="confirmDelKat('${k.id}','${esc(k.nama)}')" class="btn btn-danger btn-xs">Hapus</button>`;
-      return`<tr><td><span style="font-weight:500">${esc(k.nama)}</span></td><td style="color:rgba(255,255,255,.4);font-size:13px">${esc(k.deskripsi||'—')}</td><td><span class="badge ${n>0?'badge-purple':'badge-muted'}">${n} file</span></td><td><div class="flex gap-1.5"><button onclick="openModalKat('${k.id}','${esc(k.nama)}','${esc(k.deskripsi||'')}')" class="btn btn-ghost btn-xs">Edit</button>${delBtn}</div></td></tr>`;
-    }).join('');
+    :allKategori.map(k=>`<tr><td><span style="font-weight:500">${esc(k.nama)}</span></td><td style="color:rgba(255,255,255,.4);font-size:13px">${esc(k.deskripsi||'—')}</td><td><span class="badge badge-muted">${cMap[k.id]||0} file</span></td><td><div class="flex gap-1.5"><button onclick="openModalKat('${k.id}','${esc(k.nama)}','${esc(k.deskripsi||'')}')" class="btn btn-ghost btn-xs">Edit</button><button onclick="confirmDelKat('${k.id}','${esc(k.nama)}')" class="btn btn-danger btn-xs">Hapus</button></div></td></tr>`).join('');
 }
 function openModalKat(id='',nama='',desk=''){
   document.getElementById('modalKatId').value=id;
@@ -1730,35 +1682,10 @@ function confirmDelKat(id,nama){
 // ── DOWNLOAD ──────────────────────────────────────────────────
 async function loadDownloadPage(){
   await loadKategori();
-  const dlKatSel = document.getElementById('dlKatSel');
-  dlKatSel.innerHTML='<option value="">Pilih kategori...</option>'+allKategori.map(k=>`<option value="${k.id}">${esc(k.nama)}</option>`).join('');
+  document.getElementById('dlKatSel').innerHTML='<option value="">Pilih kategori...</option>'+allKategori.map(k=>`<option value="${k.id}">${esc(k.nama)}</option>`).join('');
   const{count}=await sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id);
   const{data:sd}=await sb.from('dokumen').select('ukuran_file').eq('user_id',CU.id);
-  const total = count||0;
-  const totalSize = (sd||[]).reduce((a,d)=>a+(d.ukuran_file||0),0);
-  document.getElementById('dlAllInfo').textContent=`${total} file · ${fmtSz(totalSize)}`;
-  // Smart button: disable kalau tidak ada file
-  const btnAll = document.getElementById('btnDlAll');
-  if(total===0){
-    btnAll.disabled=true;
-    btnAll.style.opacity='0.4';
-    btnAll.title='Tidak ada dokumen untuk didownload';
-  } else {
-    btnAll.disabled=false;
-    btnAll.style.opacity='';
-    btnAll.title='';
-  }
-  // Update kategori select dengan jumlah file per kategori
-  const{data:katCounts}=await sb.from('dokumen').select('kategori_id').eq('user_id',CU.id);
-  const cMap={};(katCounts||[]).forEach(d=>{cMap[d.kategori_id]=(cMap[d.kategori_id]||0)+1;});
-  dlKatSel.innerHTML='<option value="">Pilih kategori...</option>'+allKategori.map(k=>{
-    const n=cMap[k.id]||0;
-    return `<option value="${k.id}" ${n===0?'disabled style="color:var(--faint)"':''}>${esc(k.nama)} (${n} file)</option>`;
-  }).join('');
-  // Disable download kategori jika tidak ada kategori dengan file
-  const btnKat = document.getElementById('btnDlKat');
-  btnKat.disabled = total===0;
-  btnKat.style.opacity = total===0?'0.4':'';
+  document.getElementById('dlAllInfo').textContent=`${count||0} file · ${fmtSz((sd||[]).reduce((a,d)=>a+(d.ukuran_file||0),0))}`;
 }
 async function doDownloadAll(){await doZipDownload(null,'SaLax_Semua');}
 async function doDownloadKat(){
@@ -1882,8 +1809,7 @@ async function loadStoragePage(){
     const pct=Math.min((used/limit)*100,100);
     const clr=pct>90?'#f87171':pct>70?'#fbbf24':'#4ade80';
     const badge=!b.aktif?'<span class="badge badge-red">Nonaktif</span>':pct>=100?'<span class="badge badge-red">Penuh</span>':pct>70?'<span class="badge" style="background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)">Hampir penuh</span>':'<span class="badge badge-green">Normal</span>';
-    const docCount = (ud||[]).filter(d=>d.storage_bucket_id===b.id).length;
-    return`<div class="card" style="padding:16px 20px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px"><div style="width:40px;height:40px;background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(219,39,119,.1));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🗄️</div><div><div style="font-size:14px;font-weight:700">${esc(b.label)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(b.bucket)} · ${docCount} file · Urutan ${b.urutan}</div></div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${badge}<button onclick="openModalBucket('${b.id}')" class="btn btn-ghost btn-xs">Edit</button><button onclick="openModalTransfer('${b.id}')" class="btn btn-xs" style="background:rgba(14,165,233,.15);color:#38bdf8;border:1px solid rgba(14,165,233,.25)">Transfer</button><button onclick="confirmDelBucket('${b.id}','${esc(b.label)}')" class="btn btn-danger btn-xs">Hapus</button></div></div><div class="sbar"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${clr}"></div></div><div style="display:flex;justify-content:space-between;margin-top:8px"><span style="font-size:11px;color:var(--muted)">${fmtSz(used)} / ${fmtSz(limit)}</span><span style="font-size:11px;color:var(--muted)">${pct.toFixed(1)}% terpakai</span></div></div>`;
+    return`<div class="glass p-4 sm:p-5"><div class="flex items-start justify-between gap-3 mb-3"><div class="flex items-center gap-3"><div style="width:36px;height:36px;background:rgba(255,255,255,.05);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🗄️</div><div><div style="font-size:14px;font-weight:500">${esc(b.label)}</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px">${esc(b.bucket)} · Urutan ${b.urutan}</div></div></div><div class="flex items-center gap-2 flex-wrap">${badge}<button onclick="openModalBucket('${b.id}')" class="btn btn-ghost btn-xs">Edit</button><button onclick="confirmDelBucket('${b.id}','${esc(b.label)}')" class="btn btn-danger btn-xs">Hapus</button></div></div><div class="sbar" style="height:5px"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${clr}"></div></div><div class="flex justify-between mt-2"><span style="font-size:11px;color:rgba(255,255,255,.35)">${fmtSz(used)} / ${fmtSz(limit)}</span><span style="font-size:11px;color:rgba(255,255,255,.35)">${pct.toFixed(1)}%</span></div></div>`;
   }).join('');
 }
 function openModalBucket(id=''){
@@ -1938,113 +1864,6 @@ async function saveWorkerUrl(){
   if(!url){toast('URL tidak boleh kosong','warn');return;}
   try{await sb.from('app_config').upsert({key:'workerUrl',value:url},{onConflict:'key'});WORKER_URL=url;document.getElementById('workerUrlInp').value=url;toast('Worker URL disimpan ✓','ok');}
   catch(e){toast('Gagal: '+e.message,'err');}
-}
-
-
-// ── TRANSFER ANTAR BUCKET ─────────────────────────────────────
-function openModalTransfer(fromBucketId=''){
-  const fromSel=document.getElementById('transferFrom');
-  const toSel=document.getElementById('transferTo');
-  fromSel.innerHTML='<option value="">Pilih bucket asal...</option>'+allBuckets.map(b=>`<option value="${b.id}">${esc(b.label)} (${esc(b.bucket)})</option>`).join('');
-  toSel.innerHTML='<option value="">Pilih bucket tujuan...</option>'+allBuckets.map(b=>`<option value="${b.id}">${esc(b.label)} (${esc(b.bucket)})</option>`).join('');
-  if(fromBucketId) fromSel.value=fromBucketId;
-  document.getElementById('transferInfo').style.display='none';
-  document.getElementById('transferPrgWrap').style.display='none';
-  document.getElementById('modalTransferAlert').style.display='none';
-  document.getElementById('btnDoTransfer').disabled=true;
-  openModal('modalTransfer');
-  updateTransferInfo();
-}
-
-async function updateTransferInfo(){
-  const fromId=document.getElementById('transferFrom').value;
-  const toId=document.getElementById('transferTo').value;
-  const infoEl=document.getElementById('transferInfo');
-  const btnTransfer=document.getElementById('btnDoTransfer');
-  btnTransfer.disabled=true;
-  if(!fromId||!toId||fromId===toId){
-    infoEl.style.display='none';
-    return;
-  }
-  const fromB=allBuckets.find(b=>b.id===fromId);
-  const toB=allBuckets.find(b=>b.id===toId);
-  const{count}=await sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id).eq('storage_bucket_id',fromId);
-  const{data:sd}=await sb.from('dokumen').select('ukuran_file').eq('user_id',CU.id).eq('storage_bucket_id',fromId);
-  const totalSize=(sd||[]).reduce((a,d)=>a+(d.ukuran_file||0),0);
-  infoEl.style.display='block';
-  if(!count||count===0){
-    infoEl.innerHTML=`<span style="color:#f87171">Bucket <strong>${esc(fromB?.label)}</strong> tidak memiliki file untuk ditransfer.</span>`;
-    return;
-  }
-  infoEl.innerHTML=`Akan mentransfer <strong>${count} file</strong> (${fmtSz(totalSize)}) dari <strong style="color:#a78bfa">${esc(fromB?.label)}</strong> ke <strong style="color:#6ee7b7">${esc(toB?.label)}</strong>`;
-  btnTransfer.disabled=false;
-}
-
-async function doTransfer(){
-  const fromId=document.getElementById('transferFrom').value;
-  const toId=document.getElementById('transferTo').value;
-  if(!fromId||!toId||fromId===toId){toast('Pilih bucket asal dan tujuan yang berbeda','warn');return;}
-  const btn=document.getElementById('btnDoTransfer');
-  const prgWrap=document.getElementById('transferPrgWrap');
-  const prgFill=document.getElementById('transferPrgFill');
-  const prgLabel=document.getElementById('transferPrgLabel');
-  const prgPct=document.getElementById('transferPrgPct');
-  setBtn(btn,true);
-  prgWrap.style.display='block';
-  try{
-    // Ambil semua dokumen di bucket asal
-    const{data:docs,error}=await sb.from('dokumen').select('id,nama_file,r2_key,ukuran_file').eq('user_id',CU.id).eq('storage_bucket_id',fromId);
-    if(error) throw new Error(error.message);
-    if(!docs||!docs.length){showModalAlert('modalTransferAlert','Tidak ada file untuk ditransfer','warn');setBtn(btn,false);return;}
-    const fromB=allBuckets.find(b=>b.id===fromId);
-    const toB=allBuckets.find(b=>b.id===toId);
-    const{data:{session}}=await sb.auth.getSession();
-    const token=session?.access_token||'';
-    let ok=0,skip=0;
-    for(let i=0;i<docs.length;i++){
-      const doc=docs[i];
-      const pct=Math.round((i/docs.length)*90);
-      prgFill.style.width=pct+'%';
-      prgLabel.textContent=`Mentransfer ${i+1}/${docs.length}: ${doc.nama_file}`;
-      prgPct.textContent=pct+'%';
-      try{
-        // Download dari bucket asal
-        const getRes=await fetch(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{
-          headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':fromId}
-        });
-        if(!getRes.ok){skip++;continue;}
-        const fileBlob=await getRes.arrayBuffer();
-        if(!fileBlob||fileBlob.byteLength===0){skip++;continue;}
-        // Upload ke bucket tujuan
-        const newKey=`${CU.id}/${Date.now()}_${doc.nama_file}`;
-        const putRes=await fetch(`${WORKER_URL}/upload/${encodeURIComponent(newKey)}`,{
-          method:'PUT',
-          headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/octet-stream','X-Bucket-Id':toId,'X-R2-Limit':String(toB.limit_bytes||MAX_BUCKET_BYTES)},
-          body:fileBlob,
-        });
-        if(!putRes.ok){skip++;continue;}
-        // Update database: ubah storage_bucket_id dan r2_key
-        await sb.from('dokumen').update({storage_bucket_id:toId,r2_key:newKey}).eq('id',doc.id);
-        // Hapus dari bucket asal
-        await fetch(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{
-          method:'DELETE',
-          headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':fromId}
-        }).catch(()=>{});
-        ok++;
-      }catch(e){skip++;}
-    }
-    prgFill.style.width='100%';
-    prgLabel.textContent='Selesai!';
-    prgPct.textContent='100%';
-    const msg=`✓ ${ok} file berhasil ditransfer${skip>0?`, ${skip} dilewati`:''}`;
-    showModalAlert('modalTransferAlert',msg,'ok');
-    toast(msg,'ok');
-    await loadBuckets();
-    setTimeout(()=>{closeModal('modalTransfer');loadStoragePage();},1500);
-  }catch(e){
-    showModalAlert('modalTransferAlert','Error: '+e.message,'err');
-  }
-  setBtn(btn,false);
 }
 
 // ── PROFIL ────────────────────────────────────────────────────
@@ -2200,937 +2019,5 @@ function resetConfig(){
 }
 
 </script>
-</body>
-</html>    const aiKey=getGeminiKey();
-    if(!aiKey) throw new Error('AI API key belum diset. Buka Pengaturan → isi API key.');
-
-    const isGemini=GEMINI_MODEL.startsWith('gemini');
-    let response;
-
-    if(isGemini){
-      // Gemini API format
-      const geminiContents=chatHistory.map((m,i)=>{
-        const txt=i===0&&m.role==='user'?systemPrompt+'\n\nPertanyaan: '+m.content:m.content;
-        return{role:m.role==='assistant'?'model':'user',parts:[{text:txt}]};
-      });
-      response=await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${aiKey}`,
-        {method:'POST',headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({contents:geminiContents,generationConfig:{maxOutputTokens:1024,temperature:0.7}})}
-      );
-    } else {
-      // DeepSeek / OpenAI-compatible format
-      const messages=[{role:'system',content:systemPrompt},...chatHistory];
-      response=await fetch('https://api.deepseek.com/chat/completions',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${aiKey}`},
-        body:JSON.stringify({model:GEMINI_MODEL,messages,max_tokens:1024,temperature:0.7})
-      });
-    }
-
-    if(!response.ok){
-      const eData=await response.json().catch(()=>({}));
-      const eMsg=eData?.error?.message||JSON.stringify(eData?.error||'');
-      let userMsg='';
-      if(response.status===429){
-        userMsg='⏳ Batas request tercapai. Tunggu sebentar lalu coba lagi.';
-        let sisa=60;const statusEl=document.getElementById('aiStatus');
-        const cd=setInterval(()=>{sisa--;if(statusEl)statusEl.textContent=`Tunggu ${sisa}s...`;if(sisa<=0){clearInterval(cd);if(statusEl)statusEl.textContent='Siap membantu';}},1000);
-      } else if(response.status===401||response.status===403){
-        userMsg='🔑 API key tidak valid. Perbarui di Pengaturan.';
-      } else if(response.status===404){
-        userMsg='⚠️ Model tidak ditemukan. Ganti model di Pengaturan.';
-      } else {
-        userMsg='❌ Error '+response.status+': '+eMsg.slice(0,80);
-      }
-      if(typingEl)typingEl.remove();
-      addChatBubble(userMsg,'ai');
-      return;
-    }
-    const data=await response.json();
-    const reply=isGemini
-      ?(data.candidates?.[0]?.content?.parts?.[0]?.text||'Tidak ada respons.')
-      :(data.choices?.[0]?.message?.content||'Tidak ada respons.');
-    chatHistory.push({role:'assistant',content:reply});
-    if(typingEl)typingEl.remove();
-    addChatBubble(reply,'ai');-scale=1"/>
-<title>SaLax — Arsip Pribadi</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-:root{
-  --c1:#7C3AED;--c2:#DB2777;--c3:#0EA5E9;--c4:#10B981;--c5:#F59E0B;
-  --bg:#09090F;--bg2:#0F0F1A;--bg3:#141428;
-  --card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
-  --text:#F1F0FF;--muted:rgba(241,240,255,0.45);--faint:rgba(241,240,255,0.15);
-  --grad1:linear-gradient(135deg,#7C3AED,#DB2777);
-  --grad2:linear-gradient(135deg,#0EA5E9,#10B981);
-  --grad3:linear-gradient(135deg,#F59E0B,#EF4444);
-  --r:14px;--r2:20px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100svh;overflow-x:hidden}
-
-/* Animated background */
-.bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.18;animation:float 8s ease-in-out infinite}
-.orb1{width:500px;height:500px;background:#7C3AED;top:-100px;left:-100px;animation-delay:0s}
-.orb2{width:400px;height:400px;background:#DB2777;bottom:-100px;right:-100px;animation-delay:-3s}
-.orb3{width:300px;height:300px;background:#0EA5E9;top:40%;left:50%;animation-delay:-6s}
-@keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
-
-/* Scrollbar */
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(124,58,237,.4);border-radius:2px}
-
-/* Z-index */
-.z1{position:relative;z-index:1}
-
-/* Glass card */
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);backdrop-filter:blur(20px)}
-.card-hover{transition:all .25s cubic-bezier(.4,0,.2,1)}
-.card-hover:hover{background:rgba(255,255,255,.07);border-color:rgba(124,58,237,.35);transform:translateY(-2px);box-shadow:0 20px 40px rgba(0,0,0,.4)}
-
-/* Inputs */
-.inp{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:var(--r);padding:11px 16px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none;transition:all .2s}
-.inp:focus{border-color:rgba(124,58,237,.6);background:rgba(124,58,237,.08);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
-.inp::placeholder{color:var(--faint)}
-.lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
-select.inp{cursor:pointer}
-select.inp option{background:#1a1a2e;color:var(--text)}
-
-/* Buttons */
-.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:none;outline:none;white-space:nowrap;position:relative;overflow:hidden}
-.btn::after{content:'';position:absolute;inset:0;background:white;opacity:0;transition:opacity .2s}
-.btn:active::after{opacity:.1}
-.btn-primary{background:var(--grad1);color:#fff}
-.btn-primary:hover{box-shadow:0 6px 25px rgba(124,58,237,.5);transform:translateY(-1px)}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-secondary{background:rgba(255,255,255,.07);color:var(--text);border:1px solid var(--border)}
-.btn-secondary:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2)}
-.btn-danger{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25)}
-.btn-danger:hover{background:rgba(239,68,68,.22)}
-.btn-sm{padding:7px 14px;font-size:13px;border-radius:8px}
-.btn-xs{padding:5px 10px;font-size:12px;border-radius:6px}
-.btn-ghost{background:transparent;color:var(--muted);border:1px solid transparent}
-.btn-ghost:hover{color:var(--text);border-color:var(--border);background:rgba(255,255,255,.04)}
-
-/* Gradient text */
-.gtext{background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.gtext2{background:var(--grad2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-
-/* Sidebar nav */
-.nav-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);color:var(--muted);cursor:pointer;transition:all .2s;font-size:14px;font-weight:500;border:1px solid transparent;user-select:none;position:relative}
-.nav-link:hover{color:var(--text);background:rgba(255,255,255,.05)}
-.nav-link.active{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(219,39,119,.2));border-color:rgba(124,58,237,.4)}
-.nav-link.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--grad1);border-radius:0 3px 3px 0}
-.nav-icon{width:18px;height:18px;flex-shrink:0}
-
-/* Bottom nav mobile */
-.bnav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(9,9,15,.9);backdrop-filter:blur(30px);border-top:1px solid var(--border);padding:8px 0 env(safe-area-inset-bottom)}
-@media(max-width:767px){
-  .bnav{display:flex}
-  .desk-sidebar{display:none!important}
-  .main-wrap{padding-bottom:72px!important}
-}
-.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;cursor:pointer;color:var(--faint);font-size:10px;font-weight:600;border:none;background:none;font-family:'Plus Jakarta Sans',sans-serif;transition:color .2s}
-.bnav-btn.active{color:#a78bfa}
-.bnav-btn svg{width:22px;height:22px;stroke-width:1.8}
-.bnav-upload-btn{width:48px;height:48px;background:var(--grad1);border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(124,58,237,.5);margin-bottom:2px}
-
-/* Toast */
-#toast{position:fixed;bottom:84px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:320px}
-@media(min-width:768px){#toast{bottom:24px;right:24px}}
-.toast-item{padding:12px 16px;border-radius:12px;font-size:13px;font-weight:500;backdrop-filter:blur(20px);border:1px solid;animation:toastIn .3s cubic-bezier(.4,0,.2,1);pointer-events:all}
-.t-ok{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.3);color:#6ee7b7}
-.t-err{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:#fca5a5}
-.t-warn{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.3);color:#fcd34d}
-.t-info{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.3);color:#a78bfa}
-@keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:none}}
-
-/* Pages */
-.page{display:none;animation:pageIn .25s ease}
-.page.active{display:block}
-@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-
-/* Spinner */
-.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.15);border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* Badge */
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.badge-purple{background:rgba(124,58,237,.2);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
-.badge-green{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
-.badge-red{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.25)}
-.badge-yellow{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.25)}
-.badge-muted{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)}
-
-/* Storage bar */
-.sbar{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
-.sbar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1)}
-
-/* Modal */
-.modal-bd{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(12px);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;padding:0}
-@media(min-width:480px){.modal-bd{align-items:center;padding:20px}}
-.modal-bd.open{opacity:1;pointer-events:all}
-.modal-box{background:var(--bg3);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:100%;max-height:92svh;overflow-y:auto;transform:translateY(30px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
-@media(min-width:480px){.modal-box{border-radius:24px;max-width:480px;transform:scale(.95)}}
-.modal-bd.open .modal-box{transform:none}
-.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
-
-/* Dropzone */
-.dropzone{border:2px dashed var(--border);border-radius:var(--r2);padding:36px 20px;text-align:center;transition:all .25s;cursor:pointer;position:relative}
-.dropzone:hover,.dropzone.drag{border-color:rgba(124,58,237,.5);background:rgba(124,58,237,.06)}
-
-/* Progress */
-.prg-wrap{background:rgba(255,255,255,.07);border-radius:4px;height:5px;overflow:hidden}
-.prg-fill{height:100%;background:var(--grad1);border-radius:4px;transition:width .3s ease;width:0}
-
-/* Scrollable table */
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.tbl{width:100%;border-collapse:collapse;min-width:480px}
-.tbl th{text-align:left;font-size:11px;font-weight:600;color:var(--faint);letter-spacing:.07em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border)}
-.tbl td{padding:11px 14px;font-size:13.5px;border-bottom:1px solid rgba(255,255,255,.04)}
-.tbl tr:last-child td{border-bottom:none}
-.tbl tbody tr:hover{background:rgba(255,255,255,.025)}
-
-/* Stat card */
-.stat-num{font-family:'Syne',sans-serif;font-size:clamp(30px,5vw,40px);font-weight:800;line-height:1}
-.stat-card{padding:20px;border-radius:var(--r2);position:relative;overflow:hidden}
-.stat-card::before{content:'';position:absolute;inset:0;opacity:.12;background:inherit;filter:blur(20px)}
-
-/* AI Chat */
-.chat-wrap{display:flex;flex-direction:column;height:calc(100svh - 260px);min-height:320px;max-height:580px}
-@media(min-width:768px){.chat-wrap{height:calc(100vh - 260px);max-height:680px}}
-.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
-.chat-bubble{max-width:84%;padding:11px 15px;font-size:14px;line-height:1.65;word-break:break-word}
-.bubble-user{align-self:flex-end;background:var(--grad1);color:#fff;border-radius:18px 18px 4px 18px}
-.bubble-ai{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:18px 18px 18px 4px;color:var(--text)}
-.bubble-ai.typing{color:var(--faint)}
-.chat-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end}
-.chat-inp{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:14px;padding:10px 16px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none;resize:none;min-height:44px;max-height:120px;transition:border-color .2s;line-height:1.5}
-.chat-inp:focus{border-color:rgba(124,58,237,.5)}
-.chat-inp::placeholder{color:var(--faint)}
-
-/* Dok card */
-.dok-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--r);background:rgba(255,255,255,.03);border:1px solid var(--border);transition:all .2s;cursor:default}
-.dok-card:hover{background:rgba(255,255,255,.06);border-color:rgba(124,58,237,.3)}
-
-/* Page header */
-.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:24px}
-.page-title{font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,32px);font-weight:800;letter-spacing:-.02em;line-height:1.1}
-
-/* Action splash */
-#actionSplash{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(16px);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:16px}
-
-/* Gradient border on focus */
-.gfocus:focus{outline:none;box-shadow:0 0 0 2px rgba(124,58,237,.5)}
-
-/* Animated dots */
-.anim-dots span{animation:dotBlink 1.2s infinite}
-.anim-dots span:nth-child(2){animation-delay:.2s}
-.anim-dots span:nth-child(3){animation-delay:.4s}
-@keyframes dotBlink{0%,80%,100%{opacity:.3}40%{opacity:1}}
-
-/* Pill tabs */
-.pill-tab{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid transparent;background:transparent;color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif}
-.pill-tab.active{background:var(--grad1);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(124,58,237,.4)}
-.pill-tab:not(.active):hover{background:rgba(255,255,255,.06);color:var(--text);border-color:var(--border)}
-
-/* Color accents for categories */
-.accent-ring{padding:2px;border-radius:50%;background:var(--grad1)}
-
-/* Section divider */
-.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:20px 0}
-
-/* Loading page */
-#loadingPage{min-height:100svh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px}
-.loading-logo{width:56px;height:56px;background:var(--grad1);border-radius:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(124,58,237,.5);animation:logoPulse 2s ease-in-out infinite}
-@keyframes logoPulse{0%,100%{box-shadow:0 8px 32px rgba(124,58,237,.5)}50%{box-shadow:0 8px 48px rgba(219,39,119,.6)}}
-.loading-ring{width:36px;height:36px;border:3px solid rgba(124,58,237,.2);border-top-color:#7C3AED;border-radius:50%;animation:spin .8s linear infinite}
-
-/* Sidebar brand */
-.brand-logo{width:36px;height:36px;background:var(--grad1);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 16px rgba(124,58,237,.4)}
-.brand-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-
-/* Slide indicator for active page */
-.active-page-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--grad1);border-radius:0 3px 3px 0}
-</style>
-</head>
-<body>
-
-<!-- Background orbs -->
-<div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
-
-<!-- Toast -->
-<div id="toast"></div>
-
-<!-- Action Splash -->
-<div id="actionSplash" style="display:none">
-  <div class="loading-ring" style="width:40px;height:40px;border-width:3px"></div>
-  <div id="splashMsg" style="font-size:15px;font-weight:600;color:var(--text)">Memproses...</div>
-  <div id="splashSub" style="font-size:13px;color:var(--muted)"></div>
-</div>
-
-<!-- ═══ LOADING PAGE ═══ -->
-<div id="loadingPage" class="z1">
-  <div class="loading-logo">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="white" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
-  </div>
-  <div class="loading-ring"></div>
-  <div style="font-size:13px;color:var(--faint);font-weight:500">Memuat SaLax...</div>
-</div>
-
-<!-- ═══ LOGIN ═══ -->
-<div id="loginPage" style="display:none;min-height:100svh;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse 80% 60% at 30% 20%,rgba(124,58,237,.12),transparent 70%)" class="z1">
-  <div style="width:100%;max-width:400px">
-    <div style="text-align:center;margin-bottom:32px">
-      <div class="loading-logo" style="margin:0 auto 16px;animation:none">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="white" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
-      </div>
-      <h1 style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px" class="gtext">SaLax</h1>
-      <p style="font-size:13px;color:var(--muted)">Arsip Dokumen Pribadi</p>
-    </div>
-    <div class="card" style="padding:28px">
-      <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:4px">Selamat datang</h2>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:24px">Masuk untuk mengakses arsip Anda</p>
-      <div id="loginErr" style="display:none;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:16px"></div>
-      <div style="margin-bottom:14px">
-        <label class="lbl">Email</label>
-        <input id="loginEmail" type="email" class="inp" placeholder="email@anda.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()"/>
-      </div>
-      <div style="margin-bottom:8px">
-        <label class="lbl">Password</label>
-        <div style="position:relative">
-          <input id="loginPass" type="password" class="inp" placeholder="••••••••" autocomplete="current-password" style="padding-right:44px" onkeydown="if(event.key==='Enter')doLogin()"/>
-          <button onclick="togglePw('loginPass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--faint);padding:4px;transition:color .2s" onmouseenter="this.style.color='var(--text)'" onmouseleave="this.style.color='var(--faint)'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-      </div>
-      <div style="text-align:right;margin-bottom:24px">
-        <button onclick="showAuthPage('forgot')" style="background:none;border:none;cursor:pointer;font-size:12px;color:rgba(124,58,237,.8);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600">Lupa password?</button>
-      </div>
-      <button id="btnLogin" onclick="doLogin()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:12px">Masuk</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ FORGOT ═══ -->
-<div id="forgotPage" style="display:none;min-height:100svh;align-items:center;justify-content:center;padding:20px" class="z1">
-  <div style="width:100%;max-width:400px">
-    <div class="card" style="padding:28px">
-      <button onclick="showAuthPage('login')" class="btn btn-ghost btn-sm" style="margin-bottom:20px">← Kembali</button>
-      <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:4px">Reset Password</h2>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:24px">Link reset dikirim ke email Anda</p>
-      <div style="margin-bottom:16px"><label class="lbl">Email</label><input id="forgotEmail" type="email" class="inp" placeholder="email@anda.com"/></div>
-      <div id="forgotMsg" style="display:none;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px"></div>
-      <button id="btnForgot" onclick="doForgot()" class="btn btn-primary" style="width:100%;justify-content:center">Kirim Link Reset</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ MAIN APP ═══ -->
-<div id="app" style="display:none;width:100vw;min-height:100svh;overflow-x:hidden" class="z1">
-  <div style="display:flex;min-height:100svh;width:100%">
-
-    <!-- DESKTOP SIDEBAR -->
-    <aside class="desk-sidebar" style="width:248px;flex-shrink:0;border-right:1px solid var(--border);position:sticky;top:0;height:100svh;display:flex;flex-direction:column;padding:20px 14px;overflow-y:auto;background:rgba(9,9,15,.6);backdrop-filter:blur(20px)">
-      <!-- Brand -->
-      <div style="display:flex;align-items:center;gap:10px;padding:4px 8px 20px">
-        <div class="brand-logo">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="white" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
-        </div>
-        <span class="brand-name">SaLax</span>
-      </div>
-
-      <!-- Nav -->
-      <nav style="flex:1;display:flex;flex-direction:column;gap:3px">
-        <div onclick="showPage('dash')" class="nav-link active" data-page="dash">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
-          Dashboard
-        </div>
-        <div onclick="showPage('dokumen')" class="nav-link" data-page="dokumen">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-          Dokumen
-        </div>
-        <div onclick="showPage('upload')" class="nav-link" data-page="upload">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Upload
-        </div>
-        <div onclick="showPage('ai')" class="nav-link" data-page="ai">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-          AI Asisten
-        </div>
-        <div onclick="showPage('kategori')" class="nav-link" data-page="kategori">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-          Kategori
-        </div>
-        <div onclick="showPage('download')" class="nav-link" data-page="download">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download
-        </div>
-        <div style="height:1px;background:var(--border);margin:8px 0"></div>
-        <div onclick="showPage('storage')" class="nav-link" data-page="storage">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-          Storage
-        </div>
-        <div onclick="showPage('settings')" class="nav-link" data-page="settings">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-          Pengaturan
-        </div>
-        <div onclick="showPage('profil')" class="nav-link" data-page="profil">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Profil
-        </div>
-      </nav>
-
-      <!-- User -->
-      <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);margin-top:8px">
-        <div id="sidebarAvatar" style="width:34px;height:34px;background:var(--grad1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">?</div>
-        <div style="flex:1;min-width:0">
-          <div id="sidebarName" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
-          <div style="font-size:11px;color:var(--muted)">Personal</div>
-        </div>
-        <button onclick="doLogout()" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--faint);transition:color .2s;border-radius:6px" onmouseenter="this.style.color='#f87171'" onmouseleave="this.style.color='var(--faint)'">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        </button>
-      </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main id="mainContent" class="main-wrap" style="flex:1;min-width:0;width:0;padding:24px 20px;overflow-y:auto;max-height:100svh">
-
-      <!-- Mobile header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px" class="md:hidden">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="brand-logo" style="width:30px;height:30px;border-radius:10px">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="white" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
-          </div>
-          <span id="mobilePageTitle" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800">SaLax</span>
-        </div>
-        <div id="mobileAvatar" onclick="showPage('profil')" style="width:32px;height:32px;background:var(--grad1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;cursor:pointer">?</div>
-      </div>
-
-      <!-- ══ DASHBOARD ══ -->
-      <section id="pageDash" class="page active">
-        <div style="margin-bottom:24px">
-          <h1 class="page-title">Dashboard</h1>
-          <p id="dashGreet" style="font-size:14px;color:var(--muted);margin-top:4px">Selamat datang</p>
-        </div>
-        <!-- Stats grid -->
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px" class="sm-4col">
-          <div class="stat-card" style="background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(219,39,119,.15));border:1px solid rgba(124,58,237,.3)">
-            <div style="font-size:11px;font-weight:600;color:rgba(167,139,250,.8);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Dokumen</div>
-            <div id="statDok" class="stat-num">—</div>
-          </div>
-          <div class="stat-card" style="background:linear-gradient(135deg,rgba(14,165,233,.25),rgba(16,185,129,.15));border:1px solid rgba(14,165,233,.3)">
-            <div style="font-size:11px;font-weight:600;color:rgba(56,189,248,.8);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Kategori</div>
-            <div id="statKat" class="stat-num">—</div>
-          </div>
-          <div class="stat-card" style="background:linear-gradient(135deg,rgba(245,158,11,.25),rgba(239,68,68,.15));border:1px solid rgba(245,158,11,.3)">
-            <div style="font-size:11px;font-weight:600;color:rgba(252,211,77,.8);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Ukuran</div>
-            <div id="statSize" class="stat-num">—</div>
-          </div>
-          <div class="stat-card" style="background:linear-gradient(135deg,rgba(16,185,129,.25),rgba(14,165,233,.15));border:1px solid rgba(16,185,129,.3)">
-            <div style="font-size:11px;font-weight:600;color:rgba(110,231,183,.8);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">R2 Aktif</div>
-            <div id="statBuckets" class="stat-num">—</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr;gap:16px" class="lg-2col">
-          <div class="card" style="padding:20px">
-            <h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px">Penyimpanan</h2>
-            <div id="dashStorageBars" style="display:flex;flex-direction:column;gap:14px"><div style="color:var(--faint);font-size:13px">Memuat...</div></div>
-          </div>
-          <div class="card" style="padding:20px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-              <h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">Terbaru</h2>
-              <button onclick="showPage('dokumen')" class="btn btn-ghost btn-xs">Lihat Semua →</button>
-            </div>
-            <div id="dashRecentDok" style="display:flex;flex-direction:column;gap:8px"><div style="color:var(--faint);font-size:13px">Memuat...</div></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ══ DOKUMEN ══ -->
-      <section id="pageDokumen" class="page">
-        <div class="page-hdr">
-          <h1 class="page-title">Dokumen</h1>
-          <button onclick="showPage('upload')" class="btn btn-primary btn-sm">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Upload
-          </button>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
-          <input id="dokSearch" type="text" class="inp" placeholder="Cari dokumen..." style="max-width:260px;flex:1" oninput="filterDok()"/>
-          <select id="dokKatFilter" class="inp" style="max-width:180px;flex:1" onchange="filterDok()"><option value="">Semua Kategori</option></select>
-        </div>
-        <div id="dokKatTabs" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px"></div>
-        <div id="dokList" style="display:flex;flex-direction:column;gap:8px"></div>
-        <div id="dokEmpty" style="display:none;text-align:center;padding:60px 20px">
-          <div style="font-size:48px;margin-bottom:12px">📂</div>
-          <div style="font-size:15px;font-weight:600;margin-bottom:6px">Belum ada dokumen</div>
-          <div style="font-size:13px;color:var(--muted)">Upload dokumen pertama Anda</div>
-        </div>
-        <div id="dokPagination" style="display:flex;gap:8px;justify-content:center;margin-top:20px;flex-wrap:wrap"></div>
-      </section>
-
-      <!-- ══ UPLOAD ══ -->
-      <section id="pageUpload" class="page">
-        <div style="margin-bottom:24px">
-          <h1 class="page-title">Upload Dokumen</h1>
-          <p style="font-size:13px;color:var(--muted);margin-top:4px">AI mendeteksi otomatis nama, kategori &amp; keterangan</p>
-        </div>
-        <div style="max-width:560px">
-          <!-- Step 1 -->
-          <div id="upStep1">
-            <div id="upZone" class="dropzone" onclick="document.getElementById('upFile').click()" style="margin-bottom:14px">
-              <div id="upZoneContent">
-                <div style="width:60px;height:60px;background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(219,39,119,.1));border:1px solid rgba(124,58,237,.3);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                </div>
-                <div style="font-size:14px;font-weight:600;margin-bottom:4px">Klik atau drag &amp; drop</div>
-                <div style="font-size:12px;color:var(--faint)">PDF, JPG, PNG, DOC — maks 50 MB</div>
-                <div style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 12px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:20px">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-                  <span style="font-size:11px;font-weight:600;color:#a78bfa">AI akan otomatis mendeteksi</span>
-                </div>
-              </div>
-              <div id="upFileInfo" style="display:none">
-                <div id="upFileIcon" style="font-size:40px;margin-bottom:10px">📄</div>
-                <div id="upFileName" style="font-size:14px;font-weight:600;word-break:break-all"></div>
-                <div id="upFileSize" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
-                <button onclick="clearUpFile(event)" style="margin-top:10px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:5px 12px;font-size:12px;color:#f87171;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600">✕ Hapus</button>
-              </div>
-            </div>
-            <input id="upFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" style="display:none" onchange="handleUpFile(this.files[0])"/>
-            <!-- Gemini key -->
-            <div id="geminiKeyWrap" class="card" style="padding:16px;margin-bottom:14px;border-color:rgba(124,58,237,.2)">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-                <div style="width:24px;height:24px;background:linear-gradient(135deg,#7C3AED,#DB2777);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-                </div>
-                <span style="font-size:13px;font-weight:700">AI API Key</span>
-                <span id="geminiStatus" style="font-size:11px;color:var(--muted);margin-left:auto"></span>
-              </div>
-              <div style="display:flex;gap:8px">
-                <input id="geminiKeyInp" type="password" class="inp" placeholder="Paste API key di sini..." style="flex:1;font-size:13px" autocomplete="new-password"/>
-                <button onclick="saveGeminiKey()" class="btn btn-sm" style="background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);color:#a78bfa;flex-shrink:0">Simpan</button>
-              </div>
-              <p style="font-size:11px;color:var(--faint);margin-top:6px">Dapatkan di <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#a78bfa">platform.deepseek.com</a></p>
-            </div>
-            <div id="upStorageInfo" style="font-size:12px;color:var(--muted);padding:10px 14px;background:rgba(255,255,255,.03);border-radius:var(--r);border:1px solid var(--border)"></div>
-          </div>
-          <!-- Step 2: scanning -->
-          <div id="upStep2" style="display:none">
-            <div class="card" style="padding:32px;text-align:center">
-              <div style="width:60px;height:60px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(219,39,119,.15));border:1px solid rgba(124,58,237,.3);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;animation:logoPulse 1.5s ease-in-out infinite">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-              </div>
-              <div id="aiScanLabel" style="font-size:15px;font-weight:700;color:#a78bfa;margin-bottom:6px">Membaca dokumen<span class="anim-dots"><span>.</span><span>.</span><span>.</span></span></div>
-              <div id="aiScanSub" style="font-size:13px;color:var(--muted)">AI menganalisis dan menentukan kategori</div>
-            </div>
-          </div>
-          <!-- Step 3: result -->
-          <div id="upStep3" style="display:none">
-            <div class="card" style="padding:20px;margin-bottom:12px;border-color:rgba(16,185,129,.2)">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-                <div style="width:24px;height:24px;background:rgba(16,185,129,.2);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-                <span style="font-size:13px;font-weight:700;color:#6ee7b7">AI mendeteksi — edit jika perlu</span>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:12px">
-                <div><label class="lbl">Nama File</label><input id="aiNamaFile" type="text" class="inp" style="font-size:13px"/></div>
-                <div>
-                  <label class="lbl">Kategori</label>
-                  <div style="display:flex;gap:8px">
-                    <select id="upKat" class="inp" style="flex:1;font-size:13px"><option value="">Pilih kategori...</option></select>
-                    <button onclick="openModalKat()" class="btn btn-ghost btn-xs">+ Baru</button>
-                  </div>
-                </div>
-                <div><label class="lbl">Keterangan</label><input id="upKet" type="text" class="inp" style="font-size:13px" placeholder="Keterangan singkat"/></div>
-              </div>
-              <div id="aiReasoning" style="display:none;margin-top:12px;padding:10px 12px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:10px">
-                <div style="font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Analisis AI</div>
-                <div id="aiReasoningText" style="font-size:12px;color:var(--muted);line-height:1.6"></div>
-              </div>
-            </div>
-            <div id="upPrgWrap" style="display:none;margin-bottom:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r)">
-              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px"><span id="upPrgLabel">Mengupload...</span><span id="upPrgPct">0%</span></div>
-              <div class="prg-wrap"><div id="upPrgFill" class="prg-fill"></div></div>
-            </div>
-            <div id="upAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
-            <div style="display:flex;gap:8px">
-              <button onclick="resetUpload()" class="btn btn-secondary btn-sm">← Ganti File</button>
-              <button id="btnUpload" onclick="doUpload()" class="btn btn-primary" style="flex:1;justify-content:center">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Upload Sekarang
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ══ AI ASISTEN ══ -->
-      <section id="pageAi" class="page">
-        <div style="margin-bottom:16px">
-          <h1 class="page-title">AI Asisten</h1>
-          <p style="font-size:13px;color:var(--muted);margin-top:4px">Tanya apapun tentang dokumen Anda</p>
-        </div>
-        <div class="card overflow-hidden flex flex-col chat-wrap" style="overflow:hidden;display:flex;flex-direction:column">
-          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(219,39,119,.08))">
-            <div style="width:36px;height:36px;background:var(--grad1);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(124,58,237,.4)">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            </div>
-            <div>
-              <div style="font-size:14px;font-weight:700">DeepSeek AI</div>
-              <div id="aiStatus" style="font-size:11px;color:var(--muted)">Siap membantu</div>
-            </div>
-            <button onclick="clearChat()" class="btn btn-ghost btn-xs" style="margin-left:auto">Hapus Chat</button>
-          </div>
-          <div id="chatMessages" class="chat-msgs">
-            <div class="chat-bubble bubble-ai">
-              <div style="font-size:13px;font-weight:700;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px">Halo! Saya DeepSeek AI 👋</div>
-              <div style="font-size:13px">Saya bisa membantu Anda dengan:<br><br>📂 Cari dokumen berdasarkan nama atau kategori<br>📊 Rangkum statistik arsip Anda<br>💡 Saran organisasi dokumen<br>❓ Jawab pertanyaan tentang sistem</div>
-            </div>
-          </div>
-          <div class="chat-foot">
-            <textarea id="chatInput" class="chat-inp" placeholder="Tanya sesuatu tentang dokumen Anda..." rows="1"
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
-              oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
-            <button id="btnSendChat" onclick="sendChat()" class="btn btn-primary btn-sm" style="padding:10px 14px;flex-shrink:0">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
-          </div>
-        </div>
-        <div style="margin-top:12px">
-          <div style="font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Pertanyaan Cepat</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px">
-            <button onclick="quickChat('Berapa total dokumen saya dan berapa ukurannya?')" class="pill-tab">📊 Statistik arsip</button>
-            <button onclick="quickChat('Dokumen apa saja yang ada di setiap kategori?')" class="pill-tab">📂 Per kategori</button>
-            <button onclick="quickChat('Berikan saran untuk mengorganisir dokumen saya dengan lebih baik')" class="pill-tab">💡 Saran organisasi</button>
-            <button onclick="quickChat('Dokumen apa yang paling baru diupload?')" class="pill-tab">🕐 Terbaru</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- ══ KATEGORI ══ -->
-      <section id="pageKategori" class="page">
-        <div class="page-hdr">
-          <h1 class="page-title">Kategori</h1>
-          <button onclick="openModalKat()" class="btn btn-primary btn-sm">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tambah
-          </button>
-        </div>
-        <div class="card" style="overflow:hidden">
-          <div class="tbl-wrap">
-            <table class="tbl">
-              <thead><tr><th>Nama</th><th>Deskripsi</th><th>File</th><th style="width:90px">Aksi</th></tr></thead>
-              <tbody id="katList"><tr><td colspan="4" style="text-align:center;padding:40px;color:var(--faint)">Memuat...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ══ DOWNLOAD ══ -->
-      <section id="pageDownload" class="page">
-        <div style="margin-bottom:24px"><h1 class="page-title">Download</h1><p style="font-size:13px;color:var(--muted);margin-top:4px">Unduh semua atau per kategori sebagai .zip</p></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
-          <div class="card" style="padding:20px">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-              <div style="width:40px;height:40px;background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(219,39,119,.1));border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              </div>
-              <div><div style="font-size:14px;font-weight:700">Download Semua</div><div id="dlAllInfo" style="font-size:12px;color:var(--muted)">...</div></div>
-            </div>
-            <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Semua dokumen dalam satu .zip per kategori.</p>
-            <button id="btnDlAll" onclick="doDownloadAll()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:13px">Download Semua (.zip)</button>
-            <div id="dlAllPrg" style="display:none;margin-top:12px">
-              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px"><span id="dlAllLabel">Mengunduh...</span><span id="dlAllPct">0%</span></div>
-              <div class="prg-wrap"><div id="dlAllFill" class="prg-fill"></div></div>
-            </div>
-          </div>
-          <div class="card" style="padding:20px">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-              <div style="width:40px;height:40px;background:linear-gradient(135deg,rgba(14,165,233,.2),rgba(16,185,129,.1));border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-              </div>
-              <div><div style="font-size:14px;font-weight:700">Per Kategori</div><div style="font-size:12px;color:var(--muted)">Pilih kategori dulu</div></div>
-            </div>
-            <select id="dlKatSel" class="inp" style="margin-bottom:12px;font-size:13px"><option value="">Pilih kategori...</option></select>
-            <button id="btnDlKat" onclick="doDownloadKat()" class="btn btn-secondary" style="width:100%;justify-content:center;font-size:13px">Download Kategori (.zip)</button>
-          </div>
-        </div>
-        <div id="dlResult" style="display:none" class="card" style="padding:16px;margin-top:16px"><div id="dlResultText" style="font-size:13px"></div></div>
-      </section>
-
-      <!-- ══ STORAGE ══ -->
-      <section id="pageStorage" class="page">
-        <div class="page-hdr">
-          <div><h1 class="page-title">Storage</h1><p style="font-size:13px;color:var(--muted);margin-top:4px">Maks 9 GB per bucket — tak terbatas</p></div>
-          <button onclick="openModalBucket()" class="btn btn-primary btn-sm">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tambah Bucket
-          </button>
-        </div>
-        <div id="storageBucketList" style="display:flex;flex-direction:column;gap:14px"></div>
-        <div id="storageEmpty" style="display:none;text-align:center;padding:60px 20px">
-          <div style="font-size:48px;margin-bottom:12px">🗄️</div>
-          <div style="font-size:15px;font-weight:600;margin-bottom:6px">Belum ada bucket</div>
-          <div style="font-size:13px;color:var(--muted)">Tambah bucket R2 untuk mulai menyimpan</div>
-        </div>
-        <div class="card" style="padding:20px;margin-top:16px">
-          <div style="font-size:14px;font-weight:700;margin-bottom:10px">Cloudflare Worker URL</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <input id="workerUrlInp" type="url" class="inp" placeholder="https://salax-worker.username.workers.dev" style="flex:1"/>
-            <button onclick="saveWorkerUrl()" class="btn btn-primary btn-sm" style="flex-shrink:0">Simpan</button>
-          </div>
-          <p style="font-size:11px;color:var(--faint);margin-top:6px">URL Cloudflare Worker untuk upload/download R2</p>
-        </div>
-      </section>
-
-      <!-- ══ SETTINGS ══ -->
-      <section id="pageSettings" class="page">
-        <div style="margin-bottom:24px"><h1 class="page-title">Pengaturan</h1><p style="font-size:13px;color:var(--muted);margin-top:4px">Konfigurasi AI dan sistem</p></div>
-        <div style="display:flex;flex-direction:column;gap:16px;max-width:560px">
-          <!-- Gemini Model -->
-          <div class="card" style="padding:20px">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-              <div style="width:36px;height:36px;background:var(--grad1);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-              </div>
-              <div>
-                <div style="font-size:14px;font-weight:700">Model DeepSeek AI</div>
-                <div style="font-size:12px;color:var(--muted)">Pilih model yang digunakan untuk AI chat &amp; scan</div>
-              </div>
-            </div>
-            <div style="margin-bottom:12px">
-              <label class="lbl">Model</label>
-              <select id="settingGeminiModel" class="inp" onchange="saveGeminiModel()">
-                <option value="gemini-2.5-flash">deepseek-chat (V3, Terbaik)</option>
-                <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview-05-20</option>
-                <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-                <option value="gemini-1.5-flash-latest">gemini-1.5-flash-latest</option>
-                <option value="gemini-1.5-flash-001">gemini-1.5-flash-001</option>
-                <option value="custom">Custom (ketik sendiri)</option>
-              </select>
-            </div>
-            <div id="customModelWrap" style="display:none;margin-bottom:12px">
-              <label class="lbl">Nama Model Custom</label>
-              <div style="display:flex;gap:8px">
-                <input id="customModelInp" type="text" class="inp" style="flex:1;font-size:13px" placeholder="cth: deepseek-chat"/>
-                <button onclick="applyCustomModel()" class="btn btn-primary btn-sm">Pakai</button>
-              </div>
-            </div>
-            <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:var(--r);border:1px solid var(--border)">
-              <span style="font-size:12px;color:var(--muted)">Model aktif: </span>
-              <span id="activeModelLabel" style="font-size:12px;font-weight:700;color:#a78bfa"></span>
-            </div>
-          </div>
-          <!-- Gemini Key di Settings -->
-          <div class="card" style="padding:20px">
-            <div style="font-size:14px;font-weight:700;margin-bottom:12px">AI API Key</div>
-            <div style="display:flex;gap:8px;margin-bottom:8px">
-              <input id="settingsGeminiKeyInp" type="password" class="inp" style="flex:1;font-size:13px" placeholder="sk-... (DeepSeek API key)"/>
-              <button onclick="saveGeminiKeyFromSettings()" class="btn btn-primary btn-sm">Simpan</button>
-            </div>
-            <div id="settingsGeminiStatus" style="font-size:12px;color:var(--muted)">—</div>
-            <div style="margin-top:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r)">
-              <div style="font-size:12px;color:var(--muted);line-height:1.7">
-                📌 <strong>DeepSeek:</strong> <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#a78bfa">platform.deepseek.com</a> → API Keys → Create<br>
-                📌 <strong>Gemini:</strong> <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#a78bfa">aistudio.google.com/apikey</a> → Create API key<br>
-                <span style="color:var(--faint);font-size:11px">💡 Scan dokumen otomatis selalu pakai Gemini (butuh vision). Chat AI pakai model yang dipilih.</span>
-              </div>
-            </div>
-          </div>
-          <!-- Reset -->
-          <div class="card" style="padding:20px">
-            <div style="font-size:14px;font-weight:700;margin-bottom:8px">Sesi &amp; Data</div>
-            <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Logout dari akun atau reset konfigurasi lokal.</p>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button onclick="doLogout()" class="btn btn-secondary btn-sm">Logout</button>
-              <button onclick="resetConfig()" class="btn btn-danger btn-sm">Reset Konfigurasi</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ══ PROFIL ══ -->
-      <section id="pageProfil" class="page">
-        <div style="margin-bottom:24px"><h1 class="page-title">Profil &amp; Password</h1></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:700px">
-          <div class="card" style="padding:20px">
-            <h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px">Data Diri</h2>
-            <div id="profilAvatar" style="width:56px;height:56px;background:var(--grad1);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;margin-bottom:16px;box-shadow:0 6px 20px rgba(124,58,237,.4)">?</div>
-            <div style="margin-bottom:12px"><label class="lbl">Nama</label><input id="profilNama" type="text" class="inp"/></div>
-            <div style="margin-bottom:18px"><label class="lbl">Email</label><input id="profilEmail" type="email" class="inp" disabled style="opacity:.45;cursor:not-allowed"/></div>
-            <div id="profilAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
-            <button id="btnSaveProfil" onclick="saveProfil()" class="btn btn-primary" style="width:100%;justify-content:center">Simpan</button>
-          </div>
-          <div class="card" style="padding:20px">
-            <h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px">Ubah Password</h2>
-            <div style="margin-bottom:12px"><label class="lbl">Password Baru</label><input id="passNew" type="password" class="inp" placeholder="Min. 8 karakter" autocomplete="new-password"/></div>
-            <div style="margin-bottom:18px"><label class="lbl">Konfirmasi</label><input id="passConfirm" type="password" class="inp" placeholder="Ulangi password baru" autocomplete="new-password"/></div>
-            <div id="passAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
-            <button id="btnSavePass" onclick="savePassword()" class="btn btn-primary" style="width:100%;justify-content:center">Ubah Password</button>
-          </div>
-        </div>
-      </section>
-
-    </main>
-  </div>
-
-  <!-- BOTTOM NAV mobile -->
-  <nav class="bnav">
-    <button class="bnav-btn active" data-page="dash" onclick="showPage('dash')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Home
-    </button>
-    <button class="bnav-btn" data-page="dokumen" onclick="showPage('dokumen')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Dokumen
-    </button>
-    <button class="bnav-btn" data-page="upload" onclick="showPage('upload')" style="padding-top:2px">
-      <div class="bnav-upload-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/></svg></div>
-    </button>
-    <button class="bnav-btn" data-page="ai" onclick="showPage('ai')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>AI
-    </button>
-    <button class="bnav-btn" data-page="settings" onclick="showPage('settings')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Setting
-    </button>
-  </nav>
-</div>
-
-<!-- ═══ MODALS ═══ -->
-<!-- Modal Kategori -->
-<div id="modalKat" class="modal-bd" onclick="if(event.target===this)closeModal('modalKat')">
-  <div class="modal-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h3 id="modalKatTitle" class="modal-title">Tambah Kategori</h3>
-      <button onclick="closeModal('modalKat')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <input type="hidden" id="modalKatId"/>
-    <div style="margin-bottom:14px"><label class="lbl">Nama *</label><input id="modalKatNama" type="text" class="inp" placeholder="cth: SK Jabatan"/></div>
-    <div style="margin-bottom:20px"><label class="lbl">Deskripsi</label><input id="modalKatDesk" type="text" class="inp" placeholder="Opsional"/></div>
-    <div id="modalKatAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="closeModal('modalKat')" class="btn btn-secondary" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnSaveKat" onclick="saveKat()" class="btn btn-primary" style="flex:1;justify-content:center">Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Edit Dok -->
-<div id="modalEditDok" class="modal-bd" onclick="if(event.target===this)closeModal('modalEditDok')">
-  <div class="modal-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h3 class="modal-title">Edit Dokumen</h3>
-      <button onclick="closeModal('modalEditDok')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <input type="hidden" id="editDokId"/>
-    <div style="margin-bottom:14px"><label class="lbl">Nama File</label><input id="editDokNama" type="text" class="inp"/></div>
-    <div style="margin-bottom:14px"><label class="lbl">Kategori</label><select id="editDokKat" class="inp"></select></div>
-    <div style="margin-bottom:20px"><label class="lbl">Keterangan</label><input id="editDokKet" type="text" class="inp"/></div>
-    <div id="editDokAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="closeModal('modalEditDok')" class="btn btn-secondary" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnSaveEditDok" onclick="saveEditDok()" class="btn btn-primary" style="flex:1;justify-content:center">Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Bucket -->
-<div id="modalBucket" class="modal-bd" onclick="if(event.target===this)closeModal('modalBucket')">
-  <div class="modal-box" style="max-width:520px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h3 id="modalBucketTitle" class="modal-title">Tambah Bucket R2</h3>
-      <button onclick="closeModal('modalBucket')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <input type="hidden" id="modalBucketId"/>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div><label class="lbl">Label *</label><input id="mbLabel" type="text" class="inp" placeholder="cth: R2 Utama"/></div>
-      <div><label class="lbl">Account ID *</label><input id="mbAccountId" type="text" class="inp"/></div>
-      <div><label class="lbl">Bucket Name *</label><input id="mbBucket" type="text" class="inp" placeholder="nama-bucket"/></div>
-      <div><label class="lbl">Access Key ID *</label><input id="mbAccessKey" type="text" class="inp"/></div>
-      <div style="grid-column:1/-1"><label class="lbl">Secret Access Key <span style="color:var(--faint)">(kosong = pertahankan)</span></label><input id="mbSecretKey" type="password" class="inp" autocomplete="new-password"/></div>
-      <div><label class="lbl">Limit (GB) maks 9</label><input id="mbLimit" type="number" class="inp" placeholder="9" min="1" max="9" value="9"/></div>
-      <div><label class="lbl">Urutan Fallback</label><input id="mbUrutan" type="number" class="inp" min="1" value="1"/></div>
-    </div>
-    <label style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px;cursor:pointer">
-      <input type="checkbox" id="mbAktif" checked style="accent-color:#7C3AED;width:16px;height:16px"/>
-      <span style="font-size:13px;font-weight:500">Bucket aktif untuk upload</span>
-    </label>
-    <div id="modalBucketAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="closeModal('modalBucket')" class="btn btn-secondary" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnSaveBucket" onclick="saveBucket()" class="btn btn-primary" style="flex:1;justify-content:center">Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Confirm Modal -->
-<div id="modalConfirm" class="modal-bd" onclick="if(event.target===this)closeModal('modalConfirm')">
-  <div class="modal-box" style="max-width:360px">
-    <h3 id="confirmTitle" class="modal-title" style="margin-bottom:10px">Konfirmasi</h3>
-    <p id="confirmMsg" style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6"></p>
-    <div style="display:flex;gap:8px">
-      <button onclick="closeModal('modalConfirm')" class="btn btn-secondary" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnConfirmOk" class="btn btn-danger" style="flex:1;justify-content:center">Hapus</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Transfer Bucket -->
-<div id="modalTransfer" class="modal-bd" onclick="if(event.target===this)closeModal('modalTransfer')">
-  <div class="modal-box" style="max-width:480px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h3 class="modal-title">Transfer File Antar Bucket</h3>
-      <button onclick="closeModal('modalTransfer')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div style="padding:12px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--r);margin-bottom:16px">
-      <div style="font-size:12px;color:#fcd34d">⚠️ Transfer akan memindahkan semua file dari bucket asal ke bucket tujuan. Proses ini tidak bisa dibatalkan.</div>
-    </div>
-    <div style="margin-bottom:14px">
-      <label class="lbl">Dari Bucket</label>
-      <select id="transferFrom" class="inp" onchange="updateTransferInfo()">
-        <option value="">Pilih bucket asal...</option>
-      </select>
-    </div>
-    <div style="margin-bottom:14px">
-      <label class="lbl">Ke Bucket</label>
-      <select id="transferTo" class="inp" onchange="updateTransferInfo()">
-        <option value="">Pilih bucket tujuan...</option>
-      </select>
-    </div>
-    <div id="transferInfo" style="display:none;padding:12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);margin-bottom:16px;font-size:13px;color:var(--muted)"></div>
-    <div id="transferPrgWrap" style="display:none;margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px">
-        <span id="transferPrgLabel">Mentransfer...</span>
-        <span id="transferPrgPct">0%</span>
-      </div>
-      <div class="prg-wrap"><div id="transferPrgFill" class="prg-fill"></div></div>
-    </div>
-    <div id="modalTransferAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="closeModal('modalTransfer')" class="btn btn-secondary" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnDoTransfer" onclick="doTransfer()" class="btn btn-primary" style="flex:1;justify-content:center" disabled>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        Mulai Transfer
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Responsive helper CSS -->
-<style>
-@media(min-width:640px){.sm-4col{grid-template-columns:repeat(4,1fr)!important}}
-@media(min-width:1024px){.lg-2col{grid-template-columns:repeat(2,1fr)!important}}
-@media(min-width:768px){.md\:hidden{display:none!important}}
-</style>
-
-
 </body>
 </html>

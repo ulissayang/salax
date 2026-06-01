@@ -680,23 +680,14 @@ select.inp option{background:#1a1a2e;color:var(--text)}
               <span id="activeModelLabel" style="font-size:12px;font-weight:700;color:#a78bfa"></span>
             </div>
           </div>
-          <!-- AI Keys di Settings — Terpisah -->
+          <!-- Gemini Key di Settings -->
           <div class="card" style="padding:20px">
-            <div style="font-size:14px;font-weight:700;margin-bottom:4px">🔑 Gemini API Key</div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Untuk scan dokumen otomatis saat upload (butuh vision)</div>
-            <div style="display:flex;gap:8px;margin-bottom:6px">
-              <input id="settingsGeminiKeyInp" type="password" class="inp" style="flex:1;font-size:13px" placeholder="AIzaSy... atau AQ.Ab8..."/>
-              <button onclick="saveKeyFromSettings('gemini')" class="btn btn-primary btn-sm">Simpan</button>
+            <div style="font-size:14px;font-weight:700;margin-bottom:12px">AI API Key</div>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <input id="settingsGeminiKeyInp" type="password" class="inp" style="flex:1;font-size:13px" placeholder="sk-... (DeepSeek API key)"/>
+              <button onclick="saveGeminiKeyFromSettings()" class="btn btn-primary btn-sm">Simpan</button>
             </div>
-            <div id="settingsGeminiStatus" style="font-size:12px;margin-bottom:16px">—</div>
-            <div style="height:1px;background:var(--border);margin-bottom:16px"></div>
-            <div style="font-size:14px;font-weight:700;margin-bottom:4px">🤖 DeepSeek API Key</div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Untuk AI chat (lebih hemat, tidak terbatas per hari)</div>
-            <div style="display:flex;gap:8px;margin-bottom:6px">
-              <input id="settingsDeepseekKeyInp" type="password" class="inp" style="flex:1;font-size:13px" placeholder="sk-xxxxxxxxxxxxxxxx"/>
-              <button onclick="saveKeyFromSettings('deepseek')" class="btn btn-primary btn-sm">Simpan</button>
-            </div>
-            <div id="settingsDeepseekStatus" style="font-size:12px">—</div>
+            <div id="settingsGeminiStatus" style="font-size:12px;color:var(--muted)">—</div>
             <div style="margin-top:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r)">
               <div style="font-size:12px;color:var(--muted);line-height:1.7">
                 📌 <strong>DeepSeek:</strong> <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#a78bfa">platform.deepseek.com</a> → API Keys → Create<br>
@@ -763,28 +754,6 @@ select.inp option{background:#1a1a2e;color:var(--text)}
 </div>
 
 <!-- ═══ MODALS ═══ -->
-<!-- Modal Preview Dokumen -->
-<div id="modalPreview" class="modal-bd" onclick="if(event.target===this)closeModal('modalPreview')">
-  <div class="modal-box" style="max-width:860px;padding:0;overflow:hidden">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg3)">
-      <div>
-        <div id="previewTitle" style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:500px">Pratinjau</div>
-        <div id="previewMeta" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0">
-        <button id="previewDownloadBtn" onclick="downloadPreview()" class="btn btn-primary btn-sm">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Unduh
-        </button>
-        <button onclick="closeModal('modalPreview')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-      </div>
-    </div>
-    <div id="previewBody" style="min-height:400px;max-height:70vh;overflow:auto;background:#000;display:flex;align-items:center;justify-content:center">
-      <div style="color:var(--muted);font-size:14px">Memuat...</div>
-    </div>
-  </div>
-</div>
-
 <!-- Modal Kategori -->
 <div id="modalKat" class="modal-bd" onclick="if(event.target===this)closeModal('modalKat')">
   <div class="modal-box">
@@ -918,10 +887,6 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // Contoh:
 // 
 
-// ── CONSTANTS ────────────────────────────────────────────────
-const MAX_BUCKET_BYTES = 9 * 1024 * 1024 * 1024;
-const PAGE_SIZE = 20;
-
 // ── SUPABASE CLIENT ──────────────────────────────────────────
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
@@ -931,53 +896,373 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
 // ── STATE ─────────────────────────────────────────────────────
 let GEMINI_MODEL='deepseek-chat'; // diubah dari Pengaturan
 let CU=null, allKategori=[], allBuckets=[], WORKER_URL='';
-let _cachedGeminiKey='';   // untuk scan dokumen (vision)
-let _cachedDeepseekKey=''; // untuk chat AI
+let _cachedGeminiKey='';
 function getGeminiKey(){ return _cachedGeminiKey; }
-function getDeepseekKey(){ return _cachedDeepseekKey; }
-function getAIKey(){ return GEMINI_MODEL.startsWith('gemini')?_cachedGeminiKey:_cachedDeepseekKey; }
-
-async function saveAIKey(provider,key){
-  if(!key||/^●+$/.test(key.trim())){toast('Ketik API key terlebih dahulu','warn');return false;}
-  key=key.trim();
-  const dbKey=provider==='gemini'?'geminiKey':'deepseekKey';
-  try{
-    const{error}=await sb.from('app_config').upsert({key:dbKey,value:key,updated_at:new Date().toISOString()},{onConflict:'key'});
-    if(error)throw new Error(error.message);
-    if(provider==='gemini')_cachedGeminiKey=key;
-    else _cachedDeepseekKey=key;
-    toast((provider==='gemini'?'Gemini':'DeepSeek')+' API key disimpan ✓','ok');
-    updateAIKeyUI();
-    return true;
-  }catch(e){toast('Gagal: '+e.message,'err');return false;}
-}
 
 async function saveGeminiKey(){
   const inp=document.getElementById('geminiKeyInp');
-  if(!inp)return;
-  const ok=await saveAIKey('gemini',inp.value);
-  if(ok){inp.value='';inp.placeholder='Tersimpan ✓';}
+  const raw=inp?inp.value:'';
+  // Jangan simpan jika masih dots (placeholder) atau kosong
+  const isDots=/^●+$/.test(raw.trim());
+  if(!raw.trim()||isDots){
+    toast('Ketik API key baru terlebih dahulu','warn');
+    if(inp){inp.value='';inp.placeholder='Paste API key di sini...';}
+    return;
+  }
+  const key=raw.trim();
+  try{
+    const{error}=await sb.from('app_config').upsert(
+      {key:'geminiKey',value:key,updated_at:new Date().toISOString()},
+      {onConflict:'key'}
+    );
+    if(error) throw new Error(error.message);
+    _cachedGeminiKey=key;
+    if(inp){inp.value='';inp.placeholder='Tersimpan ✓';}
+    toast('Gemini API key disimpan ke Supabase ✓','ok');
+    updateGeminiKeyUI();
+  }catch(e){ toast('Gagal simpan: '+e.message,'err'); }
+}
+let dokPage=1, dokKatFilter='', dokSearch='';
+let upSelectedFile=null;
+let chatHistory=[]; // for AI context
+
+// ── INIT ──────────────────────────────────────────────────────
+
+// ── NAVIGATION ────────────────────────────────────────────────
+const PAGE_TITLES={'dash':'SaLax','dokumen':'Dokumen','upload':'Upload','ai':'AI Asisten',
+  'kategori':'Kategori','download':'Download','storage':'Storage','settings':'Pengaturan','profil':'Profil'};
+const PAGE_LOADERS={
+  dash:()=>loadDash(),
+  dokumen:()=>loadDokumen(1),
+  upload:()=>loadUploadPage(),
+  ai:()=>loadAiPage(),
+  kategori:()=>loadKategoriPage(),
+  download:()=>loadDownloadPage(),
+  storage:()=>loadStoragePage(),
+  settings:()=>loadSettingsPage(),
+  profil:()=>loadProfilPage(),
+};
+
+function showPage(name){
+  // Simpan halaman aktif ke localStorage agar tidak balik ke awal saat refresh
+  try{localStorage.setItem('salax_page',name);}catch(e){}
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('[data-page]').forEach(n=>n.classList.remove('active'));
+  const pageId='page'+name[0].toUpperCase()+name.slice(1);
+  const page=document.getElementById(pageId);
+  if(page) page.classList.add('active');
+  document.querySelectorAll('[data-page="'+name+'"]').forEach(el=>el.classList.add('active'));
+  const titleEl=document.getElementById('mobilePageTitle');
+  if(titleEl) titleEl.textContent=PAGE_TITLES[name]||'SaLax';
+  try{if(PAGE_LOADERS[name])PAGE_LOADERS[name]();}
+  catch(e){toast('Gagal memuat: '+e.message,'err');}
+  const mc=document.getElementById('mainContent');
+  if(mc) mc.scrollTop=0;
 }
 
-function updateGeminiKeyUI(){updateAIKeyUI();}
-function updateAIKeyUI(){
+// ── AUTH ──────────────────────────────────────────────────────
+function showAuthPage(p){
+  document.getElementById('loadingPage').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginPage').style.display=p==='login'?'flex':'none';
+  document.getElementById('forgotPage').style.display=p==='forgot'?'flex':'none';
+}
+
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const btn=document.getElementById('btnLogin');
+  const errEl=document.getElementById('loginErr');
+  errEl.style.display='none';
+  if(!email||!pass){errEl.textContent='Email dan password wajib diisi';errEl.style.display='block';return;}
+  setBtn(btn,true);
+  try{
+    const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error){
+      errEl.textContent=error.message==='Invalid login credentials'?'Email atau password salah':error.message;
+      errEl.style.display='block';
+      setBtn(btn,false,'Masuk');return;
+    }
+    if(data?.user) await loadUserState(data.user);
+  }catch(e){
+    errEl.textContent='Gagal terhubung: '+e.message;errEl.style.display='block';
+    setBtn(btn,false,'Masuk');
+  }
+}
+
+async function doForgot(){
+  const email=document.getElementById('forgotEmail').value.trim();
+  const btn=document.getElementById('btnForgot');
+  if(!email){showForgotMsg('Email wajib diisi','err');return;}
+  setBtn(btn,true);
+  try{
+    const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/'});
+    if(error) showForgotMsg(error.message,'err');
+    else showForgotMsg('Link reset dikirim. Cek inbox atau spam.','ok');
+  }catch(e){showForgotMsg('Gagal mengirim email','err');}
+  setBtn(btn,false,'Kirim Link Reset');
+}
+
+function showForgotMsg(text,type){
+  const el=document.getElementById('forgotMsg');if(!el)return;
+  el.textContent=text;el.style.display='block';
+  el.style.background=type==='ok'?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
+  el.style.border=type==='ok'?'1px solid rgba(16,185,129,.2)':'1px solid rgba(239,68,68,.2)';
+  el.style.color=type==='ok'?'#6ee7b7':'#fca5a5';
+}
+
+async function doLogout(){
+  try{await sb.auth.signOut();}catch(e){}
+  showAuthPage('login');
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function renderDashStorageBars(){
+  const el=document.getElementById('dashStorageBars');
+  if(!allBuckets.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:13px">Belum ada bucket R2 — tambah di Storage</div>';return;}
+  const{data:ud}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id',CU.id);
+  const usageMap={};(ud||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
+  el.innerHTML=allBuckets.map(b=>{
+    const used=usageMap[b.id]||0,limit=b.limit_bytes||MAX_BUCKET_BYTES;
+    const pct=Math.min((used/limit)*100,100);
+    const clr=pct>90?'#f87171':pct>70?'#fbbf24':'#C9A84C';
+    return `<div><div class="flex justify-between items-center mb-1.5"><span style="font-size:13px;font-weight:500">${esc(b.label)}</span><span style="font-size:11px;color:rgba(255,255,255,.4)">${fmtSz(used)} / ${fmtSz(limit)}</span></div><div class="sbar"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${clr}"></div></div><div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">${pct.toFixed(1)}%${b.aktif?'':' · <span style="color:#f87171">Nonaktif</span>'}</div></div>`;
+  }).join('');
+}
+
+async function loadDash(){
+  try{
+    const hr=new Date().getHours();
+    const g=hr<11?'Selamat pagi':hr<15?'Selamat siang':hr<18?'Selamat sore':'Selamat malam';
+    document.getElementById('dashGreet').textContent=g+', '+(CU?.nama||'');
+    const[{count:totalDok},{count:totalKat},{data:sizeData}]=await Promise.all([
+      sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
+      sb.from('kategori').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
+      sb.from('dokumen').select('ukuran_file').eq('user_id',CU.id),
+    ]);
+    document.getElementById('statDok').textContent=totalDok||0;
+    document.getElementById('statKat').textContent=totalKat||0;
+    const totalSize=(sizeData||[]).reduce((a,d)=>a+(d.ukuran_file||0),0);
+    document.getElementById('statSize').textContent=fmtSz(totalSize);
+    document.getElementById('statBuckets').textContent=allBuckets.filter(b=>b.aktif).length;
+    await renderDashStorageBars();
+    const{data:recent}=await sb.from('dokumen')
+      .select('id,nama_file,ukuran_file,uploaded_at,kategori:kategori_id(nama)')
+      .eq('user_id',CU.id).order('uploaded_at',{ascending:false}).limit(5);
+    const el=document.getElementById('dashRecentDok');
+    if(!recent||!recent.length){
+      el.innerHTML='<div class="text-center py-5" style="color:rgba(255,255,255,.3);font-size:13px">Belum ada dokumen</div>';
+      return;
+    }
+    el.innerHTML=recent.map(d=>`
+      <div class="dok-card">
+        <div style="font-size:22px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
+        <div class="flex-1 min-w-0">
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.nama_file)}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">${d.kategori?.nama||'—'} · ${fmtSz(d.ukuran_file)}</div>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);flex-shrink:0">${fmtDate(d.uploaded_at)}</div>
+      </div>`).join('');
+  }catch(e){toast('Gagal memuat dashboard: '+e.message,'err');}
+}
+
+// ── DOKUMEN ───────────────────────────────────────────────────
+async function loadDokumen(p=1){
+  try{
+    dokPage=p;
+    const from=(p-1)*PAGE_SIZE,to=from+PAGE_SIZE-1;
+    let q=sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,kategori:kategori_id(id,nama)',{count:'exact'}).eq('user_id',CU.id);
+    if(dokKatFilter) q=q.eq('kategori_id',dokKatFilter);
+    if(dokSearch) q=q.or('nama_file.ilike.%'+dokSearch+'%,keterangan.ilike.%'+dokSearch+'%');
+    q=q.order('uploaded_at',{ascending:false}).range(from,to);
+    const{data:docs,count,error}=await q;
+    document.getElementById('dokKatTabs').innerHTML=[{id:'',nama:'Semua'},...allKategori].map(k=>{
+      const isActive=dokKatFilter===k.id;
+      return `<button onclick="setDokKatFilter('${k.id}')" class="btn btn-xs ${isActive?'btn-gold':'btn-ghost'}" style="${isActive?'':'border:1px solid rgba(255,255,255,.08)'}">${esc(k.nama)}</button>`;
+    }).join('');
+    document.getElementById('dokKatFilter').innerHTML='<option value="">Semua Kategori</option>'+allKategori.map(k=>'<option value="'+k.id+'" '+(dokKatFilter===k.id?'selected':'')+'>'+esc(k.nama)+'</option>').join('');
+    if(error){toast('Gagal memuat dokumen: '+error.message,'err');return;}
+    const list=document.getElementById('dokList');
+    const empty=document.getElementById('dokEmpty');
+    if(!docs||!docs.length){list.innerHTML='';empty.style.display='block';document.getElementById('dokPagination').innerHTML='';return;}
+    empty.style.display='none';
+    list.innerHTML=docs.map(d=>{
+      const bkt=allBuckets.find(b=>b.id===d.storage_bucket_id);
+      const rk=esc(d.r2_key||''),fn=esc(d.nama_file||''),ki=d.kategori?.id||'',ket=esc(d.keterangan||''),bid=String(d.storage_bucket_id||'');
+      return `<div class="dok-card">
+        <div style="font-size:24px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
+        <div class="flex-1 min-w-0">
+          <div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fn}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;display:flex;flex-wrap:wrap;gap:5px">
+            <span>${d.kategori?.nama||'—'}</span><span>·</span><span>${fmtSz(d.ukuran_file)}</span><span>·</span><span>${fmtDate(d.uploaded_at)}</span>
+            ${bkt?`<span>·</span><span style="color:rgba(201,168,76,.6)">${esc(bkt.label)}</span>`:''}
+          </div>
+          ${ket?`<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ket}</div>`:''}
+        </div>
+        <div class="flex gap-1.5 flex-shrink-0">
+          <button onclick="openDok('${rk}','${fn}','${bid}')" class="btn btn-ghost btn-xs" title="Unduh">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+          <button onclick="openModalEditDok('${d.id}','${fn}','${ki}','${ket}')" class="btn btn-ghost btn-xs" title="Edit">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button onclick="confirmDel('${d.id}','${rk}','${bid}')" class="btn btn-danger btn-xs" title="Hapus">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+    renderPagination(count||0,p,PAGE_SIZE,'loadDokumen','dokPagination');
+  }catch(e){toast('Gagal: '+e.message,'err');}
+}
+function setDokKatFilter(id){dokKatFilter=id;loadDokumen(1);}
+function filterDok(){dokSearch=document.getElementById('dokSearch').value;dokKatFilter=document.getElementById('dokKatFilter').value;loadDokumen(1);}
+
+window.addEventListener('DOMContentLoaded', async()=>{
+  document.getElementById('loadingPage').style.display='flex';
+
+  // Setup drag zone upload
+  const zone=document.getElementById('upZone');
+  if(zone){
+    zone.ondragover=e=>{e.preventDefault();zone.classList.add('drag')};
+    zone.ondragleave=()=>zone.classList.remove('drag');
+    zone.ondrop=e=>{e.preventDefault();zone.classList.remove('drag');if(e.dataTransfer.files[0])handleUpFile(e.dataTransfer.files[0])};
+  }
+
+  try{
+    const{data:{session},error}=await sb.auth.getSession();
+    if(error) throw error;
+    if(session){
+      await loadUserState(session.user);
+    } else {
+      showAuthPage('login');
+    }
+    // Auth state listener untuk perubahan berikutnya
+    sb.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='SIGNED_IN'&&session&&!CU) await loadUserState(session.user);
+      else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
+      else if(event==='TOKEN_REFRESHED'&&session) CU=session.user;
+    });
+  }catch(e){
+    console.error('Init error:',e);
+    showAuthPage('login');
+  }
+});
+
+async function loadUserState(user){
+  try{
+    CU=user;
+    // Load profile — buat baru jika belum ada
+    let{data:prof,error:profErr}=await sb.from('profiles').select('*').eq('id',user.id).single();
+    if(profErr||!prof){
+      try{
+        await sb.from('profiles').insert({id:user.id,email:user.email,nama:user.email.split('@')[0]});
+      }catch(e){}
+      prof={id:user.id,email:user.email,nama:user.email.split('@')[0]};
+    }
+    CU.nama=prof.nama||user.email;
+    CU.email=prof.email||user.email;
+    const initials=(CU.nama||'?').slice(0,2).toUpperCase();
+    ['sidebarAvatar','mobileAvatar','profilAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=initials;});
+    const sn=document.getElementById('sidebarName');if(sn)sn.textContent=CU.nama;
+
+    // Load semua config sekaligus
+    try{
+      // Cek apakah ada Gemini key sementara dari setup (pindahkan ke Supabase)
+      const tempGemini=localStorage.getItem('salax_gemini_temp');
+      if(tempGemini){
+        await sb.from('app_config').upsert({key:'geminiKey',value:tempGemini,updated_at:new Date().toISOString()},{onConflict:'key'}).catch(()=>{});
+        localStorage.removeItem('salax_gemini_temp');
+      }
+      const{data:allCfg}=await sb.from('app_config').select('key,value');
+      if(allCfg){
+        const wUrl=allCfg.find(r=>r.key==='workerUrl');
+        const gKey=allCfg.find(r=>r.key==='geminiKey');
+        if(wUrl){WORKER_URL=wUrl.value.replace(/\/+$/,'');const el=document.getElementById('workerUrlInp');if(el)el.value=WORKER_URL;}
+        const gModel=allCfg.find(r=>r.key==='geminiModel');
+        if(gModel&&gModel.value) GEMINI_MODEL=gModel.value;
+        if(gKey){_cachedGeminiKey=gKey.value;updateGeminiKeyUI();}
+      }
+    }catch(e){ console.warn('Config load error:',e.message); }
+
+    // Load data paralel
+    try{ await Promise.all([loadKategori(),loadBuckets()]); }catch(e){}
+
+    // Tampilkan app
+    ['loadingPage','loginPage','forgotPage'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.style.display='none';
+    });
+    document.getElementById('app').style.display='flex';
+    // Restore halaman terakhir yang dibuka
+    const lastPage = localStorage.getItem('salax_page')||'dash';
+    showPage(lastPage);
+
+  }catch(e){
+    console.error('loadUserState error:',e);
+    // Tetap tampilkan app meski ada error
+    ['loadingPage','loginPage','forgotPage'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.style.display='none';
+    });
+    document.getElementById('app').style.display='flex';
+    // Restore halaman terakhir yang dibuka
+    const lastPage = localStorage.getItem('salax_page')||'dash';
+    showPage(lastPage);
+  }
+}
+
+// ── AUTH ──────────────────────────────────────────────────────
+// showConfigPage dihapus — config sekarang hardcode di kode
+
+
+function showUpdateGemini(){
+  document.getElementById('modalGeminiKey').value='';
+  document.getElementById('modalGeminiAlert').style.display='none';
+  openModal('modalGemini');
+}
+
+async function saveGeminiFromModal(){
+  const key=document.getElementById('modalGeminiKey').value.trim();
+  const btn=document.getElementById('btnSaveGemini');
+  if(!key){showModalAlert('modalGeminiAlert','API key tidak boleh kosong','err');return;}
+  setBtn(btn,true);
+  const isDots=/^●+$/.test(key);
+  if(isDots||key.length<10){
+    showModalAlert('modalGeminiAlert','Masukkan API key yang valid','err');
+    setBtn(btn,false);return;
+  }
+  try{
+    const{error}=await sb.from('app_config').upsert(
+      {key:'geminiKey',value:key,updated_at:new Date().toISOString()},
+      {onConflict:'key'}
+    );
+    if(error) throw new Error(error.message);
+    _cachedGeminiKey=key;
+    const inp=document.getElementById('geminiKeyInp');
+    if(inp){inp.value='';inp.placeholder='Tersimpan ✓';}
+    updateGeminiKeyUI();
+    closeModal('modalGemini');
+    toast('Gemini API key diperbarui ✓','ok');
+  }catch(e){showModalAlert('modalGeminiAlert','Gagal: '+e.message,'err');}
+  setBtn(btn,false);
+}
+function updateGeminiKeyUI(){
+  const key=getGeminiKey();
   const wrap=document.getElementById('geminiKeyWrap');
   const inp=document.getElementById('geminiKeyInp');
-  const statusEl=document.getElementById('geminiStatus');
-  if(_cachedGeminiKey&&wrap){
+  if(key&&wrap){
     wrap.style.borderColor='rgba(16,185,129,.3)';
     wrap.style.background='rgba(16,185,129,.04)';
-    if(inp){inp.value='';inp.placeholder='Tersimpan ✓';}
-    if(statusEl)statusEl.innerHTML='<span style="color:#6ee7b7">✓ Aktif</span>';
-  }else if(wrap){
-    wrap.style.borderColor='rgba(124,58,237,.2)';
+    // Jangan isi dots ke input — biarkan kosong dengan placeholder
+    if(inp){inp.value='';inp.placeholder='Sudah tersimpan — ketik untuk mengganti';}
+    const statusEl=document.getElementById('geminiStatus');
+    if(statusEl) statusEl.innerHTML='<span style="color:#6ee7b7">✓ DeepSeek AI aktif</span>';
+  } else if(wrap){
+    wrap.style.borderColor='rgba(99,102,241,.2)';
     wrap.style.background='';
-    if(statusEl)statusEl.innerHTML='<span style="color:var(--faint)">Belum diset</span>';
+    if(inp){inp.value='';inp.placeholder='Paste API key di sini...';}
+    const statusEl=document.getElementById('geminiStatus');
+    if(statusEl) statusEl.innerHTML='<span style="color:rgba(255,255,255,.3)">Belum dikonfigurasi</span>';
   }
-  const gEl=document.getElementById('settingsGeminiStatus');
-  const dEl=document.getElementById('settingsDeepseekStatus');
-  if(gEl)gEl.innerHTML=_cachedGeminiKey?'<span style="color:#6ee7b7">✓ Aktif</span>':'<span style="color:#f87171">Belum diset</span>';
-  if(dEl)dEl.innerHTML=_cachedDeepseekKey?'<span style="color:#6ee7b7">✓ Aktif</span>':'<span style="color:#f87171">Belum diset</span>';
 }
 
 async function loadUploadPage(){
@@ -1278,13 +1563,10 @@ Tugas Anda:
 
     const typingEl=addChatBubble('●●●','ai',true);
 
-    const isGeminiModel=GEMINI_MODEL.startsWith('gemini');
-    const aiKey=isGeminiModel?_cachedGeminiKey:_cachedDeepseekKey;
-    if(!aiKey) throw new Error(isGeminiModel
-      ?'Gemini API key belum diset. Buka Pengaturan → isi Gemini API key.'
-      :'DeepSeek API key belum diset. Buka Pengaturan → isi DeepSeek API key.');
+    const aiKey=getGeminiKey();
+    if(!aiKey) throw new Error('AI API key belum diset. Buka Pengaturan → isi API key.');
 
-    const isGemini=isGeminiModel;
+    const isGemini=GEMINI_MODEL.startsWith('gemini');
     let response;
 
     if(isGemini){
@@ -1652,71 +1934,6 @@ async function saveWorkerUrl(){
 }
 
 
-
-// ── PREVIEW DOKUMEN ───────────────────────────────────────────
-let _previewR2Key='', _previewNama='', _previewBucketId='';
-
-async function previewDok(r2Key, nama, bucketId, ukuran, kategori){
-  _previewR2Key=r2Key;
-  _previewNama=nama;
-  _previewBucketId=bucketId;
-  
-  document.getElementById('previewTitle').textContent=nama;
-  document.getElementById('previewMeta').textContent=(kategori||'—')+' · '+fmtSz(ukuran||0);
-  document.getElementById('previewBody').innerHTML='<div style="color:var(--muted);font-size:14px;padding:40px">⏳ Memuat pratinjau...</div>';
-  openModal('modalPreview');
-  
-  const ext = nama.split('.').pop().toLowerCase();
-  const isImage = ['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext);
-  const isPDF = ext === 'pdf';
-  const isVideo = ['mp4','webm','ogg','mov'].includes(ext);
-  
-  try{
-    const{data:{session}}=await sb.auth.getSession();
-    const token=session?.access_token||'';
-    const res=await fetch(`${WORKER_URL}/file/${encodeURIComponent(r2Key)}`,{
-      headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':String(bucketId||'')}
-    });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const blob=await res.blob();
-    const blobUrl=URL.createObjectURL(blob);
-    
-    const body=document.getElementById('previewBody');
-    if(isImage){
-      body.innerHTML=`<img src="${blobUrl}" style="max-width:100%;max-height:70vh;object-fit:contain;display:block" onload="this.style.opacity=1" style="opacity:0;transition:opacity .3s"/>`;
-      body.querySelector('img').onload=function(){this.style.opacity='1'};
-    } else if(isPDF){
-      body.innerHTML=`<iframe src="${blobUrl}" style="width:100%;height:70vh;border:none;background:#fff"></iframe>`;
-    } else if(isVideo){
-      body.innerHTML=`<video src="${blobUrl}" controls style="max-width:100%;max-height:70vh"></video>`;
-    } else {
-      // Untuk file teks, doc, dll — tampilkan info dan tombol unduh
-      body.innerHTML=`<div style="text-align:center;padding:60px 20px">
-        <div style="font-size:56px;margin-bottom:16px">${fileEmoji(nama)}</div>
-        <div style="font-size:16px;font-weight:600;margin-bottom:8px">${esc(nama)}</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:24px">File ini tidak dapat ditampilkan di browser.<br>Klik Unduh untuk membuka.</div>
-        <button onclick="downloadPreview()" class="btn btn-primary">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Unduh File
-        </button>
-      </div>`;
-    }
-    // Store blob URL for download
-    document.getElementById('previewDownloadBtn').dataset.url=blobUrl;
-    document.getElementById('previewDownloadBtn').dataset.name=nama;
-  }catch(e){
-    document.getElementById('previewBody').innerHTML=`<div style="color:#f87171;padding:40px;text-align:center">❌ Gagal memuat: ${esc(e.message)}</div>`;
-  }
-}
-
-function downloadPreview(){
-  const btn=document.getElementById('previewDownloadBtn');
-  const url=btn.dataset.url;
-  const name=btn.dataset.name||_previewNama;
-  if(!url){openDok(_previewR2Key,_previewNama,_previewBucketId);return;}
-  const a=document.createElement('a');a.href=url;a.download=name;a.click();
-}
-
 // ── TRANSFER ANTAR BUCKET ─────────────────────────────────────
 function openModalTransfer(fromBucketId=''){
   const fromSel=document.getElementById('transferFrom');
@@ -1901,264 +2118,6 @@ function renderPagination(total,current,size,fn,containerId){
 }
 function togglePw(id,btn){const inp=document.getElementById(id);inp.type=inp.type==='password'?'text':'password';btn.style.color=inp.type==='text'?'#C9A84C':'rgba(255,255,255,.3)';}
 // ESC close modals
-
-
-// ── RESTORED FUNCTIONS ──────────────────────────────────────
-function showAuthPage(p){
-  document.getElementById('loadingPage').style.display='none';
-  document.getElementById('app').style.display='none';
-  document.getElementById('loginPage').style.display=p==='login'?'flex':'none';
-  document.getElementById('forgotPage').style.display=p==='forgot'?'flex':'none';
-}
-
-function showForgotMsg(text,type){
-  const el=document.getElementById('forgotMsg');if(!el)return;
-  el.textContent=text;el.style.display='block';
-  el.style.background=type==='ok'?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
-  el.style.border=type==='ok'?'1px solid rgba(16,185,129,.2)':'1px solid rgba(239,68,68,.2)';
-  el.style.color=type==='ok'?'#6ee7b7':'#fca5a5';
-}
-
-async function doLogin(){
-  const email=document.getElementById('loginEmail').value.trim();
-  const pass=document.getElementById('loginPass').value;
-  const btn=document.getElementById('btnLogin');
-  const errEl=document.getElementById('loginErr');
-  errEl.style.display='none';
-  if(!email||!pass){errEl.textContent='Email dan password wajib diisi';errEl.style.display='block';return;}
-  setBtn(btn,true);
-  try{
-    const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
-    if(error){
-      errEl.textContent=error.message==='Invalid login credentials'?'Email atau password salah':error.message;
-      errEl.style.display='block';
-      setBtn(btn,false,'Masuk');return;
-    }
-    if(data?.user) await loadUserState(data.user);
-  }catch(e){
-    errEl.textContent='Gagal terhubung: '+e.message;errEl.style.display='block';
-    setBtn(btn,false,'Masuk');
-  }
-}
-
-async function doForgot(){
-  const email=document.getElementById('forgotEmail').value.trim();
-  const btn=document.getElementById('btnForgot');
-  if(!email){showForgotMsg('Email wajib diisi','err');return;}
-  setBtn(btn,true);
-  try{
-    const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/'});
-    if(error) showForgotMsg(error.message,'err');
-    else showForgotMsg('Link reset dikirim. Cek inbox atau spam.','ok');
-  }catch(e){showForgotMsg('Gagal mengirim email','err');}
-  setBtn(btn,false,'Kirim Link Reset');
-}
-
-async function doLogout(){
-  try{await sb.auth.signOut();}catch(e){}
-  showAuthPage('login');
-}
-
-async function loadUserState(user){
-  try{
-    CU=user;
-    // Load profile — buat baru jika belum ada
-    let{data:prof,error:profErr}=await sb.from('profiles').select('*').eq('id',user.id).single();
-    if(profErr||!prof){
-      try{
-        await sb.from('profiles').insert({id:user.id,email:user.email,nama:user.email.split('@')[0]});
-      }catch(e){}
-      prof={id:user.id,email:user.email,nama:user.email.split('@')[0]};
-    }
-    CU.nama=prof.nama||user.email;
-    CU.email=prof.email||user.email;
-    const initials=(CU.nama||'?').slice(0,2).toUpperCase();
-    ['sidebarAvatar','mobileAvatar','profilAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=initials;});
-    const sn=document.getElementById('sidebarName');if(sn)sn.textContent=CU.nama;
-
-    // Load semua config sekaligus
-    try{
-      const{data:allCfg}=await sb.from('app_config').select('key,value');
-      if(allCfg){
-        const wUrl=allCfg.find(r=>r.key==='workerUrl');
-        const gKey=allCfg.find(r=>r.key==='geminiKey');
-        const dsKey=allCfg.find(r=>r.key==='deepseekKey');
-        const gModel=allCfg.find(r=>r.key==='geminiModel');
-        if(wUrl){WORKER_URL=wUrl.value.replace(/\/+$/,'');const el=document.getElementById('workerUrlInp');if(el)el.value=WORKER_URL;}
-        if(gKey&&gKey.value) _cachedGeminiKey=gKey.value;
-        if(dsKey&&dsKey.value) _cachedDeepseekKey=dsKey.value;
-        if(gModel&&gModel.value) GEMINI_MODEL=gModel.value;
-        updateAIKeyUI();
-      }
-    }catch(e){ console.warn('Config load error:',e.message); }
-
-    // Load data paralel
-    try{ await Promise.all([loadKategori(),loadBuckets()]); }catch(e){}
-
-    // Tampilkan app
-    ['loadingPage','loginPage','forgotPage'].forEach(id=>{
-      const el=document.getElementById(id);if(el)el.style.display='none';
-    });
-    document.getElementById('app').style.display='flex';
-    showPage('dash');
-
-  }catch(e){
-    console.error('loadUserState error:',e);
-    // Tetap tampilkan app meski ada error
-    ['loadingPage','loginPage','forgotPage'].forEach(id=>{
-      const el=document.getElementById(id);if(el)el.style.display='none';
-    });
-    document.getElementById('app').style.display='flex';
-    showPage('dash');
-  }
-}
-
-function showPage(name){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('[data-page]').forEach(n=>n.classList.remove('active'));
-  const pageId='page'+name[0].toUpperCase()+name.slice(1);
-  const page=document.getElementById(pageId);
-  if(page) page.classList.add('active');
-  document.querySelectorAll('[data-page="'+name+'"]').forEach(el=>el.classList.add('active'));
-  const titleEl=document.getElementById('mobilePageTitle');
-  if(titleEl) titleEl.textContent=PAGE_TITLES[name]||'SaLax';
-  try{if(PAGE_LOADERS[name])PAGE_LOADERS[name]();}
-  catch(e){toast('Gagal memuat: '+e.message,'err');}
-  const mc=document.getElementById('mainContent');
-  if(mc) mc.scrollTop=0;
-}
-
-async function loadDash(){
-  try{
-    const hr=new Date().getHours();
-    const g=hr<11?'Selamat pagi':hr<15?'Selamat siang':hr<18?'Selamat sore':'Selamat malam';
-    document.getElementById('dashGreet').textContent=g+', '+(CU?.nama||'');
-    const[{count:totalDok},{count:totalKat},{data:sizeData}]=await Promise.all([
-      sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
-      sb.from('kategori').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
-      sb.from('dokumen').select('ukuran_file').eq('user_id',CU.id),
-    ]);
-    document.getElementById('statDok').textContent=totalDok||0;
-    document.getElementById('statKat').textContent=totalKat||0;
-    const totalSize=(sizeData||[]).reduce((a,d)=>a+(d.ukuran_file||0),0);
-    document.getElementById('statSize').textContent=fmtSz(totalSize);
-    document.getElementById('statBuckets').textContent=allBuckets.filter(b=>b.aktif).length;
-    await renderDashStorageBars();
-    const{data:recent}=await sb.from('dokumen')
-      .select('id,nama_file,ukuran_file,uploaded_at,kategori:kategori_id(nama)')
-      .eq('user_id',CU.id).order('uploaded_at',{ascending:false}).limit(5);
-    const el=document.getElementById('dashRecentDok');
-    if(!recent||!recent.length){
-      el.innerHTML='<div class="text-center py-5" style="color:rgba(255,255,255,.3);font-size:13px">Belum ada dokumen</div>';
-      return;
-    }
-    el.innerHTML=recent.map(d=>`
-      <div class="dok-card">
-        <div style="font-size:22px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
-        <div class="flex-1 min-w-0">
-          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.nama_file)}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">${d.kategori?.nama||'—'} · ${fmtSz(d.ukuran_file)}</div>
-        </div>
-        <div style="font-size:11px;color:rgba(255,255,255,.3);flex-shrink:0">${fmtDate(d.uploaded_at)}</div>
-      </div>`).join('');
-  }catch(e){toast('Gagal memuat dashboard: '+e.message,'err');}
-}
-
-async function renderDashStorageBars(){
-  const el=document.getElementById('dashStorageBars');
-  if(!allBuckets.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:13px">Belum ada bucket R2 — tambah di Storage</div>';return;}
-  const{data:ud}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id',CU.id);
-  const usageMap={};(ud||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
-  el.innerHTML=allBuckets.map(b=>{
-    const used=usageMap[b.id]||0,limit=b.limit_bytes||MAX_BUCKET_BYTES;
-    const pct=Math.min((used/limit)*100,100);
-    const clr=pct>90?'#f87171':pct>70?'#fbbf24':'#C9A84C';
-    return `<div><div class="flex justify-between items-center mb-1.5"><span style="font-size:13px;font-weight:500">${esc(b.label)}</span><span style="font-size:11px;color:rgba(255,255,255,.4)">${fmtSz(used)} / ${fmtSz(limit)}</span></div><div class="sbar"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${clr}"></div></div><div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:3px">${pct.toFixed(1)}%${b.aktif?'':' · <span style="color:#f87171">Nonaktif</span>'}</div></div>`;
-  }).join('');
-}
-
-async function loadDokumen(p=1){
-  try{
-    dokPage=p;
-    const from=(p-1)*PAGE_SIZE,to=from+PAGE_SIZE-1;
-    let q=sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,kategori:kategori_id(id,nama)',{count:'exact'}).eq('user_id',CU.id);
-    if(dokKatFilter) q=q.eq('kategori_id',dokKatFilter);
-    if(dokSearch) q=q.or('nama_file.ilike.%'+dokSearch+'%,keterangan.ilike.%'+dokSearch+'%');
-    q=q.order('uploaded_at',{ascending:false}).range(from,to);
-    const{data:docs,count,error}=await q;
-    document.getElementById('dokKatTabs').innerHTML=[{id:'',nama:'Semua'},...allKategori].map(k=>{
-      const isActive=dokKatFilter===k.id;
-      return `<button onclick="setDokKatFilter('${k.id}')" class="btn btn-xs ${isActive?'btn-gold':'btn-ghost'}" style="${isActive?'':'border:1px solid rgba(255,255,255,.08)'}">${esc(k.nama)}</button>`;
-    }).join('');
-    document.getElementById('dokKatFilter').innerHTML='<option value="">Semua Kategori</option>'+allKategori.map(k=>'<option value="'+k.id+'" '+(dokKatFilter===k.id?'selected':'')+'>'+esc(k.nama)+'</option>').join('');
-    if(error){toast('Gagal memuat dokumen: '+error.message,'err');return;}
-    const list=document.getElementById('dokList');
-    const empty=document.getElementById('dokEmpty');
-    if(!docs||!docs.length){list.innerHTML='';empty.style.display='block';document.getElementById('dokPagination').innerHTML='';return;}
-    empty.style.display='none';
-    list.innerHTML=docs.map(d=>{
-      const bkt=allBuckets.find(b=>b.id===d.storage_bucket_id);
-      const rk=esc(d.r2_key||''),fn=esc(d.nama_file||''),ki=d.kategori?.id||'',ket=esc(d.keterangan||''),bid=String(d.storage_bucket_id||'');
-      return `<div class="dok-card">
-        <div style="font-size:24px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
-        <div class="flex-1 min-w-0">
-          <div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fn}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;display:flex;flex-wrap:wrap;gap:5px">
-            <span>${d.kategori?.nama||'—'}</span><span>·</span><span>${fmtSz(d.ukuran_file)}</span><span>·</span><span>${fmtDate(d.uploaded_at)}</span>
-            ${bkt?`<span>·</span><span style="color:rgba(201,168,76,.6)">${esc(bkt.label)}</span>`:''}
-          </div>
-          ${ket?`<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ket}</div>`:''}
-        </div>
-        <div class="flex gap-1.5 flex-shrink-0">
-          <button onclick="previewDok('${rk}','${fn}','${bid}',${d.ukuran_file||0},'${d.kategori?.nama||''}')" class="btn btn-ghost btn-xs" title="Preview" style="color:#a78bfa">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-          <button onclick="openDok('${rk}','${fn}','${bid}')" class="btn btn-ghost btn-xs" title="Unduh">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          </button>
-          <button onclick="openModalEditDok('${d.id}','${fn}','${ki}','${ket}')" class="btn btn-ghost btn-xs" title="Edit">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button onclick="confirmDel('${d.id}','${rk}','${bid}')" class="btn btn-danger btn-xs" title="Hapus">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-          </button>
-        </div>
-      </div>`;
-    }).join('');
-    renderPagination(count||0,p,PAGE_SIZE,'loadDokumen','dokPagination');
-  }catch(e){toast('Gagal: '+e.message,'err');}
-}
-
-function setDokKatFilter(id){dokKatFilter=id;loadDokumen(1);}
-
-function filterDok(){dokSearch=document.getElementById('dokSearch').value;dokKatFilter=document.getElementById('dokKatFilter').value;loadDokumen(1);}
-
-
-// ── INIT ─────────────────────────────────────────────────────
-window.addEventListener('load', async()=>{
-  document.getElementById('loadingPage').style.display='flex';
-  // Drag zone
-  const zone=document.getElementById('upZone');
-  if(zone){
-    zone.ondragover=e=>{e.preventDefault();zone.classList.add('drag')};
-    zone.ondragleave=()=>zone.classList.remove('drag');
-    zone.ondrop=e=>{e.preventDefault();zone.classList.remove('drag');if(e.dataTransfer.files[0])handleUpFile(e.dataTransfer.files[0])};
-  }
-  try{
-    const{data:{session},error}=await sb.auth.getSession();
-    if(error) throw error;
-    if(session) await loadUserState(session.user);
-    else showAuthPage('login');
-    sb.auth.onAuthStateChange(async(event,session)=>{
-      if(event==='SIGNED_IN'&&session&&!CU) await loadUserState(session.user);
-      else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
-    });
-  }catch(e){
-    console.error('Init error:',e);
-    showAuthPage('login');
-  }
-});
-
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-bd.open').forEach(m=>m.classList.remove('open'));});
 
 // ── SETTINGS PAGE ─────────────────────────────────────────────
@@ -2207,12 +2166,6 @@ async function applyCustomModel(){
   toast('Model AI diubah ke ' + GEMINI_MODEL + ' ✓','ok');
 }
 
-async function saveKeyFromSettings(provider){
-  const inp=document.getElementById(provider==='gemini'?'settingsGeminiKeyInp':'settingsDeepseekKeyInp');
-  if(!inp)return;
-  const ok=await saveAIKey(provider, inp.value);
-  if(ok) inp.value='';
-}
 async function saveGeminiKeyFromSettings(){
   const inp = document.getElementById('settingsGeminiKeyInp');
   const raw = inp ? inp.value : '';

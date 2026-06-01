@@ -931,6 +931,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
 // ── STATE ─────────────────────────────────────────────────────
 let GEMINI_MODEL='deepseek-chat'; // diubah dari Pengaturan
 let CU=null, allKategori=[], allBuckets=[], WORKER_URL='';
+let dokPage=1, dokKatFilter='', dokSearch='';
 let _cachedGeminiKey='';   // untuk scan dokumen (vision)
 let _cachedDeepseekKey=''; // untuk chat AI
 function getGeminiKey(){ return _cachedGeminiKey; }
@@ -1250,6 +1251,7 @@ async function sendChat(){
   document.getElementById('aiStatus').textContent='Sedang berpikir...';
   document.getElementById('btnSendChat').disabled=true;
 
+  let typingEl=null;
   try{
     // Gather document context
     const{data:docs}=await sb.from('dokumen').select('nama_file,ukuran_file,uploaded_at,keterangan,kategori:kategori_id(nama)').eq('user_id',CU.id).order('uploaded_at',{ascending:false}).limit(50);
@@ -1328,9 +1330,18 @@ Tugas Anda:
       return;
     }
     const data=await response.json();
-    const reply=isGemini
-      ?(data.candidates?.[0]?.content?.parts?.[0]?.text||'Tidak ada respons.')
-      :(data.choices?.[0]?.message?.content||'Tidak ada respons.');
+    // Extract reply based on provider
+    let reply='';
+    if(isGemini){
+      reply=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    } else {
+      reply=data.choices?.[0]?.message?.content||'';
+      // DeepSeek kadang return finish_reason='stop' dengan content kosong
+      if(!reply && data.choices?.[0]?.finish_reason){
+        reply='(Model selesai merespons tanpa teks — coba pertanyaan yang lebih spesifik)';
+      }
+    }
+    if(!reply) reply='Tidak ada respons dari AI.';
     chatHistory.push({role:'assistant',content:reply});
     if(typingEl)typingEl.remove();
     addChatBubble(reply,'ai');
@@ -2099,8 +2110,11 @@ async function loadDokumen(p=1){
     dokPage=p;
     const from=(p-1)*PAGE_SIZE,to=from+PAGE_SIZE-1;
     let q=sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,kategori:kategori_id(id,nama)',{count:'exact'}).eq('user_id',CU.id);
-    if(dokKatFilter) q=q.eq('kategori_id',dokKatFilter);
-    if(dokSearch) q=q.or('nama_file.ilike.%'+dokSearch+'%,keterangan.ilike.%'+dokSearch+'%');
+    // Pastikan nilai adalah string, bukan DOM element
+    const katFilter = typeof dokKatFilter === 'string' ? dokKatFilter : '';
+    const searchVal = typeof dokSearch === 'string' ? dokSearch : '';
+    if(katFilter) q=q.eq('kategori_id',katFilter);
+    if(searchVal) q=q.or('nama_file.ilike.%'+searchVal+'%,keterangan.ilike.%'+searchVal+'%');
     q=q.order('uploaded_at',{ascending:false}).range(from,to);
     const{data:docs,count,error}=await q;
     document.getElementById('dokKatTabs').innerHTML=[{id:'',nama:'Semua'},...allKategori].map(k=>{
@@ -2148,7 +2162,13 @@ async function loadDokumen(p=1){
 
 function setDokKatFilter(id){dokKatFilter=id;loadDokumen(1);}
 
-function filterDok(){dokSearch=document.getElementById('dokSearch').value;dokKatFilter=document.getElementById('dokKatFilter').value;loadDokumen(1);}
+function filterDok(){
+  const searchEl=document.getElementById('dokSearch');
+  const katEl=document.getElementById('dokKatFilter');
+  dokSearch=searchEl?searchEl.value:'';
+  dokKatFilter=katEl?katEl.value:'';
+  loadDokumen(1);
+}
 
 
 // ── INIT ─────────────────────────────────────────────────────

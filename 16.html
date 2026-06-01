@@ -1134,7 +1134,7 @@ async function loadUserState(user){
       if(allCfg){
         const wUrl=allCfg.find(r=>r.key==='workerUrl');
         const gKey=allCfg.find(r=>r.key==='geminiKey');
-        if(wUrl){WORKER_URL=wUrl.value.replace(/\/+$/,'');const el=document.getElementById('workerUrlInp');if(el)el.value=WORKER_URL;}
+        if(wUrl){WORKER_URL=wUrl.value;const el=document.getElementById('workerUrlInp');if(el)el.value=wUrl.value;}
         const gModel=allCfg.find(r=>r.key==='geminiModel');
         if(gModel&&gModel.value) GEMINI_MODEL=gModel.value;
         if(gKey){_cachedGeminiKey=gKey.value;updateGeminiKeyUI();}
@@ -1855,10 +1855,9 @@ function confirmDelBucket(id,label){
   });
 }
 async function saveWorkerUrl(){
-  const rawUrl=document.getElementById('workerUrlInp').value.trim();
-  const url=rawUrl.replace(/\/+$/,''); // hapus trailing slash
+  const url=document.getElementById('workerUrlInp').value.trim();
   if(!url){toast('URL tidak boleh kosong','warn');return;}
-  try{await sb.from('app_config').upsert({key:'workerUrl',value:url},{onConflict:'key'});WORKER_URL=url;document.getElementById('workerUrlInp').value=url;toast('Worker URL disimpan ✓','ok');}
+  try{await sb.from('app_config').upsert({key:'workerUrl',value:url},{onConflict:'key'});WORKER_URL=url;toast('Worker URL disimpan ✓','ok');}
   catch(e){toast('Gagal: '+e.message,'err');}
 }
 

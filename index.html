@@ -1439,7 +1439,11 @@ async function doUpload(){
   try{
     const{data:{session}}=await sb.auth.getSession();
     const token=session?.access_token||'';
-    const r2Key=`${CU.id}/${Date.now()}_${upSelectedFile.name}`;
+    // Sanitize nama file: hapus karakter khusus yang bisa break S3 signature
+    const safeName = upSelectedFile.name
+      .replace(/[^a-zA-Z0-9._\-()\u00C0-\u024F\u4E00-\u9FFF]/g, '_')
+      .replace(/_{2,}/g, '_');
+    const r2Key=`${CU.id}/${Date.now()}_${safeName}`;
     setPrg(20,'Mengupload file...');
     const res=await fetch(`${WORKER_URL}/upload/${encodeURIComponent(r2Key)}`,{
       method:'PUT',

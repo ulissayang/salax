@@ -478,14 +478,19 @@ select.inp option{background:#1a1a2e;color:var(--text)}
             </div>
             <input id="upFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" style="display:none" onchange="handleUpFile(this.files[0])"/>
             <!-- Gemini key -->
-            <div id="aiUploadInfo" class="card" style="padding:14px 16px;margin-bottom:14px;border-color:rgba(220,38,38,.2)">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="width:28px;height:28px;background:var(--grad2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px">🔍</div>
-                <div style="flex:1;min-width:0">
-                  <div style="font-size:13px;font-weight:600">Deteksi otomatis oleh Gemini AI</div>
-                  <div id="uploadAiStatus" style="font-size:11px;color:var(--muted);margin-top:1px">Memeriksa konfigurasi...</div>
+            <div id="geminiKeyWrap" class="card" style="padding:16px;margin-bottom:14px;border-color:rgba(220,38,38,.2)">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <div style="width:24px;height:24px;background:linear-gradient(135deg,#7C3AED,#DB2777);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                 </div>
+                <span style="font-size:13px;font-weight:700">AI API Key</span>
+                <span id="geminiStatus" style="font-size:11px;color:var(--muted);margin-left:auto"></span>
               </div>
+              <div style="display:flex;gap:8px">
+                <input id="geminiKeyInp" type="password" class="inp" placeholder="Paste API key di sini..." style="flex:1;font-size:13px" autocomplete="new-password"/>
+                <button onclick="saveGeminiKey()" class="btn btn-sm" style="background:rgba(220,38,38,.2);border:1px solid rgba(220,38,38,.3);color:#f87171;flex-shrink:0">Simpan</button>
+              </div>
+              <p style="font-size:11px;color:var(--faint);margin-top:6px">Dapatkan di <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#f87171">platform.deepseek.com</a></p>
             </div>
             <div id="upStorageInfo" style="font-size:12px;color:var(--muted);padding:10px 14px;background:rgba(255,255,255,.03);border-radius:var(--r);border:1px solid var(--border)"></div>
           </div>
@@ -661,15 +666,6 @@ select.inp option{background:#1a1a2e;color:var(--text)}
       <section id="pageSettings" class="page">
         <div style="margin-bottom:24px"><h1 class="page-title">Pengaturan</h1><p style="font-size:13px;color:var(--muted);margin-top:4px">Konfigurasi AI dan sistem</p></div>
         <div style="display:flex;flex-direction:column;gap:16px;max-width:560px">
-          <!-- Penjelasan -->
-          <div class="card" style="padding:16px 18px;background:rgba(220,38,38,.06);border-color:rgba(220,38,38,.2)">
-            <div style="font-size:13px;font-weight:700;margin-bottom:8px">ℹ️ Cara kerja AI di SaLax</div>
-            <div style="font-size:12.5px;color:var(--muted);line-height:1.8">
-              📄 <strong style="color:var(--text)">Baca/scan dokumen</strong> (saat upload) → selalu pakai <strong style="color:#f87171">Gemini</strong><br>
-              💬 <strong style="color:var(--text)">Chat AI</strong> (tab AI Asisten) → pakai model yang dipilih di bawah<br>
-              <span style="color:var(--faint);font-size:11px;display:block;margin-top:6px">💡 Saran: pakai Gemini untuk keduanya — gratis dan cukup. Isi Gemini API Key saja, DeepSeek opsional.</span>
-            </div>
-          </div>
           <!-- Gemini Model -->
           <div class="card" style="padding:20px">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
@@ -753,16 +749,14 @@ select.inp option{background:#1a1a2e;color:var(--text)}
                 <div style="font-size:11px;color:var(--muted)">Install SaLax di perangkat Anda</div>
               </div>
             </div>
-            <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">Setelah diinstal, SaLax muncul di layar utama HP Anda seperti aplikasi biasa — buka full screen tanpa address bar browser, ada ikonnya sendiri, dan bisa diakses dari app drawer.</p>
-            <button id="installAppBtn" onclick="installApp()" class="btn btn-primary" style="width:100%;justify-content:center;display:none;margin-bottom:12px">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">Install SaLax sebagai aplikasi di Android atau desktop untuk akses lebih cepat tanpa buka browser. Bekerja offline untuk fitur dasar.</p>
+            <button id="installAppBtn" onclick="installApp()" class="btn btn-primary" style="width:100%;justify-content:center;display:none">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Install Sekarang
+              Install Aplikasi
             </button>
-            <div id="installedBadge" style="display:none;padding:10px 14px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);border-radius:var(--r);font-size:13px;color:#6ee7b7;margin-bottom:12px">✓ Aplikasi sudah terinstal di perangkat ini</div>
-            <div id="installHint" style="font-size:12px;color:var(--muted);padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r);line-height:1.8">
-              <strong style="color:var(--text)">Jika tombol di atas tidak muncul:</strong><br>
-              📱 <strong>Android (Chrome)</strong>: tap menu ⋮ kanan atas → <strong>"Install app"</strong> atau <strong>"Tambahkan ke layar utama"</strong><br>
-              🍎 <strong>iPhone (Safari)</strong>: tap tombol Share ⬆ → <strong>"Add to Home Screen"</strong>
+            <div id="installHint" style="font-size:12px;color:var(--muted);padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r)">
+              💡 Di <strong>Android Chrome</strong>: tap menu ⋮ → "Tambahkan ke layar utama".<br>
+              💡 Di <strong>iPhone Safari</strong>: tap Share → "Add to Home Screen".
             </div>
           </div>
 
@@ -1094,13 +1088,6 @@ async function loadUploadPage(){
   document.getElementById('upAlert').style.display='none';
   clearUpFile();
   updateGeminiKeyUI();
-  // Set status AI di halaman upload
-  const aiStatus=document.getElementById('uploadAiStatus');
-  if(aiStatus){
-    aiStatus.innerHTML=_cachedGeminiKey
-      ?'<span style="color:#6ee7b7">✓ Siap — Gemini API key aktif</span>'
-      :'<span style="color:#fbbf24">⚠ Belum ada Gemini key. Isi di Pengaturan → Gemini API Key</span>';
-  }
   await updateUploadStorageInfo();
 }
 
@@ -2351,7 +2338,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
 
 // ── SETTINGS PAGE ─────────────────────────────────────────────
 function loadSettingsPage(){
-  checkInstalled();
   // Load current model
   const modelSel = document.getElementById('settingGeminiModel');
   const activeLabel = document.getElementById('activeModelLabel');
@@ -2463,28 +2449,15 @@ window.addEventListener('beforeinstallprompt',e=>{
 });
 async function installApp(){
   if(!deferredPrompt){
-    toast('Gunakan menu browser untuk install (lihat petunjuk di bawah)','info');
+    toast('Aplikasi sudah terinstall atau browser tidak mendukung','info');
     return;
   }
   deferredPrompt.prompt();
   const{outcome}=await deferredPrompt.userChoice;
-  if(outcome==='accepted') toast('SaLax berhasil diinstal ✓','ok');
+  if(outcome==='accepted') toast('Aplikasi berhasil diinstall ✓','ok');
   deferredPrompt=null;
   const btn=document.getElementById('installAppBtn');
   if(btn) btn.style.display='none';
-}
-
-// Deteksi jika sudah berjalan sebagai aplikasi terinstal
-function checkInstalled(){
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  if(isStandalone){
-    const badge=document.getElementById('installedBadge');
-    const btn=document.getElementById('installAppBtn');
-    const hint=document.getElementById('installHint');
-    if(badge) badge.style.display='block';
-    if(btn) btn.style.display='none';
-    if(hint) hint.style.display='none';
-  }
 }
 window.addEventListener('appinstalled',()=>{
   toast('SaLax terinstall di perangkat Anda ✓','ok');

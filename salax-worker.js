@@ -154,8 +154,9 @@ function awsEncode(str) {
 }
 
 function r2Url(b, key) {
+  // Virtual-hosted style — yang dipakai AWS SDK resmi & paling reliable untuk R2
   const encodedKey = key.split('/').map(s => awsEncode(s)).join('/');
-  return `https://${b.account_id}.r2.cloudflarestorage.com/${b.bucket}/${encodedKey}`;
+  return `https://${b.bucket}.${b.account_id}.r2.cloudflarestorage.com/${encodedKey}`;
 }
 
 async function r2Put(b, key, body, ct) {

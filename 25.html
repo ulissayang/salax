@@ -362,7 +362,7 @@ select.inp option{background:#1a1a2e;color:var(--text)}
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           Upload
         </div>
-        <div onclick="showPage('ai')" class="nav-link" data-page="ai">
+        <div onclick="showPage('ai')" class="nav-link" data-page="ai" data-admin-only>
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
           AI Asisten
         </div>
@@ -374,7 +374,7 @@ select.inp option{background:#1a1a2e;color:var(--text)}
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           Kategori
         </div>
-        <div onclick="showPage('download')" class="nav-link" data-page="download">
+        <div onclick="showPage('download')" class="nav-link" data-page="download" data-admin-only>
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download
         </div>
@@ -561,7 +561,7 @@ select.inp option{background:#1a1a2e;color:var(--text)}
                   <label class="lbl">Kategori</label>
                   <div style="display:flex;gap:8px">
                     <select id="upKat" class="inp" style="flex:1;font-size:13px" onchange="updateSubKatOptions()"><option value="">Pilih kategori...</option></select>
-                    <button onclick="openModalKat()" class="btn btn-ghost btn-xs" data-admin-only>+ Baru</button>
+                    <button onclick="openModalKat()" class="btn btn-ghost btn-xs">+ Baru</button>
                   </div>
                 </div>
                 <div id="upSubKatWrap" style="display:none">
@@ -1184,13 +1184,7 @@ function initSupabase(){
   }
   const { createClient } = supabase;
   sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
-    auth:{
-      autoRefreshToken:true,
-      persistSession:true,
-      detectSessionInUrl:true,
-      storageKey:'salax-auth',
-      storage: window.sessionStorage  // per-tab: tiap tab punya session sendiri, refresh tetap login
-    }
+    auth:{ autoRefreshToken:true, persistSession:true, detectSessionInUrl:true, storageKey:'salax-auth' }
   });
 }
 initSupabase();
@@ -1688,7 +1682,7 @@ function clearChat(){
 
 // ── KATEGORI ──────────────────────────────────────────────────
 async function loadKategori(){
-  const{data,error}=await sb.from('kategori').select('id,nama,deskripsi').order('nama');
+  const{data,error}=await sb.from('kategori').select('id,nama,deskripsi').eq('user_id',CU.id).order('nama');
   allKategori=data||[];
   ['upKat','editDokKat','dlKatSel'].forEach(id=>{
     const el=document.getElementById(id);if(!el)return;
@@ -1895,7 +1889,7 @@ function confirmDel(id,r2Key,bucketId){
 
 // ── STORAGE ───────────────────────────────────────────────────
 async function loadBuckets(){
-  const{data}=await sb.from('r2_buckets').select('*').order('urutan');
+  const{data}=await sb.from('r2_buckets').select('*').eq('user_id',CU.id).order('urutan');
   allBuckets=data||[];
 }
 async function loadStoragePage(){
@@ -2685,7 +2679,7 @@ async function loadUserState(user){
     // Restore halaman terakhir (kecuali jika user biasa buka halaman admin)
     let lastPage='dash';
     try{ lastPage=localStorage.getItem('salax_page')||'dash'; }catch(e){}
-    const adminPages=['kategori','storage','settings','users'];
+    const adminPages=['kategori','download','storage','settings','users','ai'];
     if(CU.role!=='admin' && adminPages.includes(lastPage)) lastPage='dash';
     showPage(lastPage);
 
@@ -2743,7 +2737,7 @@ async function loadDash(){
     document.getElementById('dashGreet').textContent=g+', '+(CU?.nama||'');
     const[{count:totalDok},{count:totalKat},{data:sizeData}]=await Promise.all([
       sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
-      sb.from('kategori').select('*',{count:'exact',head:true}),
+      sb.from('kategori').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
       sb.from('dokumen').select('ukuran_file').eq('user_id',CU.id),
     ]);
     document.getElementById('statDok').textContent=totalDok||0;

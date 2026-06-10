@@ -48,9 +48,7 @@ export default {
       // GET /file/:key
       if (req.method === 'GET' && path.startsWith('/file/')) {
         const key = decodeURIComponent(path.slice(6));
-        if (!key.startsWith(uid + '/')) {
-          if (!(await isUserAdmin(env, uid))) return jres({ error: 'Forbidden' }, 403, cors);
-        }
+        if (!key.startsWith(uid + '/') && !(await isUserAdmin(env, uid))) return jres({ error: 'Forbidden' }, 403, cors);
         const bucketId = req.headers.get('X-Bucket-Id') || '';
         const bucket = bucketId ? await getBucket(env, bucketId, uid) : await findBucket(env, uid, key);
         if (!bucket) return jres({ error: 'Bucket tidak ditemukan' }, 404, cors);
@@ -65,9 +63,7 @@ export default {
       // DELETE /file/:key
       if (req.method === 'DELETE' && path.startsWith('/file/')) {
         const key = decodeURIComponent(path.slice(6));
-        if (!key.startsWith(uid + '/')) {
-          if (!(await isUserAdmin(env, uid))) return jres({ error: 'Forbidden' }, 403, cors);
-        }
+        if (!key.startsWith(uid + '/') && !(await isUserAdmin(env, uid))) return jres({ error: 'Forbidden' }, 403, cors);
         const bucketId = req.headers.get('X-Bucket-Id') || '';
         const bucket = bucketId ? await getBucket(env, bucketId, uid) : await findBucket(env, uid, key);
         if (bucket) await r2Del(bucket, key).catch(() => {});
@@ -108,8 +104,7 @@ async function isUserAdmin(env, uid) {
 }
 
 async function getBucket(env, id, uid) {
-  // Bucket = resource bersama (dibuat admin, dipakai semua user).
-  // TIDAK filter user_id. Isolasi file per-user dijaga lewat prefix key (uid/...).
+  // Bucket bersama (admin) — tidak filter user_id. Isolasi via prefix key uid/.
   const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
   const res = await fetch(
     `${env.SUPABASE_URL}/rest/v1/r2_buckets?id=eq.${id}&select=*`,
@@ -131,7 +126,6 @@ async function findBucket(env, uid, r2Key) {
 }
 
 async function checkCap(env, uid, bucketId, incoming, limit) {
-  // Hitung TOTAL pemakaian bucket dari SEMUA user (kapasitas bucket dibagi bersama)
   const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
   const res = await fetch(
     `${env.SUPABASE_URL}/rest/v1/dokumen?storage_bucket_id=eq.${bucketId}&select=ukuran_file`,
@@ -154,9 +148,8 @@ function awsEncode(str) {
 }
 
 function r2Url(b, key) {
-  // Virtual-hosted style — yang dipakai AWS SDK resmi & paling reliable untuk R2
   const encodedKey = key.split('/').map(s => awsEncode(s)).join('/');
-  return `https://${b.bucket}.${b.account_id}.r2.cloudflarestorage.com/${encodedKey}`;
+  return `https://${b.account_id}.r2.cloudflarestorage.com/${b.bucket}/${encodedKey}`;
 }
 
 async function r2Put(b, key, body, ct) {

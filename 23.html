@@ -354,7 +354,7 @@ select.inp option{background:#1a1a2e;color:var(--text)}
         </div>
         <div onclick="showPage('users')" class="nav-link" data-page="users" data-admin-only>
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-          Users
+          Pegawai
         </div>
         <div onclick="showPage('kategori')" class="nav-link" data-page="kategori" data-admin-only>
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
@@ -527,31 +527,13 @@ select.inp option{background:#1a1a2e;color:var(--text)}
                 <span style="font-size:13px;font-weight:700;color:#6ee7b7">AI mendeteksi — edit jika perlu</span>
               </div>
               <div style="display:flex;flex-direction:column;gap:12px">
-                <div>
-                  <label class="lbl">Nama File</label>
-                  <input id="aiNamaFile" type="text" class="inp" style="font-size:13px"/>
-                  <div style="font-size:11px;color:var(--muted);margin-top:6px;padding:10px 12px;background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.15);border-radius:9px;line-height:1.7">
-                    💡 <strong style="color:var(--text)">Tips penamaan yang baik:</strong><br>
-                    Format: <code style="color:#f87171">[Jenis] - [Nama] - [Tahun]</code><br>
-                    Contoh: <span style="color:#fca5a5">Ijazah S1 - Ulis Leuwol - 2023</span><br>
-                    <span style="color:#fca5a5">Sertifikat Magang - Ulis Leuwol - Lapas Saparua - 2026</span>
-                  </div>
-                </div>
+                <div><label class="lbl">Nama File</label><input id="aiNamaFile" type="text" class="inp" style="font-size:13px"/></div>
                 <div>
                   <label class="lbl">Kategori</label>
                   <div style="display:flex;gap:8px">
-                    <select id="upKat" class="inp" style="flex:1;font-size:13px" onchange="updateSubKatOptions()"><option value="">Pilih kategori...</option></select>
+                    <select id="upKat" class="inp" style="flex:1;font-size:13px"><option value="">Pilih kategori...</option></select>
                     <button onclick="openModalKat()" class="btn btn-ghost btn-xs">+ Baru</button>
                   </div>
-                </div>
-                <div id="upSubKatWrap" style="display:none">
-                  <label class="lbl">Sub-Kategori <span style="color:var(--faint);font-weight:400">(opsional)</span></label>
-                  <select id="upSubKat" class="inp" style="font-size:13px"><option value="">— Tanpa sub-kategori —</option></select>
-                </div>
-                <div>
-                  <label class="lbl">Tanggal Kadaluarsa <span style="color:var(--faint);font-weight:400">(opsional)</span></label>
-                  <input id="upExpiry" type="date" class="inp" style="font-size:13px"/>
-                  <div style="font-size:11px;color:var(--faint);margin-top:4px">Untuk dokumen yang punya masa berlaku (sertifikat, dll). Akan ada peringatan saat mendekati kadaluarsa.</div>
                 </div>
                 <div><label class="lbl">Keterangan</label><input id="upKet" type="text" class="inp" style="font-size:13px" placeholder="Keterangan singkat"/></div>
               </div>
@@ -632,25 +614,6 @@ select.inp option{background:#1a1a2e;color:var(--text)}
             <table class="tbl">
               <thead><tr><th>Nama</th><th>Deskripsi</th><th>File</th><th style="width:90px">Aksi</th></tr></thead>
               <tbody id="katList"><tr><td colspan="4" style="text-align:center;padding:40px;color:var(--faint)">Memuat...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Sub-Kategori Management -->
-        <div class="card" style="padding:20px;margin-top:24px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-            <div>
-              <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700">Sub-Kategori</h2>
-              <p style="font-size:12px;color:var(--muted);margin-top:2px">Rincian dalam kategori (mis. "Sertifikat Pelatihan" dalam "Sertifikat")</p>
-            </div>
-            <button onclick="openModalSubKat()" class="btn btn-primary btn-sm">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tambah Sub
-            </button>
-          </div>
-          <div class="tbl-wrap">
-            <table class="tbl">
-              <thead><tr><th>Sub-Kategori</th><th>Kategori Induk</th><th style="width:80px">Aksi</th></tr></thead>
-              <tbody id="subKatList"><tr><td colspan="3" style="text-align:center;padding:30px;color:var(--faint)">Memuat...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -858,9 +821,9 @@ select.inp option{background:#1a1a2e;color:var(--text)}
       <!-- ══ PEGAWAI / USERS (Admin) ══ -->
       <section id="pageUsers" class="page">
         <div class="page-hdr">
-          <div><h1 class="page-title">Users</h1><p style="font-size:13px;color:var(--muted);margin-top:4px">Kelola akun user &amp; lihat dokumen mereka</p></div>
+          <div><h1 class="page-title">Pegawai</h1><p style="font-size:13px;color:var(--muted);margin-top:4px">Kelola akun pegawai &amp; lihat dokumen mereka</p></div>
           <button onclick="openModalAddUser()" class="btn btn-primary btn-sm">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tambah User
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tambah Pegawai
           </button>
         </div>
         <div class="card" style="overflow:hidden;margin-bottom:24px">
@@ -870,16 +833,15 @@ select.inp option{background:#1a1a2e;color:var(--text)}
               <tbody id="usersList"><tr><td colspan="5" style="text-align:center;padding:40px;color:var(--faint)">Memuat...</td></tr></tbody>
             </table>
           </div>
-          <div id="usersPagination" style="padding:16px;border-top:1px solid var(--border)"></div>
         </div>
         <!-- Dokumen per pegawai -->
         <div class="card" style="padding:20px">
-          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Dokumen per User</h2>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Dokumen per Pegawai</h2>
           <select id="pegawaiDocFilter" class="inp" style="margin-bottom:16px" onchange="loadPegawaiDocs()">
-            <option value="">Pilih user untuk lihat dokumennya...</option>
+            <option value="">Pilih pegawai untuk lihat dokumennya...</option>
           </select>
           <div id="pegawaiDocList" style="display:flex;flex-direction:column;gap:8px"></div>
-          <div id="pegawaiDocEmpty" style="display:none;text-align:center;padding:30px;color:var(--faint);font-size:13px">Pilih user di atas</div>
+          <div id="pegawaiDocEmpty" style="display:none;text-align:center;padding:30px;color:var(--faint);font-size:13px">Pilih pegawai di atas</div>
         </div>
       </section>
 
@@ -921,7 +883,7 @@ select.inp option{background:#1a1a2e;color:var(--text)}
 <div id="modalAddUser" class="modal-bd" onclick="if(event.target===this)closeModal('modalAddUser')">
   <div class="modal-box" style="max-width:440px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h3 class="modal-title">Tambah User Baru</h3>
+      <h3 class="modal-title">Tambah Pegawai Baru</h3>
       <button onclick="closeModal('modalAddUser')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div style="margin-bottom:14px"><label class="lbl">Nama Lengkap *</label><input id="newUserNama" type="text" class="inp" placeholder="cth: Budi Santoso"/></div>
@@ -953,26 +915,6 @@ select.inp option{background:#1a1a2e;color:var(--text)}
     </div>
     <div id="previewBody" style="min-height:300px;max-height:80svh;overflow:auto;background:#000;display:flex;align-items:center;justify-content:center;padding:0">
       <div style="color:var(--muted);font-size:14px">Memuat...</div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Sub-Kategori -->
-<div id="modalSubKat" class="modal-bd" onclick="if(event.target===this)closeModal('modalSubKat')">
-  <div class="modal-box" style="max-width:420px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h3 class="modal-title">Tambah Sub-Kategori</h3>
-      <button onclick="closeModal('modalSubKat')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div style="margin-bottom:14px">
-      <label class="lbl">Kategori Induk *</label>
-      <select id="subKatParent" class="inp"><option value="">Pilih kategori...</option></select>
-    </div>
-    <div style="margin-bottom:20px"><label class="lbl">Nama Sub-Kategori *</label><input id="subKatNama" type="text" class="inp" placeholder="cth: Sertifikat Pelatihan"/></div>
-    <div id="modalSubKatAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="closeModal('modalSubKat')" class="btn btn-secondary" style="flex:1;justify-content:center">Batal</button>
-      <button id="btnSaveSubKat" onclick="saveSubKat()" class="btn btn-primary" style="flex:1;justify-content:center">Simpan</button>
     </div>
   </div>
 </div>
@@ -1209,12 +1151,9 @@ function updateAIKeyUI(){
 }
 
 async function loadUploadPage(){
-  await loadSubKategori();
   const sel=document.getElementById('upKat');
   if(sel) sel.innerHTML='<option value="">Pilih kategori...</option>'+allKategori.map(k=>`<option value="${k.id}">${esc(k.nama)}</option>`).join('');
   document.getElementById('upKet').value='';
-  const ux=document.getElementById('upExpiry');if(ux)ux.value='';
-  const usw=document.getElementById('upSubKatWrap');if(usw)usw.style.display='none';
   document.getElementById('upAlert').style.display='none';
   clearUpFile();
   updateGeminiKeyUI();
@@ -1426,10 +1365,6 @@ function showUpAlert(msg,type){
 async function doUpload(){
   const katId=document.getElementById('upKat').value;
   const ket=document.getElementById('upKet').value;
-  const subKatEl=document.getElementById('upSubKat');
-  const subKatId=(subKatEl&&document.getElementById('upSubKatWrap').style.display!=='none')?subKatEl.value:'';
-  const expiryEl=document.getElementById('upExpiry');
-  const expiry=expiryEl?expiryEl.value:'';
   const namaFile=document.getElementById('aiNamaFile').value.trim()||upSelectedFile?.name;
   const btn=document.getElementById('btnUpload');
   if(!katId){showUpAlert('Pilih kategori terlebih dahulu','err');return;}
@@ -1456,10 +1391,7 @@ async function doUpload(){
     });
     if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error||(res.status===413?'Penyimpanan penuh':'Upload gagal HTTP '+res.status));}
     setPrg(80,'Menyimpan ke database...');
-    const insertData={user_id:CU.id,nama_file:namaFile,kategori_id:katId||null,keterangan:ket,ukuran_file:upSelectedFile.size,r2_key:r2Key,storage_bucket_id:bucket.id,storage_type:'r2'};
-    if(subKatId) insertData.sub_kategori_id=subKatId;
-    if(expiry) insertData.tanggal_kadaluarsa=expiry;
-    const{error:dbErr}=await sb.from('dokumen').insert(insertData);
+    const{error:dbErr}=await sb.from('dokumen').insert({user_id:CU.id,nama_file:namaFile,kategori_id:katId,keterangan:ket,ukuran_file:upSelectedFile.size,r2_key:r2Key,storage_bucket_id:bucket.id,storage_type:'r2'});
     if(dbErr)throw new Error(dbErr.message);
     setPrg(100,'Selesai!');
     showUpAlert(`✓ Berhasil diupload ke ${bucket.label}`,'ok');
@@ -1657,8 +1589,6 @@ async function loadKategori(){
   });
 }
 async function loadKategoriPage(){
-  await loadSubKategori();
-  setTimeout(loadSubKatList,100);
   await loadKategori();
   const{data:counts}=await sb.from('dokumen').select('kategori_id').eq('user_id',CU.id);
   const cMap={};(counts||[]).forEach(d=>{cMap[d.kategori_id]=(cMap[d.kategori_id]||0)+1;});
@@ -2113,92 +2043,9 @@ async function doTransfer(){
 }
 
 
-
-
-function openModalSubKat(){
-  document.getElementById('subKatNama').value='';
-  document.getElementById('modalSubKatAlert').style.display='none';
-  const sel=document.getElementById('subKatParent');
-  sel.innerHTML='<option value="">Pilih kategori...</option>'+allKategori.map(k=>`<option value="${k.id}">${esc(k.nama)}</option>`).join('');
-  openModal('modalSubKat');
-}
-async function saveSubKat(){
-  const katId=document.getElementById('subKatParent').value;
-  const nama=document.getElementById('subKatNama').value.trim();
-  const btn=document.getElementById('btnSaveSubKat');
-  if(!katId||!nama){showModalAlert('modalSubKatAlert','Kategori induk & nama wajib diisi','err');return;}
-  setBtn(btn,true);
-  try{
-    const{error}=await sb.from('sub_kategori').insert({kategori_id:katId,nama});
-    if(error)throw new Error(error.message);
-    toast('Sub-kategori ditambahkan ✓','ok');
-    closeModal('modalSubKat');
-    await loadSubKategori();
-    loadSubKatList();
-  }catch(e){showModalAlert('modalSubKatAlert','Gagal: '+e.message,'err');}
-  setBtn(btn,false);
-}
-function loadSubKatList(){
-  const tbody=document.getElementById('subKatList');
-  if(!tbody)return;
-  if(!allSubKategori.length){tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--faint)">Belum ada sub-kategori</td></tr>';return;}
-  tbody.innerHTML=allSubKategori.map(s=>{
-    const kat=allKategori.find(k=>k.id===s.kategori_id);
-    return `<tr><td><span style="font-weight:500">${esc(s.nama)}</span></td><td><span class="badge badge-muted">${esc(kat?.nama||'—')}</span></td><td><button onclick="confirmDelSubKat('${s.id}','${esc(s.nama)}')" class="btn btn-danger btn-xs">Hapus</button></td></tr>`;
-  }).join('');
-}
-function confirmDelSubKat(id,nama){
-  confirm_('Hapus Sub-Kategori?','Hapus "'+nama+'"? Dokumen yang memakai sub ini tidak terhapus, hanya kehilangan label sub-kategorinya.',async()=>{
-    try{
-      await sb.from('sub_kategori').delete().eq('id',id);
-      toast('Sub-kategori dihapus','ok');
-      await loadSubKategori();
-      loadSubKatList();
-    }catch(e){toast('Gagal: '+e.message,'err');}
-  });
-}
-
-
-// ── EXPIRY BADGE ──────────────────────────────────────────────
-function expiryBadge(dateStr){
-  if(!dateStr) return '';
-  const exp=new Date(dateStr);
-  const now=new Date();
-  const days=Math.ceil((exp-now)/(1000*60*60*24));
-  const fmt=exp.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
-  if(days<0){
-    return `<span>·</span><span style="color:#f87171;font-weight:600">⚠ Kadaluarsa ${fmt}</span>`;
-  } else if(days<=30){
-    return `<span>·</span><span style="color:#fbbf24;font-weight:600">⏰ Kadaluarsa ${days}hr lagi</span>`;
-  } else {
-    return `<span>·</span><span style="color:rgba(110,231,183,.7)">Berlaku s/d ${fmt}</span>`;
-  }
-}
-
-// ── SUB-KATEGORI ──────────────────────────────────────────────
-let allSubKategori=[];
-async function loadSubKategori(){
-  try{
-    const{data}=await sb.from('sub_kategori').select('*').order('nama');
-    allSubKategori=data||[];
-  }catch(e){ allSubKategori=[]; }
-}
-function updateSubKatOptions(){
-  const katId=document.getElementById('upKat').value;
-  const wrap=document.getElementById('upSubKatWrap');
-  const sel=document.getElementById('upSubKat');
-  if(!katId){wrap.style.display='none';return;}
-  const subs=allSubKategori.filter(s=>s.kategori_id===katId);
-  if(!subs.length){wrap.style.display='none';return;}
-  wrap.style.display='block';
-  sel.innerHTML='<option value="">— Tanpa sub-kategori —</option>'+subs.map(s=>`<option value="${s.id}">${esc(s.nama)}</option>`).join('');
-}
-
 // ── MULTI-USER / ROLE ─────────────────────────────────────────
-let _selectedPegawaiId = '';
+let _selectedPegawaiId = ''; // untuk admin filter dokumen per pegawai
 let _allUsers = [];
-let usersPage = 1;
-const USERS_PAGE_SIZE = 10;
 
 function applyRoleUI(role){
   const isAdmin = role==='admin';
@@ -2211,27 +2058,23 @@ function applyRoleUI(role){
   });
   // Update label role di sidebar
   const roleLabel=document.getElementById('sidebarRole');
-  if(roleLabel) roleLabel.textContent = isAdmin ? 'Administrator' : 'User';
+  if(roleLabel) roleLabel.textContent = isAdmin ? 'Administrator' : 'Pegawai';
 }
 
 // ── USER MANAGEMENT (Admin) ───────────────────────────────────
-async function loadUsersPage(p=1){
+async function loadUsersPage(){
   if(CU.role!=='admin'){showPage('dash');return;}
-  usersPage=p;
   const tbody=document.getElementById('usersList');
   tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--faint)">Memuat...</td></tr>';
   try{
-    // Ambil semua untuk dropdown (ringan) + paginated untuk tabel
-    const{data:allU}=await sb.from('profiles').select('id,nama,username,email,role').order('role');
-    _allUsers=allU||[];
-    const from=(p-1)*USERS_PAGE_SIZE, to=from+USERS_PAGE_SIZE-1;
-    const{data:users,count,error}=await sb.from('profiles').select('*',{count:'exact'}).order('role',{ascending:true}).range(from,to);
+    const{data:users,error}=await sb.from('profiles').select('*').order('role',{ascending:true});
     if(error) throw new Error(error.message);
+    _allUsers=users||[];
+    // Hitung dokumen per user
     const{data:allDocs}=await sb.from('dokumen').select('user_id');
     const docCount={};(allDocs||[]).forEach(d=>{docCount[d.user_id]=(docCount[d.user_id]||0)+1;});
     if(!users||!users.length){
       tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--faint)">Belum ada user</td></tr>';
-      renderPagination(0,1,USERS_PAGE_SIZE,'loadUsersPage','usersPagination');
       return;
     }
     tbody.innerHTML=users.map(u=>{
@@ -2247,14 +2090,12 @@ async function loadUsersPage(p=1){
         <td>${delBtn}</td>
       </tr>`;
     }).join('');
-    // Pagination
-    renderPagination(count||0,p,USERS_PAGE_SIZE,'loadUsersPage','usersPagination');
     // Update stat user count di dashboard admin
     const statUsers=document.getElementById('statUsers');
-    if(statUsers) statUsers.textContent=count||0;
+    if(statUsers) statUsers.textContent=users.length;
     // Isi dropdown pegawai untuk filter dokumen
     const pf=document.getElementById('pegawaiDocFilter');
-    if(pf){const nonAdmin=users.filter(u=>u.role!=='admin');pf.innerHTML='<option value="">Pilih user...</option>'+nonAdmin.map(u=>`<option value="${u.id}">${esc(u.nama||u.username||u.email)}</option>`).join('');}
+    if(pf) pf.innerHTML='<option value="">Pilih pegawai...</option>'+users.map(u=>`<option value="${u.id}">${esc(u.nama||u.username||u.email)}${u.role==='admin'?' (Admin)':''}</option>`).join('');
   }catch(e){
     tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:40px;color:#f87171">Error: ${esc(e.message)}</td></tr>`;
   }
@@ -2278,8 +2119,9 @@ async function saveNewUser(){
   if(!/^[a-z0-9_]+$/.test(username)){showModalAlert('modalAddUserAlert','Username hanya boleh huruf kecil, angka, underscore','err');return;}
   setBtn(btn,true);
   try{
-    // Username diubah jadi email internal (tidak ditampilkan ke user) — Supabase butuh email valid
-    const syntheticEmail=username+'@salaxuser.com';
+    // Buat email sintetis dari username (Supabase butuh email)
+    const syntheticEmail=username+'@salax.local';
+    // Sign up user baru
     const{data,error}=await sb.auth.signUp({
       email:syntheticEmail,
       password:pass,
@@ -2288,19 +2130,17 @@ async function saveNewUser(){
     if(error) throw new Error(error.message);
     const newId=data.user?.id;
     if(newId){
+      // Simpan profile dengan role user + password plain (agar admin bisa lihat)
       await sb.from('profiles').upsert({
         id:newId, nama, username, email:syntheticEmail,
         role:'user', pwd_plain:pass, created_by:CU.id
-      },{onConflict:'id'});
+      });
     }
     showModalAlert('modalAddUserAlert','User berhasil dibuat ✓','ok');
-    toast('User '+nama+' berhasil ditambahkan ✓','ok');
+    toast('Pegawai '+nama+' berhasil ditambahkan ✓','ok');
     setTimeout(()=>{closeModal('modalAddUser');loadUsersPage();},1200);
   }catch(e){
-    let msg=e.message;
-    if(msg.includes('already registered')||msg.includes('already been registered')) msg='Username sudah dipakai. Pilih username lain.';
-    else if(msg.includes('invalid')) msg='Username tidak valid. Gunakan hanya huruf & angka.';
-    showModalAlert('modalAddUserAlert','Gagal: '+msg,'err');
+    showModalAlert('modalAddUserAlert','Gagal: '+e.message,'err');
   }
   setBtn(btn,false);
 }
@@ -2324,8 +2164,7 @@ async function loadPegawaiDocs(){
   const sel=document.getElementById('pegawaiDocFilter');
   // Isi dropdown jika belum
   if(sel.options.length<=1 && _allUsers.length){
-    const nonAdmin=_allUsers.filter(u=>u.role!=='admin');
-    sel.innerHTML='<option value="">Pilih user...</option>'+nonAdmin.map(u=>`<option value="${u.id}">${esc(u.nama||u.username||u.email)}</option>`).join('');
+    sel.innerHTML='<option value="">Pilih pegawai...</option>'+_allUsers.map(u=>`<option value="${u.id}">${esc(u.nama||u.username||u.email)}${u.role==='admin'?' (Admin)':''}</option>`).join('');
   }
   const uid=sel.value;
   const list=document.getElementById('pegawaiDocList');
@@ -2335,7 +2174,7 @@ async function loadPegawaiDocs(){
   list.innerHTML='<div style="color:var(--faint);font-size:13px;padding:20px;text-align:center">Memuat...</div>';
   try{
     const{data:docs}=await sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,r2_key,storage_bucket_id,kategori:kategori_id(nama)').eq('user_id',uid).order('uploaded_at',{ascending:false});
-    if(!docs||!docs.length){list.innerHTML='<div style="color:var(--faint);font-size:13px;padding:20px;text-align:center">User ini belum punya dokumen</div>';return;}
+    if(!docs||!docs.length){list.innerHTML='<div style="color:var(--faint);font-size:13px;padding:20px;text-align:center">Pegawai ini belum punya dokumen</div>';return;}
     list.innerHTML=docs.map(d=>{
       const rk=esc(d.r2_key||''),fn=esc(d.nama_file||''),bid=String(d.storage_bucket_id||'');
       return `<div class="dok-card">
@@ -2488,7 +2327,7 @@ async function doLogin(){
     // Jika input username (tanpa @), ubah jadi email sintetis
   let loginEmail=email;
   if(!email.includes('@')){
-    loginEmail=email.toLowerCase()+'@salaxuser.com';
+    loginEmail=email.toLowerCase()+'@salax.local';
   }
   const{data,error}=await sb.auth.signInWithPassword({email:loginEmail,password:pass});
     if(error){
@@ -2655,7 +2494,7 @@ async function loadDokumen(p=1){
   try{
     dokPage=p;
     const from=(p-1)*PAGE_SIZE,to=from+PAGE_SIZE-1;
-    let q=sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,tanggal_kadaluarsa,kategori:kategori_id(id,nama),sub:sub_kategori_id(nama)',{count:'exact'}).eq('user_id',CU.id);
+    let q=sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,kategori:kategori_id(id,nama)',{count:'exact'}).eq('user_id',CU.id);
     // Pastikan nilai adalah string, bukan DOM element
     const katFilter = typeof dokKatFilter === 'string' ? dokKatFilter : '';
     const searchVal = typeof dokSearch === 'string' ? dokSearch : '';
@@ -2680,10 +2519,9 @@ async function loadDokumen(p=1){
         <div style="font-size:24px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
         <div class="flex-1 min-w-0">
           <div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fn}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;display:flex;flex-wrap:wrap;gap:5px;align-items:center">
-            <span>${d.kategori?.nama||'—'}</span>${d.sub?.nama?`<span style="color:#f87171">› ${esc(d.sub.nama)}</span>`:''}<span>·</span><span>${fmtSz(d.ukuran_file)}</span><span>·</span><span>${fmtDate(d.uploaded_at)}</span>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;display:flex;flex-wrap:wrap;gap:5px">
+            <span>${d.kategori?.nama||'—'}</span><span>·</span><span>${fmtSz(d.ukuran_file)}</span><span>·</span><span>${fmtDate(d.uploaded_at)}</span>
             ${bkt?`<span>·</span><span style="color:rgba(201,168,76,.6)">${esc(bkt.label)}</span>`:''}
-            ${expiryBadge(d.tanggal_kadaluarsa)}
           </div>
           ${ket?`<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ket}</div>`:''}
         </div>

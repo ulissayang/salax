@@ -1176,16 +1176,9 @@ let PAGE_SIZE = 20;
 
 // ── SUPABASE CLIENT ──────────────────────────────────────────
 let sb;
-// Storage adapter PER-TAB: tiap tab benar-benar terisolasi.
-// Pakai sessionStorage (per-tab) + tab ID unik agar duplicate tab pun tidak berbagi sesi.
-const perTabStorage = {
-  getItem: (key) => { try{ return window.sessionStorage.getItem(key); }catch(e){ return null; } },
-  setItem: (key, value) => { try{ window.sessionStorage.setItem(key, value); }catch(e){} },
-  removeItem: (key) => { try{ window.sessionStorage.removeItem(key); }catch(e){} },
-};
-
 function initSupabase(){
   if(typeof supabase==='undefined'){
+    // Tunggu CDN selesai load
     setTimeout(initSupabase,200);
     return;
   }
@@ -1194,9 +1187,9 @@ function initSupabase(){
     auth:{
       autoRefreshToken:true,
       persistSession:true,
-      detectSessionInUrl:false,
-      storageKey:'salax-auth-session',
-      storage: perTabStorage
+      detectSessionInUrl:true,
+      storageKey:'salax-auth',
+      storage: window.sessionStorage  // per-tab: tiap tab punya session sendiri, refresh tetap login
     }
   });
 }
@@ -1483,19 +1476,8 @@ async function doUpload(){
   if(!katId){showUpAlert('Pilih kategori terlebih dahulu','err');return;}
   if(!upSelectedFile){showUpAlert('Pilih file terlebih dahulu','err');return;}
   if(!WORKER_URL){showUpAlert('Worker URL belum dikonfigurasi. Atur di halaman Storage.','err');return;}
-  // Refresh bucket dulu untuk pastikan data terbaru
-  if(!allBuckets.length) await loadBuckets();
   const bucket=await findAvailableBucket(upSelectedFile.size);
-  if(!bucket){
-    if(!allBuckets.length){
-      showUpAlert(CU.role==='admin'
-        ?'🚫 Belum ada bucket R2. Tambah dulu di halaman Storage.'
-        :'🚫 Admin belum menyiapkan penyimpanan. Hubungi admin.','err');
-    } else {
-      showUpAlert('🚫 Semua penyimpanan penuh.'+(CU.role==='admin'?' Tambah bucket R2 baru di Storage.':' Hubungi admin.'),'err');
-    }
-    return;
-  }
+  if(!bucket){showUpAlert('🚫 Semua penyimpanan penuh. Tambah bucket R2 baru di Storage.','err');return;}
   setBtn(btn,true);
   document.getElementById('upPrgWrap').style.display='block';
   setPrg(0,'Mempersiapkan...');
@@ -1913,14 +1895,8 @@ function confirmDel(id,r2Key,bucketId){
 
 // ── STORAGE ───────────────────────────────────────────────────
 async function loadBuckets(){
-  const{data,error}=await sb.from('r2_buckets').select('*').order('urutan');
-  if(error){
-    console.error('[SaLax] Gagal load bucket:',error.message);
-    allBuckets=[];
-    return;
-  }
+  const{data}=await sb.from('r2_buckets').select('*').order('urutan');
   allBuckets=data||[];
-  console.log('[SaLax] Bucket dimuat:',allBuckets.length);
 }
 async function loadStoragePage(){
   await loadBuckets();

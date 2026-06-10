@@ -16,6 +16,8 @@ export default {
     const url = new URL(req.url);
     const path = url.pathname;
 
+    if (path === '/version') return jres({ version: 'v6-original-signing+multiuser' }, 200, cors);
+
     try {
       const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
       if (!token) return jres({ error: 'Unauthorized' }, 401, cors);
@@ -104,7 +106,6 @@ async function isUserAdmin(env, uid) {
 }
 
 async function getBucket(env, id, uid) {
-  // Bucket bersama (admin) — tidak filter user_id. Isolasi via prefix key uid/.
   const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
   const res = await fetch(
     `${env.SUPABASE_URL}/rest/v1/r2_buckets?id=eq.${id}&select=*`,

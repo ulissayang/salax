@@ -705,7 +705,35 @@ select.inp option{background:#1a1a2e;color:var(--text)}
             <button id="btnDlKat" onclick="doDownloadKat()" class="btn btn-secondary" style="width:100%;justify-content:center;font-size:13px">Download Kategori (.zip)</button>
           </div>
         </div>
-        <div id="dlResult" style="display:none" class="card" style="padding:16px;margin-top:16px"><div id="dlResultText" style="font-size:13px"></div></div>
+        </div>
+
+        <!-- Download per User (Admin only) -->
+        <div data-admin-only class="card" style="padding:20px;margin-top:16px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,rgba(220,38,38,.2),rgba(153,27,27,.1));border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
+            </div>
+            <div><div style="font-size:14px;font-weight:700">Download per User</div><div style="font-size:12px;color:var(--muted)">Pilih user dulu, lalu kategori atau semua</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr;gap:12px">
+            <div>
+              <label class="lbl">1. Pilih User</label>
+              <select id="dlUserSel" class="inp" style="font-size:13px" onchange="onDlUserChange()"><option value="">Pilih user...</option></select>
+            </div>
+            <div id="dlUserKatWrap" style="display:none">
+              <label class="lbl">2. Pilih Kategori (opsional)</label>
+              <select id="dlUserKatSel" class="inp" style="font-size:13px"><option value="">Semua kategori user ini</option></select>
+            </div>
+            <div id="dlUserInfo" style="display:none;font-size:12px;color:var(--muted)"></div>
+            <button id="btnDlUser" onclick="doDownloadUser()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:13px;display:none">Download (.zip)</button>
+          </div>
+          <div id="dlUserPrg" style="display:none;margin-top:12px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px"><span id="dlUserLabel">Mengunduh...</span><span id="dlUserPct">0%</span></div>
+            <div class="prg-wrap"><div id="dlUserFill" class="prg-fill"></div></div>
+          </div>
+        </div>
+
+        <div id="dlResult" style="display:none" class="card-x" style="padding:16px;margin-top:16px"><div id="dlResultText" style="font-size:13px"></div></div>
       </section>
 
       <!-- ══ STORAGE ══ -->
@@ -1774,6 +1802,15 @@ function confirmDelKat(id,nama){
 // ── DOWNLOAD ──────────────────────────────────────────────────
 async function loadDownloadPage(){
   await loadKategori();
+  // Isi dropdown user untuk download per-user (admin)
+  if(CU.role==='admin'){
+    try{
+      const{data:users}=await sb.from('profiles').select('id,nama,username,role').neq('role','admin').order('nama');
+      _allUsers=users||_allUsers;
+      const dus=document.getElementById('dlUserSel');
+      if(dus) dus.innerHTML='<option value="">Pilih user...</option>'+(users||[]).map(u=>`<option value="${u.id}">${esc(u.nama||u.username)}</option>`).join('');
+    }catch(e){}
+  }
   const dlKatSel = document.getElementById('dlKatSel');
   dlKatSel.innerHTML='<option value="">Pilih kategori...</option>'+allKategori.map(k=>`<option value="${k.id}">${esc(k.nama)}</option>`).join('');
   const{count}=await sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id);
@@ -1804,6 +1841,75 @@ async function loadDownloadPage(){
   btnKat.disabled = total===0;
   btnKat.style.opacity = total===0?'0.4':'';
 }
+
+// ── DOWNLOAD PER USER (Admin) ─────────────────────────────────
+async function onDlUserChange(){
+  const uid=document.getElementById('dlUserSel').value;
+  const katWrap=document.getElementById('dlUserKatWrap');
+  const info=document.getElementById('dlUserInfo');
+  const btn=document.getElementById('btnDlUser');
+  if(!uid){katWrap.style.display='none';info.style.display='none';btn.style.display='none';return;}
+  // Ambil dokumen user untuk hitung & isi kategori
+  const{data:docs}=await sb.from('dokumen').select('ukuran_file,kategori:kategori_id(id,nama)').eq('user_id',uid);
+  const total=(docs||[]).length;
+  const size=(docs||[]).reduce((a,d)=>a+(d.ukuran_file||0),0);
+  // Kategori yang dipakai user ini
+  const katMap={};(docs||[]).forEach(d=>{if(d.kategori)katMap[d.kategori.id]={nama:d.kategori.nama,count:(katMap[d.kategori.id]?.count||0)+1};});
+  const katSel=document.getElementById('dlUserKatSel');
+  katSel.innerHTML='<option value="">Semua kategori user ini</option>'+Object.entries(katMap).map(([id,v])=>`<option value="${id}">${esc(v.nama)} (${v.count} file)</option>`).join('');
+  katWrap.style.display=total>0?'block':'none';
+  info.style.display='block';
+  info.textContent=`${total} file · ${fmtSz(size)}`;
+  btn.style.display='flex';
+  btn.disabled=total===0;
+  btn.style.opacity=total===0?'0.4':'';
+}
+
+async function doDownloadUser(){
+  const uid=document.getElementById('dlUserSel').value;
+  const katId=document.getElementById('dlUserKatSel').value;
+  if(!uid){toast('Pilih user dulu','warn');return;}
+  const btn=document.getElementById('btnDlUser');
+  const prgWrap=document.getElementById('dlUserPrg'),prgFill=document.getElementById('dlUserFill'),prgLabel=document.getElementById('dlUserLabel'),prgPct=document.getElementById('dlUserPct');
+  setBtn(btn,true);prgWrap.style.display='block';
+  const setP=(p,l)=>{prgFill.style.width=p+'%';prgLabel.textContent=l;prgPct.textContent=p+'%';};
+  try{
+    const user=_allUsers.find(u=>u.id===uid);
+    const userName=(user?.nama||user?.username||'user').replace(/[^a-zA-Z0-9]/g,'_');
+    let q=sb.from('dokumen').select('nama_file,r2_key,ukuran_file,storage_bucket_id,kategori:kategori_id(nama)').eq('user_id',uid);
+    if(katId) q=q.eq('kategori_id',katId);
+    const{data:docs,error}=await q.order('uploaded_at',{ascending:false});
+    if(error)throw new Error(error.message);
+    if(!docs||!docs.length){toast('Tidak ada dokumen','warn');setBtn(btn,false);prgWrap.style.display='none';return;}
+    const{data:{session}}=await sb.auth.getSession();
+    const token=session?.access_token||'';
+    const zip=new JSZip();const nameTracker={};let ok=0,fail=0;
+    for(let i=0;i<docs.length;i++){
+      const doc=docs[i];
+      setP(Math.round((i/docs.length)*90),`Mengunduh ${i+1}/${docs.length}`);
+      try{
+        const res=await fetch(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':String(doc.storage_bucket_id||'')}});
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        const blob=await res.blob();
+        if(!blob||blob.size===0)throw new Error('kosong');
+        const katName=(doc.kategori?.nama||'Lainnya').replace(/[/\\?%*:|"<>]/g,'_');
+        let nm=doc.nama_file.replace(/[/\\?%*:|"<>]/g,'_');
+        const path=katName+'/'+nm;
+        if(nameTracker[path]){nameTracker[path]++;const dot=nm.lastIndexOf('.');nm=dot>0?nm.slice(0,dot)+'_'+nameTracker[path]+nm.slice(dot):nm+'_'+nameTracker[path];}else nameTracker[path]=1;
+        zip.file(katName+'/'+nm,blob);ok++;
+      }catch(e){fail++;}
+    }
+    if(ok===0){toast('Gagal mengunduh','err');setBtn(btn,false);prgWrap.style.display='none';return;}
+    setP(95,'Membuat ZIP...');
+    const out=await zip.generateAsync({type:'blob'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(out);a.download='SaLax_'+userName+'.zip';a.click();
+    setP(100,'Selesai!');
+    toast(`✓ ${ok} file diunduh${fail>0?', '+fail+' gagal':''}`,'ok');
+    setTimeout(()=>{prgWrap.style.display='none';},1500);
+  }catch(e){toast('Error: '+e.message,'err');prgWrap.style.display='none';}
+  setBtn(btn,false);
+}
+
 async function doDownloadAll(){await doZipDownload(null,'SaLax_Semua');}
 async function doDownloadKat(){
   const katId=document.getElementById('dlKatSel').value;

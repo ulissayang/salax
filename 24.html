@@ -16,21 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-<script>
-// Fallback jika CDN utama gagal/timeout
-window.addEventListener('error',function(e){
-  if(e.target&&e.target.tagName==='SCRIPT'&&e.target.src&&e.target.src.includes('supabase')){
-    if(typeof supabase==='undefined'){
-      const s=document.createElement('script');
-      s.src='https://unpkg.com/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js';
-      document.head.appendChild(s);
-    }
-  }
-},true);
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --c1:#DC2626;--c2:#991B1B;--c3:#EF4444;--c4:#F87171;--c5:#FCA5A5;
@@ -398,7 +384,7 @@ select.inp option{background:#1a1a2e;color:var(--text)}
         <div id="sidebarAvatar" style="width:34px;height:34px;background:var(--grad1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">?</div>
         <div style="flex:1;min-width:0">
           <div id="sidebarName" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
-          <div id="sidebarRole" style="font-size:11px;color:var(--muted)">User</div>
+          <div id="sidebarRole" style="font-size:11px;color:var(--muted)">Pegawai</div>
         </div>
         <button onclick="doLogout()" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--faint);transition:color .2s;border-radius:6px" onmouseenter="this.style.color='#f87171'" onmouseleave="this.style.color='var(--faint)'">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -466,15 +452,9 @@ select.inp option{background:#1a1a2e;color:var(--text)}
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Upload
           </button>
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:center">
-          <input id="dokSearch" type="text" class="inp" placeholder="Cari dokumen..." style="max-width:260px;flex:1" oninput="debouncedFilterDok()"/>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+          <input id="dokSearch" type="text" class="inp" placeholder="Cari dokumen..." style="max-width:260px;flex:1" oninput="filterDok()"/>
           <select id="dokKatFilter" class="inp" style="max-width:180px;flex:1" onchange="filterDok()"><option value="">Semua Kategori</option></select>
-          <select id="dokPageSize" class="inp" style="max-width:130px" onchange="changePageSize()">
-            <option value="10">10 / halaman</option>
-            <option value="20" selected>20 / halaman</option>
-            <option value="50">50 / halaman</option>
-            <option value="100">100 / halaman</option>
-          </select>
         </div>
         <div id="dokKatTabs" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px"></div>
         <div id="dokList" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -895,13 +875,9 @@ select.inp option{background:#1a1a2e;color:var(--text)}
         <!-- Dokumen per pegawai -->
         <div class="card" style="padding:20px">
           <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Dokumen per User</h2>
-          <select id="pegawaiDocFilter" class="inp" style="margin-bottom:12px" onchange="loadPegawaiDocs()">
+          <select id="pegawaiDocFilter" class="inp" style="margin-bottom:16px" onchange="loadPegawaiDocs()">
             <option value="">Pilih user untuk lihat dokumennya...</option>
           </select>
-          <div id="pegawaiSearchWrap" style="display:none;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-            <input id="pegawaiDocSearch" type="text" class="inp" placeholder="Cari dokumen user ini..." style="flex:1;min-width:180px" oninput="debouncedPegawaiSearch()"/>
-            <select id="pegawaiDocKatFilter" class="inp" style="max-width:180px;flex:1" onchange="renderPegawaiDocs()"><option value="">Semua Kategori</option></select>
-          </div>
           <div id="pegawaiDocList" style="display:flex;flex-direction:column;gap:8px"></div>
           <div id="pegawaiDocEmpty" style="display:none;text-align:center;padding:30px;color:var(--faint);font-size:13px">Pilih user di atas</div>
         </div>
@@ -949,8 +925,8 @@ select.inp option{background:#1a1a2e;color:var(--text)}
       <button onclick="closeModal('modalAddUser')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div style="margin-bottom:14px"><label class="lbl">Nama Lengkap *</label><input id="newUserNama" type="text" class="inp" placeholder="cth: Budi Santoso"/></div>
-    <div style="margin-bottom:14px"><label class="lbl">Username *</label><input id="newUserUsername" type="text" class="inp" placeholder="cth: budi (huruf kecil, tanpa spasi)"/><div style="font-size:11px;color:var(--faint);margin-top:4px">User login dengan username ini</div></div>
-    <div style="margin-bottom:20px"><label class="lbl">Password *</label><input id="newUserPass" type="text" class="inp" placeholder="Min. 6 karakter"/><div style="font-size:11px;color:var(--faint);margin-top:4px">Beritahu password ini ke user. Anda bisa lihat lagi di tabel.</div></div>
+    <div style="margin-bottom:14px"><label class="lbl">Username *</label><input id="newUserUsername" type="text" class="inp" placeholder="cth: budi (huruf kecil, tanpa spasi)"/><div style="font-size:11px;color:var(--faint);margin-top:4px">Pegawai login dengan username ini</div></div>
+    <div style="margin-bottom:20px"><label class="lbl">Password *</label><input id="newUserPass" type="text" class="inp" placeholder="Min. 6 karakter"/><div style="font-size:11px;color:var(--faint);margin-top:4px">Beritahu password ini ke pegawai. Anda bisa lihat lagi nanti di tabel.</div></div>
     <div id="modalAddUserAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
     <div style="display:flex;gap:8px">
       <button onclick="closeModal('modalAddUser')" class="btn btn-secondary" style="flex:1;justify-content:center">Batal</button>
@@ -1028,9 +1004,7 @@ select.inp option{background:#1a1a2e;color:var(--text)}
     </div>
     <input type="hidden" id="editDokId"/>
     <div style="margin-bottom:14px"><label class="lbl">Nama File</label><input id="editDokNama" type="text" class="inp"/></div>
-    <div style="margin-bottom:14px"><label class="lbl">Kategori</label><select id="editDokKat" class="inp" onchange="updateEditSubKat()"></select></div>
-    <div id="editSubKatWrap" style="margin-bottom:14px;display:none"><label class="lbl">Sub-Kategori <span style="color:var(--faint);font-weight:400">(opsional)</span></label><select id="editDokSubKat" class="inp"><option value="">— Tanpa sub-kategori —</option></select></div>
-    <div style="margin-bottom:14px"><label class="lbl">Tanggal Kadaluarsa <span style="color:var(--faint);font-weight:400">(opsional)</span></label><input id="editDokExpiry" type="date" class="inp"/></div>
+    <div style="margin-bottom:14px"><label class="lbl">Kategori</label><select id="editDokKat" class="inp"></select></div>
     <div style="margin-bottom:20px"><label class="lbl">Keterangan</label><input id="editDokKet" type="text" class="inp"/></div>
     <div id="editDokAlert" style="display:none;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
     <div style="display:flex;gap:8px">
@@ -1172,22 +1146,13 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 
 // ── CONSTANTS ────────────────────────────────────────────────
 const MAX_BUCKET_BYTES = 9 * 1024 * 1024 * 1024;
-let PAGE_SIZE = 20;
+const PAGE_SIZE = 20;
 
 // ── SUPABASE CLIENT ──────────────────────────────────────────
-let sb;
-function initSupabase(){
-  if(typeof supabase==='undefined'){
-    // Tunggu CDN selesai load
-    setTimeout(initSupabase,200);
-    return;
-  }
-  const { createClient } = supabase;
-  sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
-    auth:{ autoRefreshToken:true, persistSession:true, detectSessionInUrl:true, storageKey:'salax-auth' }
-  });
-}
-initSupabase();
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth:{ autoRefreshToken:true, persistSession:true, detectSessionInUrl:true }
+});
 
 // ── STATE ─────────────────────────────────────────────────────
 let GEMINI_MODEL='gemini-2.5-flash'; // diubah dari Pengaturan
@@ -1837,38 +1802,24 @@ async function openDok(r2Key,nama,bucketId){
   }catch(e){toast('Gagal: '+e.message,'err');}
   hideSplash();
 }
-function openModalEditDok(id,nama,katId,ket,subKatId,expiry){
+function openModalEditDok(id,nama,katId,ket){
   document.getElementById('editDokId').value=id;
   document.getElementById('editDokNama').value=nama;
   document.getElementById('editDokKet').value=ket;
   document.getElementById('editDokKat').innerHTML='<option value="">Pilih kategori...</option>'+allKategori.map(k=>`<option value="${k.id}" ${k.id===katId?'selected':''}>${esc(k.nama)}</option>`).join('');
-  document.getElementById('editDokExpiry').value=expiry||'';
-  updateEditSubKat(subKatId||'');
   document.getElementById('editDokAlert').style.display='none';
   openModal('modalEditDok');
-}
-function updateEditSubKat(selectedSub){
-  const katId=document.getElementById('editDokKat').value;
-  const wrap=document.getElementById('editSubKatWrap');
-  const sel=document.getElementById('editDokSubKat');
-  const subs=allSubKategori.filter(s=>s.kategori_id===katId);
-  if(!subs.length){wrap.style.display='none';sel.innerHTML='<option value="">— Tanpa sub-kategori —</option>';return;}
-  wrap.style.display='block';
-  sel.innerHTML='<option value="">— Tanpa sub-kategori —</option>'+subs.map(s=>`<option value="${s.id}" ${s.id===selectedSub?'selected':''}>${esc(s.nama)}</option>`).join('');
 }
 async function saveEditDok(){
   const id=document.getElementById('editDokId').value;
   const nama=document.getElementById('editDokNama').value.trim();
   const katId=document.getElementById('editDokKat').value;
   const ket=document.getElementById('editDokKet').value.trim();
-  const subKatEl=document.getElementById('editDokSubKat');
-  const subKatId=(document.getElementById('editSubKatWrap').style.display!=='none'&&subKatEl.value)?subKatEl.value:null;
-  const expiry=document.getElementById('editDokExpiry').value||null;
   const btn=document.getElementById('btnSaveEditDok');
   if(!nama){showModalAlert('editDokAlert','Nama wajib diisi','err');return;}
   setBtn(btn,true);
   try{
-    const{error}=await sb.from('dokumen').update({nama_file:nama,kategori_id:katId||null,keterangan:ket,sub_kategori_id:subKatId,tanggal_kadaluarsa:expiry}).eq('id',id);
+    const{error}=await sb.from('dokumen').update({nama_file:nama,kategori_id:katId||null,keterangan:ket}).eq('id',id);
     if(error)throw new Error(error.message);
     closeModal('modalEditDok');toast('Dokumen diperbarui ✓','ok');loadDokumen(dokPage);
   }catch(e){showModalAlert('editDokAlert',e.message,'err');}
@@ -2019,8 +1970,12 @@ async function previewDok(r2Key, nama, bucketId, ukuran, kategori){
     if(isImage){
       body.innerHTML=`<img src="${blobUrl}" style="max-width:100%;max-height:75vh;object-fit:contain;display:block;margin:auto"/>`;
     } else if(isPDF){
-      // Render PDF dengan PDF.js (kompatibel semua device termasuk HP)
-      await renderPdfPreview(blobUrl, body);
+      // Gunakan object+embed untuk kompatibilitas lebih baik, fallback ke link
+      body.innerHTML=`<div style="width:100%;height:100%;display:flex;flex-direction:column">
+        <object data="${blobUrl}" type="application/pdf" style="width:100%;height:75vh;border:none;background:#fff">
+          <iframe src="${blobUrl}" style="width:100%;height:75vh;border:none;background:#fff"></iframe>
+        </object>
+      </div>`;
     } else if(isVideo){
       body.innerHTML=`<video src="${blobUrl}" controls style="max-width:100%;max-height:75vh;margin:auto;display:block"></video>`;
     } else {
@@ -2040,44 +1995,6 @@ async function previewDok(r2Key, nama, bucketId, ukuran, kategori){
     document.getElementById('previewDownloadBtn').dataset.name=nama;
   }catch(e){
     document.getElementById('previewBody').innerHTML=`<div style="color:#f87171;padding:40px;text-align:center">❌ Gagal memuat: ${esc(e.message)}</div>`;
-  }
-}
-
-
-async function renderPdfPreview(url, container){
-  if(typeof pdfjsLib==='undefined'){
-    // Fallback jika PDF.js gagal load
-    container.innerHTML=`<div style="width:100%;height:100%"><iframe src="${url}" style="width:100%;height:75vh;border:none;background:#fff"></iframe></div>`;
-    return;
-  }
-  container.innerHTML='<div style="color:var(--muted);padding:40px;text-align:center">⏳ Merender PDF...</div>';
-  try{
-    const pdf=await pdfjsLib.getDocument(url).promise;
-    const wrap=document.createElement('div');
-    wrap.style.cssText='width:100%;background:#525659;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:10px;overflow-y:auto;max-height:78vh';
-    container.innerHTML='';
-    container.appendChild(wrap);
-    const maxPages=Math.min(pdf.numPages,30); // batasi 30 halaman demi performa
-    for(let i=1;i<=maxPages;i++){
-      const page=await pdf.getPage(i);
-      const containerW=container.clientWidth||800;
-      const baseViewport=page.getViewport({scale:1});
-      const scale=Math.min((containerW-20)/baseViewport.width, 2);
-      const viewport=page.getViewport({scale:scale>0?scale:1});
-      const canvas=document.createElement('canvas');
-      canvas.style.cssText='max-width:100%;box-shadow:0 2px 8px rgba(0,0,0,.3);background:#fff';
-      canvas.width=viewport.width;canvas.height=viewport.height;
-      wrap.appendChild(canvas);
-      await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
-    }
-    if(pdf.numPages>maxPages){
-      const note=document.createElement('div');
-      note.style.cssText='color:#fff;font-size:12px;padding:10px';
-      note.textContent=`Menampilkan ${maxPages} dari ${pdf.numPages} halaman. Unduh untuk lihat semua.`;
-      wrap.appendChild(note);
-    }
-  }catch(e){
-    container.innerHTML=`<div style="padding:40px;text-align:center"><div style="color:#f87171;margin-bottom:16px">Gagal render PDF: ${esc(e.message)}</div><button onclick="downloadPreview()" class="btn btn-primary">Unduh File</button></div>`;
   }
 }
 
@@ -2319,7 +2236,7 @@ async function loadUsersPage(p=1){
     }
     tbody.innerHTML=users.map(u=>{
       const isAdmin=u.role==='admin';
-      const badge=isAdmin?'<span class="badge badge-red">Admin</span>':'<span class="badge badge-muted">User</span>';
+      const badge=isAdmin?'<span class="badge badge-red">Admin</span>':'<span class="badge badge-muted">Pegawai</span>';
       const pwd=u.pwd_plain?`<span style="font-family:monospace;font-size:12px">${esc(u.pwd_plain)}</span>`:'<span style="color:var(--faint)">—</span>';
       const delBtn=isAdmin?'':`<button onclick="confirmDelUser('${u.id}','${esc(u.nama||u.username||'')}')" class="btn btn-danger btn-xs">Hapus</button>`;
       return `<tr>
@@ -2361,22 +2278,18 @@ async function saveNewUser(){
   if(!/^[a-z0-9_]+$/.test(username)){showModalAlert('modalAddUserAlert','Username hanya boleh huruf kecil, angka, underscore','err');return;}
   setBtn(btn,true);
   try{
-    // Buat client TERPISAH untuk signup agar TIDAK mengganti session admin
+    // Username diubah jadi email internal (tidak ditampilkan ke user) — Supabase butuh email valid
     const syntheticEmail=username+'@salaxuser.com';
-    const tempClient=supabase.createClient(SUPABASE_URL,SUPABASE_ANON,{
-      auth:{ persistSession:false, autoRefreshToken:false, detectSessionInUrl:false }
-    });
-    const{data,error}=await tempClient.auth.signUp({
+    const{data,error}=await sb.auth.signUp({
       email:syntheticEmail,
       password:pass,
-      options:{ data:{nama,username} }
+      options:{data:{nama,username}}
     });
     if(error) throw new Error(error.message);
     const newId=data.user?.id;
     if(newId){
-      // Simpan profile via client admin (sb) — email DIKOSONGKAN sesuai permintaan
       await sb.from('profiles').upsert({
-        id:newId, nama, username, email:null,
+        id:newId, nama, username, email:syntheticEmail,
         role:'user', pwd_plain:pass, created_by:CU.id
       },{onConflict:'id'});
     }
@@ -2393,13 +2306,13 @@ async function saveNewUser(){
 }
 
 function confirmDelUser(id,nama){
-  confirm_('Hapus User?','Hapus '+nama+' beserta SEMUA dokumennya? Tindakan ini permanen.',async()=>{
+  confirm_('Hapus Pegawai?','Hapus '+nama+' beserta SEMUA dokumennya? Tindakan ini permanen.',async()=>{
     try{
       // Hapus dokumen user dulu
       await sb.from('dokumen').delete().eq('user_id',id);
       // Hapus profile
       await sb.from('profiles').delete().eq('id',id);
-      toast('User dihapus','ok');
+      toast('Pegawai dihapus','ok');
       loadUsersPage();
     }catch(e){toast('Gagal: '+e.message,'err');}
   });
@@ -2409,6 +2322,7 @@ function confirmDelUser(id,nama){
 
 async function loadPegawaiDocs(){
   const sel=document.getElementById('pegawaiDocFilter');
+  // Isi dropdown jika belum
   if(sel.options.length<=1 && _allUsers.length){
     const nonAdmin=_allUsers.filter(u=>u.role!=='admin');
     sel.innerHTML='<option value="">Pilih user...</option>'+nonAdmin.map(u=>`<option value="${u.id}">${esc(u.nama||u.username||u.email)}</option>`).join('');
@@ -2416,48 +2330,27 @@ async function loadPegawaiDocs(){
   const uid=sel.value;
   const list=document.getElementById('pegawaiDocList');
   const empty=document.getElementById('pegawaiDocEmpty');
-  const searchWrap=document.getElementById('pegawaiSearchWrap');
-  if(!uid){list.innerHTML='';empty.style.display='block';searchWrap.style.display='none';_pegawaiDocs=[];return;}
+  if(!uid){list.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
-  searchWrap.style.display='flex';
   list.innerHTML='<div style="color:var(--faint);font-size:13px;padding:20px;text-align:center">Memuat...</div>';
   try{
-    const{data:docs}=await sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,r2_key,storage_bucket_id,tanggal_kadaluarsa,kategori:kategori_id(id,nama),sub:sub_kategori_id(nama)').eq('user_id',uid).order('uploaded_at',{ascending:false});
-    _pegawaiDocs=docs||[];
-    // Isi filter kategori
-    const kf=document.getElementById('pegawaiDocKatFilter');
-    const usedKats=[...new Set((_pegawaiDocs).map(d=>d.kategori?.id).filter(Boolean))];
-    kf.innerHTML='<option value="">Semua Kategori</option>'+allKategori.filter(k=>usedKats.includes(k.id)).map(k=>`<option value="${k.id}">${esc(k.nama)}</option>`).join('');
-    document.getElementById('pegawaiDocSearch').value='';
-    renderPegawaiDocs();
+    const{data:docs}=await sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,r2_key,storage_bucket_id,kategori:kategori_id(nama)').eq('user_id',uid).order('uploaded_at',{ascending:false});
+    if(!docs||!docs.length){list.innerHTML='<div style="color:var(--faint);font-size:13px;padding:20px;text-align:center">User ini belum punya dokumen</div>';return;}
+    list.innerHTML=docs.map(d=>{
+      const rk=esc(d.r2_key||''),fn=esc(d.nama_file||''),bid=String(d.storage_bucket_id||'');
+      return `<div class="dok-card">
+        <div style="font-size:22px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
+        <div class="flex-1 min-w-0">
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fn}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${d.kategori?.nama||'—'} · ${fmtSz(d.ukuran_file)} · ${fmtDate(d.uploaded_at)}</div>
+        </div>
+        <div class="flex gap-1.5 flex-shrink-0">
+          <button onclick="previewDok('${rk}','${fn}','${bid}',${d.ukuran_file||0},'${d.kategori?.nama||''}')" class="btn btn-ghost btn-xs" style="color:#f87171" title="Preview"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button onclick="openDok('${rk}','${fn}','${bid}')" class="btn btn-ghost btn-xs" title="Unduh"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+      </div>`;
+    }).join('');
   }catch(e){list.innerHTML=`<div style="color:#f87171;padding:20px;text-align:center">Error: ${esc(e.message)}</div>`;}
-}
-
-let _pegawaiDocs=[];
-let _pegSearchTimer=null;
-function debouncedPegawaiSearch(){clearTimeout(_pegSearchTimer);_pegSearchTimer=setTimeout(renderPegawaiDocs,300);}
-function renderPegawaiDocs(){
-  const list=document.getElementById('pegawaiDocList');
-  const search=(document.getElementById('pegawaiDocSearch').value||'').toLowerCase();
-  const katFilter=document.getElementById('pegawaiDocKatFilter').value;
-  let docs=_pegawaiDocs;
-  if(search) docs=docs.filter(d=>(d.nama_file||'').toLowerCase().includes(search));
-  if(katFilter) docs=docs.filter(d=>d.kategori?.id===katFilter);
-  if(!docs.length){list.innerHTML='<div style="color:var(--faint);font-size:13px;padding:20px;text-align:center">Tidak ada dokumen yang cocok</div>';return;}
-  list.innerHTML=docs.map(d=>{
-    const rk=esc(d.r2_key||''),fn=esc(d.nama_file||''),bid=String(d.storage_bucket_id||'');
-    return `<div class="dok-card">
-      <div style="font-size:22px;flex-shrink:0">${fileEmoji(d.nama_file)}</div>
-      <div class="flex-1 min-w-0">
-        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fn}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">${d.kategori?.nama||'—'}${d.sub?.nama?`<span style="color:#f87171">› ${esc(d.sub.nama)}</span>`:''} · ${fmtSz(d.ukuran_file)} · ${fmtDate(d.uploaded_at)}${expiryBadge(d.tanggal_kadaluarsa)}</div>
-      </div>
-      <div class="flex gap-1.5 flex-shrink-0">
-        <button onclick="previewDok('${rk}','${fn}','${bid}',${d.ukuran_file||0},'${d.kategori?.nama||''}')" class="btn btn-ghost btn-xs" style="color:#f87171" title="Preview"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        <button onclick="openDok('${rk}','${fn}','${bid}')" class="btn btn-ghost btn-xs" title="Unduh"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-      </div>
-    </div>`;
-  }).join('');
 }
 
 // ── PROFIL ────────────────────────────────────────────────────
@@ -2676,12 +2569,7 @@ async function loadUserState(user){
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
     document.getElementById('app').style.display='flex';
-    // Restore halaman terakhir (kecuali jika user biasa buka halaman admin)
-    let lastPage='dash';
-    try{ lastPage=localStorage.getItem('salax_page')||'dash'; }catch(e){}
-    const adminPages=['kategori','download','storage','settings','users','ai'];
-    if(CU.role!=='admin' && adminPages.includes(lastPage)) lastPage='dash';
-    showPage(lastPage);
+    showPage('dash');
 
   }catch(e){
     console.error('loadUserState error:',e);
@@ -2697,7 +2585,7 @@ async function loadUserState(user){
 const PAGE_TITLES={
   dash:'SaLax', dokumen:'Dokumen', upload:'Upload', ai:'AI Asisten',
   kategori:'Kategori', download:'Download', storage:'Storage',
-  settings:'Pengaturan', profil:'Profil', users:'Users'
+  settings:'Pengaturan', profil:'Profil', users:'Pegawai'
 };
 const PAGE_LOADERS={
   dash:()=>loadDash(),
@@ -2767,7 +2655,7 @@ async function loadDokumen(p=1){
   try{
     dokPage=p;
     const from=(p-1)*PAGE_SIZE,to=from+PAGE_SIZE-1;
-    let q=sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,sub_kategori_id,tanggal_kadaluarsa,kategori:kategori_id(id,nama),sub:sub_kategori_id(nama)',{count:'exact'}).eq('user_id',CU.id);
+    let q=sb.from('dokumen').select('id,nama_file,ukuran_file,uploaded_at,keterangan,r2_key,storage_bucket_id,tanggal_kadaluarsa,kategori:kategori_id(id,nama),sub:sub_kategori_id(nama)',{count:'exact'}).eq('user_id',CU.id);
     // Pastikan nilai adalah string, bukan DOM element
     const katFilter = typeof dokKatFilter === 'string' ? dokKatFilter : '';
     const searchVal = typeof dokSearch === 'string' ? dokSearch : '';
@@ -2806,7 +2694,7 @@ async function loadDokumen(p=1){
           <button onclick="openDok('${rk}','${fn}','${bid}')" class="btn btn-ghost btn-xs" title="Unduh">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </button>
-          <button onclick="openModalEditDok('${d.id}','${fn}','${ki}','${ket}','${d.sub_kategori_id||''}','${d.tanggal_kadaluarsa||''}')" class="btn btn-ghost btn-xs" title="Edit">
+          <button onclick="openModalEditDok('${d.id}','${fn}','${ki}','${ket}')" class="btn btn-ghost btn-xs" title="Edit">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
           <button onclick="confirmDel('${d.id}','${rk}','${bid}')" class="btn btn-danger btn-xs" title="Hapus">
@@ -2822,18 +2710,6 @@ async function loadDokumen(p=1){
 
 function setDokKatFilter(id){dokKatFilter=id;loadDokumen(1);}
 
-
-let _filterTimer=null;
-function debouncedFilterDok(){
-  clearTimeout(_filterTimer);
-  _filterTimer=setTimeout(()=>filterDok(),350);
-}
-function changePageSize(){
-  const sel=document.getElementById('dokPageSize');
-  PAGE_SIZE=parseInt(sel.value)||20;
-  loadDokumen(1);
-}
-
 function filterDok(){
   const searchEl=document.getElementById('dokSearch');
   const katEl=document.getElementById('dokKatFilter');
@@ -2846,10 +2722,6 @@ function filterDok(){
 // ── INIT ─────────────────────────────────────────────────────
 window.addEventListener('load', async()=>{
   document.getElementById('loadingPage').style.display='flex';
-  // Tunggu Supabase client siap
-  let _waitSb=0;
-  while(!sb && _waitSb<50){ await new Promise(r=>setTimeout(r,100)); _waitSb++; }
-  if(!sb){ alert('Gagal memuat Supabase. Periksa koneksi internet & refresh.'); return; }
   // Drag zone
   const zone=document.getElementById('upZone');
   if(zone){

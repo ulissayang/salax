@@ -440,7 +440,7 @@ select.inp option{background:#1a1a2e;color:var(--text)}
             <div style="font-size:11px;font-weight:600;color:rgba(252,211,77,.8);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Ukuran</div>
             <div id="statSize" class="stat-num">—</div>
           </div>
-          <div class="stat-card" data-admin-only style="background:linear-gradient(135deg,rgba(16,185,129,.25),rgba(14,165,233,.15));border:1px solid rgba(16,185,129,.3)">
+          <div class="stat-card" style="background:linear-gradient(135deg,rgba(16,185,129,.25),rgba(14,165,233,.15));border:1px solid rgba(16,185,129,.3)">
             <div style="font-size:11px;font-weight:600;color:rgba(110,231,183,.8);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">R2 Aktif</div>
             <div id="statBuckets" class="stat-num">—</div>
           </div>
@@ -450,7 +450,7 @@ select.inp option{background:#1a1a2e;color:var(--text)}
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr;gap:16px">
-          <div class="card" data-admin-only style="padding:20px">
+          <div class="card" style="padding:20px">
             <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px">Penyimpanan</h2>
             <div id="dashStorageBars" style="display:flex;flex-direction:column;gap:14px"><div style="color:var(--faint);font-size:13px">Memuat...</div></div>
           </div>
@@ -898,10 +898,9 @@ select.inp option{background:#1a1a2e;color:var(--text)}
           <select id="pegawaiDocFilter" class="inp" style="margin-bottom:12px" onchange="loadPegawaiDocs()">
             <option value="">Pilih user untuk lihat dokumennya...</option>
           </select>
-          <div id="pegawaiSearchWrap" style="display:none;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <div id="pegawaiSearchWrap" style="display:none;gap:10px;margin-bottom:14px;flex-wrap:wrap">
             <input id="pegawaiDocSearch" type="text" class="inp" placeholder="Cari dokumen user ini..." style="flex:1;min-width:180px" oninput="debouncedPegawaiSearch()"/>
             <select id="pegawaiDocKatFilter" class="inp" style="max-width:180px;flex:1" onchange="renderPegawaiDocs()"><option value="">Semua Kategori</option></select>
-            <button id="btnDlUserAll" onclick="downloadUserAll()" class="btn btn-primary btn-sm">⬇ Download Semua (.zip)</button>
           </div>
           <div id="pegawaiDocList" style="display:flex;flex-direction:column;gap:8px"></div>
           <div id="pegawaiDocEmpty" style="display:none;text-align:center;padding:30px;color:var(--faint);font-size:13px">Pilih user di atas</div>
@@ -1208,7 +1207,6 @@ let GEMINI_MODEL='gemini-2.5-flash'; // diubah dari Pengaturan
 let CU=null, allKategori=[], allBuckets=[], WORKER_URL='';
 let dokPage=1, dokKatFilter='', dokSearch='';
 let chatHistory=[];
-let _loggingOut=false;
 let _cachedGeminiKey='';   // untuk scan dokumen (vision)
 let _cachedDeepseekKey=''; // untuk chat AI
 function getGeminiKey(){ return _cachedGeminiKey; }
@@ -1515,15 +1513,7 @@ async function doUpload(){
       headers:{'Authorization':`Bearer ${token}`,'Content-Type':upSelectedFile.type||'application/octet-stream','X-Bucket-Id':String(bucket.id),'X-R2-Limit':String(bucket.limit_bytes||MAX_BUCKET_BYTES)},
       body:upSelectedFile,
     });
-    if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      if(res.status===413){
-        throw new Error(CU.role==='admin'
-          ?'Penyimpanan penuh. Tambah bucket R2 baru atau hapus file lama.'
-          :'Penyimpanan sudah penuh. Silakan hubungi admin untuk menambah kapasitas.');
-      }
-      throw new Error(err.error||'Upload gagal. Coba lagi atau hubungi admin.');
-    }
+    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error||(res.status===413?'Penyimpanan penuh':'Upload gagal HTTP '+res.status));}
     setPrg(80,'Menyimpan ke database...');
     const insertData={user_id:CU.id,nama_file:namaFile,kategori_id:katId||null,keterangan:ket,ukuran_file:upSelectedFile.size,r2_key:r2Key,storage_bucket_id:bucket.id,storage_type:'r2'};
     if(subKatId) insertData.sub_kategori_id=subKatId;
@@ -2469,54 +2459,8 @@ async function loadPegawaiDocs(){
     const usedKats=[...new Set((_pegawaiDocs).map(d=>d.kategori?.id).filter(Boolean))];
     kf.innerHTML='<option value="">Semua Kategori</option>'+allKategori.filter(k=>usedKats.includes(k.id)).map(k=>`<option value="${k.id}">${esc(k.nama)}</option>`).join('');
     document.getElementById('pegawaiDocSearch').value='';
-    // Smart button: disable download jika tidak ada dokumen
-    const btnDl=document.getElementById('btnDlUserAll');
-    if(btnDl){
-      const has=_pegawaiDocs.length>0;
-      btnDl.disabled=!has;
-      btnDl.style.opacity=has?'':'0.4';
-    }
     renderPegawaiDocs();
   }catch(e){list.innerHTML=`<div style="color:#f87171;padding:20px;text-align:center">Error: ${esc(e.message)}</div>`;}
-}
-
-
-// Admin: download semua file user terpilih sebagai ZIP
-async function downloadUserAll(){
-  const uid=document.getElementById('pegawaiDocFilter').value;
-  if(!uid){toast('Pilih user dulu','warn');return;}
-  const btn=document.getElementById('btnDlUserAll');
-  setBtn(btn,true);
-  try{
-    const user=_allUsers.find(u=>u.id===uid);
-    const userName=(user?.nama||user?.username||'user').replace(/[^a-zA-Z0-9]/g,'_');
-    const{data:docs,error}=await sb.from('dokumen').select('nama_file,r2_key,ukuran_file,storage_bucket_id,kategori:kategori_id(nama)').eq('user_id',uid).order('uploaded_at',{ascending:false});
-    if(error)throw new Error(error.message);
-    if(!docs||!docs.length){toast('User ini tidak punya dokumen','warn');setBtn(btn,false);return;}
-    const{data:{session}}=await sb.auth.getSession();
-    const token=session?.access_token||'';
-    const zip=new JSZip();const nameTracker={};let ok=0,fail=0;
-    toast('Memproses '+docs.length+' file...','info');
-    for(const doc of docs){
-      try{
-        const res=await fetch(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':String(doc.storage_bucket_id||'')}});
-        if(!res.ok)throw new Error('HTTP '+res.status);
-        const blob=await res.blob();
-        if(!blob||blob.size===0)throw new Error('kosong');
-        const katName=(doc.kategori?.nama||'Lainnya').replace(/[/\\?%*:|"<>]/g,'_');
-        let nm=doc.nama_file.replace(/[/\\?%*:|"<>]/g,'_');
-        const path=katName+'/'+nm;
-        if(nameTracker[path]){nameTracker[path]++;const dot=nm.lastIndexOf('.');nm=dot>0?nm.slice(0,dot)+'_'+nameTracker[path]+nm.slice(dot):nm+'_'+nameTracker[path];}else nameTracker[path]=1;
-        zip.file(katName+'/'+nm,blob);
-        ok++;
-      }catch(e){fail++;}
-    }
-    if(ok===0){toast('Gagal mengunduh file','err');setBtn(btn,false);return;}
-    const content=await zip.generateAsync({type:'blob'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(content);a.download='SaLax_'+userName+'.zip';a.click();
-    toast(`✓ ${ok} file diunduh${fail>0?', '+fail+' gagal':''}`,'ok');
-  }catch(e){toast('Error: '+e.message,'err');}
-  setBtn(btn,false);
 }
 
 let _pegawaiDocs=[];
@@ -2710,11 +2654,8 @@ async function doForgot(){
 }
 
 async function doLogout(){
-  _loggingOut=true;
-  CU=null;
   try{await sb.auth.signOut();}catch(e){}
   showAuthPage('login');
-  setTimeout(()=>{_loggingOut=false;},500);
 }
 
 async function loadUserState(user){
@@ -2824,24 +2765,17 @@ async function loadDash(){
     const hr=new Date().getHours();
     const g=hr<11?'Selamat pagi':hr<15?'Selamat siang':hr<18?'Selamat sore':'Selamat malam';
     document.getElementById('dashGreet').textContent=g+', '+(CU?.nama||'');
-    const isAdmin = CU.role==='admin';
-    // Admin: hitung SEMUA user. User biasa: hanya miliknya.
-    let dokQuery = sb.from('dokumen').select('*',{count:'exact',head:true});
-    let sizeQuery = sb.from('dokumen').select('ukuran_file');
-    if(!isAdmin){ dokQuery=dokQuery.eq('user_id',CU.id); sizeQuery=sizeQuery.eq('user_id',CU.id); }
     const[{count:totalDok},{count:totalKat},{data:sizeData}]=await Promise.all([
-      dokQuery,
+      sb.from('dokumen').select('*',{count:'exact',head:true}).eq('user_id',CU.id),
       sb.from('kategori').select('*',{count:'exact',head:true}),
-      sizeQuery,
+      sb.from('dokumen').select('ukuran_file').eq('user_id',CU.id),
     ]);
     document.getElementById('statDok').textContent=totalDok||0;
     document.getElementById('statKat').textContent=totalKat||0;
     const totalSize=(sizeData||[]).reduce((a,d)=>a+(d.ukuran_file||0),0);
     document.getElementById('statSize').textContent=fmtSz(totalSize);
-    const sbk=document.getElementById('statBuckets');
-    if(sbk) sbk.textContent=allBuckets.filter(b=>b.aktif).length;
-    // Storage bars hanya untuk admin (card disembunyikan untuk user)
-    if(CU.role==='admin') await renderDashStorageBars();
+    document.getElementById('statBuckets').textContent=allBuckets.filter(b=>b.aktif).length;
+    await renderDashStorageBars();
     // File terbaru dihapus dari dashboard
   }catch(e){toast('Gagal memuat dashboard: '+e.message,'err');}
 }
@@ -2959,14 +2893,8 @@ window.addEventListener('load', async()=>{
     if(session) await loadUserState(session.user);
     else showAuthPage('login');
     sb.auth.onAuthStateChange(async(event,session)=>{
-      // Hanya handle SIGNED_OUT yang DISENGAJA (bukan token refresh gagal sementara)
       if(event==='SIGNED_IN'&&session&&!CU) await loadUserState(session.user);
-      else if(event==='SIGNED_OUT'&&!_loggingOut){
-        // Jangan langsung logout — bisa jadi token refresh sementara. Cek dulu.
-        const{data:{session:s}}=await sb.auth.getSession();
-        if(!s){CU=null;showAuthPage('login');}
-      }
-      else if(event==='TOKEN_REFRESHED'){ console.log('[SaLax] Token diperbarui'); }
+      else if(event==='SIGNED_OUT'){CU=null;showAuthPage('login');}
     });
   }catch(e){
     console.error('Init error:',e);

@@ -1339,6 +1339,20 @@ async function updateUploadStorageInfo(){
 async function handleUpFile(file){
   if(!file)return;
   if(file.size>50*1024*1024){toast('❌ Ukuran file maksimal 50 MB. File ini '+fmtSz(file.size)+'.','err');return;}
+
+  // CEK RUANG PENYIMPANAN DULU — sebelum baca AI (admin & user sama)
+  const bucket=await findAvailableBucket(file.size);
+  if(!bucket){
+    // Tidak ada ruang — STOP, jangan baca AI, jangan tampilkan apa-apa selain alert
+    resetUpload();
+    if(CU.role==='admin'){
+      toast('🚫 Semua penyimpanan penuh. Tambah bucket R2 baru di Storage.','err');
+    } else {
+      toast('🚫 Penyimpanan penuh. Hubungi admin untuk menambah kapasitas.','err');
+    }
+    return;
+  }
+
   upSelectedFile=file;
   // Show file info in dropzone
   document.getElementById('upZoneContent').style.display='none';
@@ -1347,7 +1361,7 @@ async function handleUpFile(file){
   document.getElementById('upFileName').textContent=file.name;
   document.getElementById('upFileSize').textContent=fmtSz(file.size);
 
-  // Auto-scan dengan Gemini
+  // Auto-scan dengan Gemini (hanya jika ada ruang)
   await scanWithAI(file);
 }
 
@@ -1469,7 +1483,7 @@ ${prompt}`}]}]
     toast('✨ AI berhasil mendeteksi dokumen','ok');
 
   }catch(e){
-    console.warn('AI scan error:',e.message);
+    
     // Fallback to manual
     document.getElementById('upStep2').style.display='none';
     document.getElementById('upStep3').style.display='block';
@@ -1535,12 +1549,10 @@ async function doUpload(){
   if(!allBuckets.length) await loadBuckets();
   const bucket=await findAvailableBucket(upSelectedFile.size);
   if(!bucket){
-    if(!allBuckets.length){
-      showUpAlert(CU.role==='admin'
-        ?'🚫 Belum ada bucket R2. Tambah dulu di halaman Storage.'
-        :'🚫 Admin belum menyiapkan penyimpanan. Hubungi admin.','err');
+    if(CU.role==='admin'){
+      showUpAlert('🚫 Semua penyimpanan penuh. Tambah bucket R2 baru di Storage.','err');
     } else {
-      showUpAlert('🚫 Semua penyimpanan penuh.'+(CU.role==='admin'?' Tambah bucket R2 baru di Storage.':' Hubungi admin.'),'err');
+      showUpAlert('🚫 Penyimpanan penuh. Hubungi admin untuk menambah kapasitas.','err');
     }
     return;
   }
@@ -1565,8 +1577,8 @@ async function doUpload(){
       const err=await res.json().catch(()=>({}));
       if(res.status===413){
         throw new Error(CU.role==='admin'
-          ?'Penyimpanan penuh. Tambah bucket R2 baru atau hapus file lama.'
-          :'Penyimpanan sudah penuh. Silakan hubungi admin untuk menambah kapasitas.');
+          ?'Semua penyimpanan penuh. Tambah bucket R2 baru di Storage.'
+          :'Penyimpanan penuh. Hubungi admin untuk menambah kapasitas.');
       }
       throw new Error(err.error||'Upload gagal. Coba lagi atau hubungi admin.');
     }
@@ -1591,6 +1603,17 @@ function setPrg(pct,label){
 
 // Hitung total pemakaian bucket dari SEMUA user (akurat, paginated).
 async function getBucketUsageAll(){
+  // Pakai worker /storage (service key) — akurat hitung SEMUA user, untuk admin & user biasa.
+  // RLS membatasi user biasa hanya lihat dokumennya sendiri, jadi query langsung tidak akurat.
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    const token=session?.access_token||'';
+    if(WORKER_URL && token){
+      const res=await fetch(`${WORKER_URL}/storage`,{headers:{'Authorization':`Bearer ${token}`}});
+      if(res.ok){const j=await res.json();return j.usage||{};}
+    }
+  }catch(e){}
+  // Fallback: query langsung (hanya akurat untuk admin)
   const usageMap={};
   let from=0;const PAGE=1000;
   while(true){
@@ -2094,12 +2117,12 @@ function confirmDel(id,r2Key,bucketId){
 async function loadBuckets(){
   const{data,error}=await sb.from('r2_buckets').select('*').order('urutan');
   if(error){
-    console.error('[SaLax] Gagal load bucket:',error.message);
+    
     allBuckets=[];
     return;
   }
   allBuckets=data||[];
-  console.log('[SaLax] Bucket dimuat:',allBuckets.length);
+  
 }
 async function loadStoragePage(){
   await loadBuckets();
@@ -2913,7 +2936,7 @@ async function loadUserState(user){
     CU.email=prof.email||user.email;
     CU.role=prof.role||'user';
     CU.username=prof.username||'';
-    console.log('[SaLax] Login sebagai:', CU.role, '| nama:', CU.nama);
+    
     // Terapkan tampilan berdasarkan role
     applyRoleUI(CU.role);
     const initials=(CU.nama||'?').slice(0,2).toUpperCase();
@@ -2934,7 +2957,7 @@ async function loadUserState(user){
         if(gModel&&gModel.value) GEMINI_MODEL=gModel.value;
         updateAIKeyUI();
       }
-    }catch(e){ console.warn('Config load error:',e.message); }
+    }catch(e){}
 
     // Load data paralel
     try{ await Promise.all([loadKategori(),loadBuckets()]); }catch(e){}
@@ -2952,7 +2975,7 @@ async function loadUserState(user){
     showPage(lastPage);
 
   }catch(e){
-    console.error('loadUserState error:',e);
+    
     // Tetap tampilkan app meski ada error
     ['loadingPage','loginPage','forgotPage'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
@@ -3144,10 +3167,10 @@ window.addEventListener('load', async()=>{
         const{data:{session:s}}=await sb.auth.getSession();
         if(!s){CU=null;showAuthPage('login');}
       }
-      else if(event==='TOKEN_REFRESHED'){ console.log('[SaLax] Token diperbarui'); }
+      else if(event==='TOKEN_REFRESHED'){}
     });
   }catch(e){
-    console.error('Init error:',e);
+    
     showAuthPage('login');
   }
 });
@@ -3187,7 +3210,7 @@ async function saveGeminiModel(){
   }
   customWrap.style.display = 'none';
   GEMINI_MODEL = sel.value;
-  try{ await sb.from('app_config').upsert({key:'geminiModel',value:GEMINI_MODEL},{onConflict:'key'}); }catch(e){ console.warn(e); }
+  try{ await sb.from('app_config').upsert({key:'geminiModel',value:GEMINI_MODEL},{onConflict:'key'}); }catch(e){}
   document.getElementById('activeModelLabel').textContent = GEMINI_MODEL;
   toast('Model AI diubah ke ' + GEMINI_MODEL + ' ✓','ok');
 }
@@ -3196,7 +3219,7 @@ async function applyCustomModel(){
   const val = document.getElementById('customModelInp').value.trim();
   if(!val){toast('Nama model tidak boleh kosong','warn');return;}
   GEMINI_MODEL = val;
-  try{ await sb.from('app_config').upsert({key:'geminiModel',value:GEMINI_MODEL},{onConflict:'key'}); }catch(e){ console.warn(e); }
+  try{ await sb.from('app_config').upsert({key:'geminiModel',value:GEMINI_MODEL},{onConflict:'key'}); }catch(e){}
   document.getElementById('activeModelLabel').textContent = GEMINI_MODEL;
   toast('Model AI diubah ke ' + GEMINI_MODEL + ' ✓','ok');
 }
@@ -3238,7 +3261,7 @@ function resetConfig(){
 // ── PWA Service Worker ──────────────────────────────────────
 // Service worker via file terpisah (sw.js) — blob URL tidak didukung untuk SW
 if('serviceWorker' in navigator && location.protocol==='https:'){
-  navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW gagal:',e));
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }
 
 // ── PWA Install Prompt ──────────────────────────────────────

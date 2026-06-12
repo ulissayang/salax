@@ -1,4 +1,4 @@
-// SaLax R2 Worker v4 — Fixed SignatureDoesNotMatch
+// SaLax R2 Worker — signing dari SiPegawai (terbukti bekerja)
 const MAX_BUCKET_BYTES = 9 * 1024 * 1024 * 1024;
 
 export default {
@@ -10,270 +10,233 @@ export default {
       'Access-Control-Allow-Headers': 'Authorization,Content-Type,X-Bucket-Id,X-R2-Limit',
       'Access-Control-Max-Age': '86400',
     };
-
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
 
     const url = new URL(req.url);
     const path = url.pathname;
 
-    if (path === '/version') return jres({ version: 'v6-original-signing+multiuser' }, 200, cors);
+    if (path === '/version') return jres({ version: 'v11-storage-accurate', signing: 'signS3-path-style' }, 200, cors);
+
+    // GET /storage?bucketId=xxx — usage akurat dari Supabase (service key, semua user)
+    if (req.method === 'GET' && path === '/storage') {
+      const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+      if (!token) return jres({ error: 'Unauthorized' }, 401, cors);
+      const uRes = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, { headers: { apikey: env.SUPABASE_KEY, Authorization: `Bearer ${token}` } });
+      if (!uRes.ok) return jres({ error: 'Unauthorized' }, 401, cors);
+      const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
+      // Ambil semua dokumen (paginasi) — service key bypass RLS
+      const usageMap = {};
+      let from = 0;
+      while (true) {
+        const r = await fetch(`${env.SUPABASE_URL}/rest/v1/dokumen?select=storage_bucket_id,ukuran_file`,
+          { headers: { apikey: k, Authorization: `Bearer ${k}`, Range: `${from}-${from+999}`, 'Range-Unit': 'items' } });
+        if (!r.ok) break;
+        const rows = await r.json();
+        if (!Array.isArray(rows) || !rows.length) break;
+        rows.forEach(d => { const b = d.storage_bucket_id; if (b) usageMap[b] = (usageMap[b]||0) + (d.ukuran_file||0); });
+        if (rows.length < 1000) break;
+        from += 1000;
+      }
+      return jres({ usage: usageMap }, 200, cors);
+    }
+
+    // SELF-TEST tanpa login
+    if (path === '/selftest') {
+      const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
+      const br = await fetch(`${env.SUPABASE_URL}/rest/v1/r2_buckets?select=*&limit=1`, { headers: { apikey: k, Authorization: `Bearer ${k}` } });
+      const buckets = await br.json();
+      if (!buckets.length) return jres({ error: 'tidak ada bucket' }, 404, cors);
+      const b = buckets[0];
+      const cfg = { accountId: b.account_id.trim(), accessKey: b.access_key.trim(), secretKey: b.secret_key.trim(), bucket: b.bucket.trim() };
+      const testKey = '_selftest_' + Date.now() + '.txt';
+      try {
+        const s3url = r2url(cfg, testKey);
+        const body = new TextEncoder().encode('hello').buffer;
+        const hdrs = await signS3('PUT', s3url, body, 'text/plain', cfg);
+        const r = await fetch(s3url, { method: 'PUT', headers: hdrs, body });
+        if (r.ok) {
+          // hapus file test
+          const dh = await signS3('DELETE', s3url, null, '', cfg);
+          await fetch(s3url, { method: 'DELETE', headers: dh }).catch(()=>{});
+          return jres({ result: '✓ BERHASIL', message: 'Kredensial R2 VALID!' }, 200, cors);
+        }
+        return jres({ result: '✗ GAGAL', status: r.status, error: (await r.text()).slice(0,300) }, 200, cors);
+      } catch (e) {
+        return jres({ result: '✗ ERROR', error: e.message.slice(0,300) }, 200, cors);
+      }
+    }
 
     try {
-      const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
-      if (!token) return jres({ error: 'Unauthorized' }, 401, cors);
-      const { user, error: authErr } = await verifyToken(env, token);
-      if (authErr || !user) return jres({ error: 'Unauthorized' }, 401, cors);
-      const uid = user.id;
+      const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+      if (!token) return jres({ error: 'Unauthorized: token tidak ada' }, 401, cors);
+
+      const uRes = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
+        headers: { apikey: env.SUPABASE_KEY, Authorization: `Bearer ${token}` },
+      });
+      if (!uRes.ok) return jres({ error: 'Unauthorized: token tidak valid' }, 401, cors);
+      const user = await uRes.json();
+      const uid = user?.id;
+      if (!uid) return jres({ error: 'Unauthorized' }, 401, cors);
+
+      // Cek admin
+      const pRes = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=role`,
+        { headers: { apikey: env.SUPABASE_KEY, Authorization: `Bearer ${token}` } });
+      const pData = pRes.ok ? await pRes.json() : [];
+      const admin = pData?.[0]?.role === 'admin';
 
       // PUT /upload/:key
       if (req.method === 'PUT' && path.startsWith('/upload/')) {
         const key = decodeURIComponent(path.slice(8));
-        if (!key.startsWith(uid + '/')) return jres({ error: 'Forbidden' }, 403, cors);
+        if (!admin && !key.startsWith(uid + '/')) return jres({ error: 'Forbidden' }, 403, cors);
         const bucketId = req.headers.get('X-Bucket-Id') || '';
         const limitBytes = parseInt(req.headers.get('X-R2-Limit') || '0');
-        if (limitBytes <= 0) return jres({ error: 'X-R2-Limit required' }, 400, cors);
-        const bucket = await getBucket(env, bucketId, uid);
+        const bucket = await getBucket(env, bucketId);
         if (!bucket) return jres({ error: 'Bucket tidak ditemukan' }, 404, cors);
-        if (!bucket.secret_key) return jres({ error: 'Secret key kosong' }, 500, cors);
-        // Trim whitespace/newline dari secret key
-        bucket.secret_key = bucket.secret_key.trim();
-        bucket.access_key = bucket.access_key.trim();
-        const body = await req.arrayBuffer();
-        const cap = await checkCap(env, uid, bucket.id, body.byteLength, Math.min(limitBytes, MAX_BUCKET_BYTES));
+        const cfg = bucketCfg(bucket);
+        let body;
+        try { body = await req.arrayBuffer(); } catch (e) { return jres({ error: 'Gagal baca body' }, 400, cors); }
+        if (!body || body.byteLength === 0) return jres({ error: 'File kosong' }, 400, cors);
+        // Cek kuota (total semua user)
+        const cap = await checkCap(env, bucket.id, body.byteLength, Math.min(limitBytes || MAX_BUCKET_BYTES, MAX_BUCKET_BYTES));
         if (!cap.ok) return jres({ error: cap.msg }, 413, cors);
-        // Gunakan content-type yang diterima dari request
         const ct = req.headers.get('Content-Type') || 'application/octet-stream';
-        await r2Put(bucket, key, body, ct);
+        const s3url = r2url(cfg, key);
+        const hdrs = await signS3('PUT', s3url, body, ct, cfg);
+        const r2Res = await fetch(s3url, { method: 'PUT', headers: hdrs, body });
+        if (!r2Res.ok) {
+          const t = await r2Res.text().catch(() => '');
+          return jres({ error: `R2 upload gagal (${r2Res.status}): ${t.slice(0, 300)}` }, 502, cors);
+        }
         return jres({ ok: true, key }, 200, cors);
       }
 
       // GET /file/:key
       if (req.method === 'GET' && path.startsWith('/file/')) {
         const key = decodeURIComponent(path.slice(6));
-        if (!key.startsWith(uid + '/') && !(await isUserAdmin(env, uid))) return jres({ error: 'Forbidden' }, 403, cors);
+        if (!admin && !key.startsWith(uid + '/')) return jres({ error: 'Forbidden' }, 403, cors);
         const bucketId = req.headers.get('X-Bucket-Id') || '';
-        const bucket = bucketId ? await getBucket(env, bucketId, uid) : await findBucket(env, uid, key);
+        const bucket = bucketId ? await getBucket(env, bucketId) : await findBucket(env, key);
         if (!bucket) return jres({ error: 'Bucket tidak ditemukan' }, 404, cors);
-        const res = await r2Get(bucket, key);
-        if (!res.ok) return jres({ error: 'File tidak ditemukan' }, 404, cors);
-        const h = new Headers(cors);
-        h.set('Content-Type', res.headers.get('Content-Type') || 'application/octet-stream');
-        h.set('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(key.split('/').pop())}`);
-        return new Response(res.body, { status: 200, headers: h });
+        const cfg = bucketCfg(bucket);
+        const s3url = r2url(cfg, key);
+        const hdrs = await signS3('GET', s3url, null, '', cfg);
+        const r2Res = await fetch(s3url, { method: 'GET', headers: hdrs });
+        if (!r2Res.ok) return jres({ error: 'File tidak ditemukan' }, 404, cors);
+        const rh = new Headers(cors);
+        rh.set('Content-Type', r2Res.headers.get('Content-Type') || 'application/octet-stream');
+        const cl = r2Res.headers.get('Content-Length');
+        if (cl) rh.set('Content-Length', cl);
+        const rawName = key.split('/').pop() || 'file';
+        const namePart = rawName.replace(/^\d+_/, '');
+        rh.set('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(namePart)}`);
+        return new Response(r2Res.body, { status: 200, headers: rh });
       }
 
       // DELETE /file/:key
       if (req.method === 'DELETE' && path.startsWith('/file/')) {
         const key = decodeURIComponent(path.slice(6));
-        if (!key.startsWith(uid + '/') && !(await isUserAdmin(env, uid))) return jres({ error: 'Forbidden' }, 403, cors);
+        if (!admin && !key.startsWith(uid + '/')) return jres({ error: 'Forbidden' }, 403, cors);
         const bucketId = req.headers.get('X-Bucket-Id') || '';
-        const bucket = bucketId ? await getBucket(env, bucketId, uid) : await findBucket(env, uid, key);
-        if (bucket) await r2Del(bucket, key).catch(() => {});
+        const bucket = bucketId ? await getBucket(env, bucketId) : await findBucket(env, key);
+        if (bucket) {
+          const cfg = bucketCfg(bucket);
+          const s3url = r2url(cfg, key);
+          const hdrs = await signS3('DELETE', s3url, null, '', cfg);
+          await fetch(s3url, { method: 'DELETE', headers: hdrs }).catch(() => {});
+        }
         return jres({ ok: true }, 200, cors);
       }
 
       return jres({ error: 'Not found' }, 404, cors);
     } catch (e) {
-      console.error(e.message);
       return jres({ error: e.message }, 500, cors);
     }
   }
 };
 
 function jres(data, status, cors) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...cors }
-  });
+  return new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json', ...cors } });
 }
 
-async function verifyToken(env, token) {
-  const res = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
-    headers: { Authorization: `Bearer ${token}`, apikey: env.SUPABASE_KEY }
-  });
-  if (!res.ok) return { error: 'invalid token' };
-  return { user: await res.json() };
+function bucketCfg(b) {
+  return { accountId: b.account_id.trim(), accessKey: b.access_key.trim(), secretKey: b.secret_key.trim(), bucket: b.bucket.trim() };
+}
+function r2url(cfg, key) {
+  return `https://${cfg.accountId}.r2.cloudflarestorage.com/${cfg.bucket}/${key}`;
 }
 
-async function isUserAdmin(env, uid) {
+async function getBucket(env, id) {
   const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
-  const res = await fetch(
-    `${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=role`,
-    { headers: { apikey: k, Authorization: `Bearer ${k}` } }
-  );
-  const d = await res.json();
-  return Array.isArray(d) && d[0]?.role === 'admin';
-}
-
-async function getBucket(env, id, uid) {
-  const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
-  const res = await fetch(
-    `${env.SUPABASE_URL}/rest/v1/r2_buckets?id=eq.${id}&select=*`,
-    { headers: { apikey: k, Authorization: `Bearer ${k}` } }
-  );
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/r2_buckets?id=eq.${id}&select=*`,
+    { headers: { apikey: k, Authorization: `Bearer ${k}` } });
   const d = await res.json();
   return Array.isArray(d) && d.length ? d[0] : null;
 }
-
-async function findBucket(env, uid, r2Key) {
+async function findBucket(env, r2Key) {
   const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
-  const res = await fetch(
-    `${env.SUPABASE_URL}/rest/v1/dokumen?r2_key=eq.${encodeURIComponent(r2Key)}&select=storage_bucket_id`,
-    { headers: { apikey: k, Authorization: `Bearer ${k}` } }
-  );
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/dokumen?r2_key=eq.${encodeURIComponent(r2Key)}&select=storage_bucket_id`,
+    { headers: { apikey: k, Authorization: `Bearer ${k}` } });
   const d = await res.json();
   if (!Array.isArray(d) || !d[0]?.storage_bucket_id) return null;
-  return getBucket(env, d[0].storage_bucket_id, uid);
+  return getBucket(env, d[0].storage_bucket_id);
 }
-
-async function checkCap(env, uid, bucketId, incoming, limit) {
+async function checkCap(env, bucketId, incoming, limit) {
   const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
-  const res = await fetch(
-    `${env.SUPABASE_URL}/rest/v1/dokumen?storage_bucket_id=eq.${bucketId}&select=ukuran_file`,
-    { headers: { apikey: k, Authorization: `Bearer ${k}` } }
-  );
-  const d = await res.json();
-  const used = Array.isArray(d) ? d.reduce((a, x) => a + (x.ukuran_file || 0), 0) : 0;
+  // Paginasi penuh untuk akurasi (banyak dokumen)
+  let used = 0, from = 0;
+  while (true) {
+    const res = await fetch(`${env.SUPABASE_URL}/rest/v1/dokumen?storage_bucket_id=eq.${bucketId}&select=ukuran_file`,
+      { headers: { apikey: k, Authorization: `Bearer ${k}`, Range: `${from}-${from+999}`, 'Range-Unit': 'items' } });
+    if (!res.ok) break;
+    const d = await res.json();
+    if (!Array.isArray(d) || !d.length) break;
+    used += d.reduce((a, x) => a + (x.ukuran_file || 0), 0);
+    if (d.length < 1000) break;
+    from += 1000;
+  }
   const eff = Math.min(limit, MAX_BUCKET_BYTES);
-  if (used + incoming > eff) return { ok: false, msg: `Storage penuh (${fmt(used)} / ${fmt(eff)})` };
+  if (used + incoming > eff) return { ok: false, msg: `Penyimpanan penuh (${fmt(used)} / ${fmt(eff)} terpakai)` };
   return { ok: true };
 }
 
-// ── R2 operations ──────────────────────────────────────────────────
-
-// AWS S3 strict URI encode - encode semua kecuali unreserved chars
-// encodeURIComponent tidak encode: ! ' ( ) * ~ tapi AWS mengharuskan encode
-function awsEncode(str) {
-  return encodeURIComponent(str)
-    .replace(/[!'()*~]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
-}
-
-function r2Url(b, key) {
-  const encodedKey = key.split('/').map(s => awsEncode(s)).join('/');
-  return `https://${b.account_id}.r2.cloudflarestorage.com/${b.bucket}/${encodedKey}`;
-}
-
-async function r2Put(b, key, body, ct) {
-  const url = r2Url(b, key);
-  const h = await signV4('PUT', url, b.access_key, b.secret_key, body, ct);
-  const res = await fetch(url, { method: 'PUT', headers: h, body });
-  if (!res.ok) throw new Error(`R2 PUT ${res.status}: ${(await res.text()).slice(0, 300)}`);
-}
-
-async function r2Get(b, key) {
-  const url = r2Url(b, key);
-  const h = await signV4('GET', url, b.access_key, b.secret_key, null, null);
-  return fetch(url, { method: 'GET', headers: h });
-}
-
-async function r2Del(b, key) {
-  const url = r2Url(b, key);
-  const h = await signV4('DELETE', url, b.access_key, b.secret_key, null, null);
-  return fetch(url, { method: 'DELETE', headers: h });
-}
-
-// ── AWS Signature V4 ──────────────────────────────────────────────
-
-async function signV4(method, urlStr, accessKey, secretKey, body, contentType) {
+// ── AWS4 Signature (PERSIS dari SiPegawai yang BEKERJA) ──────────────
+async function signS3(method, urlStr, body, contentType, cfg) {
   const u = new URL(urlStr);
   const now = new Date();
-
-  // Format tanggal dengan benar
-  const pad = n => String(n).padStart(2, '0');
-  const ymd = `${now.getUTCFullYear()}${pad(now.getUTCMonth()+1)}${pad(now.getUTCDate())}`;
-  const amzDate = `${ymd}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
-
-  // Hash body
-  const bodyBuf = (body instanceof ArrayBuffer && body.byteLength > 0) ? body : null;
-  const bodyHash = bodyBuf
-    ? hex(await sha256(bodyBuf))
-    : 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-
-  // Bangun headers yang akan di-sign
-  // PENTING: hanya sign host, x-amz-content-sha256, x-amz-date
-  // content-type TIDAK di-sign untuk menghindari mismatch
-  const signHdrs = {
-    'host': u.host,
-    'x-amz-content-sha256': bodyHash,
-    'x-amz-date': amzDate,
-  };
-
-  const sortedKeys = Object.keys(signHdrs).sort();
-  const canonHdrs = sortedKeys.map(k => `${k}:${signHdrs[k]}\n`).join('');
-  const signedHdrsStr = sortedKeys.join(';');
-
-  // Canonical URI - re-encode pakai AWS strict encoding
-  // Decode dulu (URL constructor mungkin encode berbeda) lalu encode ulang dengan AWS rules
-  const canonUri = u.pathname.split('/').map(seg => {
-    const decoded = decodeURIComponent(seg);
-    return encodeURIComponent(decoded)
-      .replace(/[!'()*~]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
-  }).join('/');
-
-  // Canonical request
-  const canonReq = [method, canonUri, '', canonHdrs, signedHdrsStr, bodyHash].join('\n');
-
-  // Credential scope
-  const region = 'auto';
-  const service = 's3';
-  const scope = `${ymd}/${region}/${service}/aws4_request`;
-
-  // String to sign
-  const strToSign = [
-    'AWS4-HMAC-SHA256',
-    amzDate,
-    scope,
-    hex(await sha256(str2buf(canonReq)))
-  ].join('\n');
-
-  // Derive signing key
-  const kDate    = await hmacBuf(str2buf('AWS4' + secretKey.trim()), ymd);
-  const kRegion  = await hmacBuf(kDate, region);
-  const kService = await hmacBuf(kRegion, service);
-  const kSign    = await hmacBuf(kService, 'aws4_request');
-  const sig      = hex(await hmacBuf(kSign, strToSign));
-
-  // Return headers untuk fetch
-  const result = {
-    ...signHdrs,
-    'authorization': `AWS4-HMAC-SHA256 Credential=${accessKey}/${scope},SignedHeaders=${signedHdrsStr},Signature=${sig}`,
-  };
-
-  // Tambah content-type ke request tapi TIDAK di-sign
-  if (contentType) result['content-type'] = contentType;
-
-  return result;
+  const ds = now.toISOString().slice(0,10).replace(/-/g,'');
+  const dts = now.toISOString().replace(/[-:]/g,'').slice(0,15) + 'Z';
+  const EMPTY_HASH = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+  let bodyHash;
+  if (!body || body.byteLength === 0 || body === '') bodyHash = EMPTY_HASH;
+  else bodyHash = await sha256hex(body instanceof ArrayBuffer ? body : new TextEncoder().encode(body));
+  const hmap = { 'host': u.host, 'x-amz-content-sha256': bodyHash, 'x-amz-date': dts };
+  if (contentType && method === 'PUT') hmap['content-type'] = contentType;
+  const sortedKeys = Object.keys(hmap).sort();
+  const canonHeaders = sortedKeys.map(k => `${k}:${hmap[k]}`).join('\n') + '\n';
+  const signedHeaders = sortedKeys.join(';');
+  const canonReq = [method, u.pathname, '', canonHeaders, signedHeaders, bodyHash].join('\n');
+  const scope = `${ds}/auto/s3/aws4_request`;
+  const sts = ['AWS4-HMAC-SHA256', dts, scope, await sha256hex(canonReq)].join('\n');
+  let sk = await hmacB(`AWS4${cfg.secretKey}`, ds);
+  sk = await hmacB(sk, 'auto');
+  sk = await hmacB(sk, 's3');
+  sk = await hmacB(sk, 'aws4_request');
+  const sig = hex(await hmacB(sk, sts));
+  return { ...hmap, Authorization: `AWS4-HMAC-SHA256 Credential=${cfg.accessKey}/${scope}, SignedHeaders=${signedHeaders}, Signature=${sig}` };
 }
-
-// Crypto helpers
-function str2buf(s) { return new TextEncoder().encode(s); }
-async function sha256(data) {
-  return crypto.subtle.digest('SHA-256', data instanceof ArrayBuffer ? data : str2buf(data));
+async function sha256hex(data) {
+  const b = data instanceof ArrayBuffer ? data : typeof data === 'string' ? new TextEncoder().encode(data) : data;
+  return hex(new Uint8Array(await crypto.subtle.digest('SHA-256', b)));
 }
-async function hmacBuf(keyBuf, msg) {
-  // Pastikan keyBuf selalu ArrayBuffer murni
-  let rawKey;
-  if (keyBuf instanceof ArrayBuffer) {
-    rawKey = keyBuf;
-  } else if (ArrayBuffer.isView(keyBuf)) {
-    // Uint8Array atau TypedArray lain - ambil buffer dengan offset yang benar
-    rawKey = keyBuf.buffer.slice(keyBuf.byteOffset, keyBuf.byteOffset + keyBuf.byteLength);
-  } else {
-    rawKey = keyBuf;
-  }
-  const k = await crypto.subtle.importKey(
-    'raw', rawKey,
-    { name: 'HMAC', hash: { name: 'SHA-256' } },
-    false, ['sign']
-  );
-  const msgBuf = typeof msg === 'string' ? str2buf(msg) : msg;
-  return crypto.subtle.sign('HMAC', k, msgBuf);
+async function hmacB(key, data) {
+  const kb = key instanceof Uint8Array ? key : new TextEncoder().encode(key);
+  const ck = await crypto.subtle.importKey('raw', kb, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const db = typeof data === 'string' ? new TextEncoder().encode(data) : data;
+  return new Uint8Array(await crypto.subtle.sign('HMAC', ck, db));
 }
-function hex(buf) {
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
-}
-function fmt(bytes) {
+function hex(arr) { return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join(''); }
+function fmt(b) {
   const u = ['B','KB','MB','GB']; let i = 0;
-  while (bytes >= 1024 && i < 3) { bytes /= 1024; i++; }
-  return bytes.toFixed(i ? 1 : 0) + ' ' + u[i];
+  while (b >= 1024 && i < 3) { b /= 1024; i++; }
+  return b.toFixed(i ? 1 : 0) + ' ' + u[i];
 }

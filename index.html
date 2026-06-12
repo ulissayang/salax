@@ -962,10 +962,21 @@ select.inp option{background:#1a1a2e;color:var(--text)}
     <button class="bnav-btn" data-page="ai" onclick="showPage('ai')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>AI
     </button>
-    <button class="bnav-btn" data-page="settings" onclick="showPage('settings')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Setting
+    <button class="bnav-btn" data-page="more" onclick="openMobileMenu()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Menu
     </button>
   </nav>
+
+<!-- Mobile Menu Sheet -->
+<div id="mobileMenuSheet" class="modal-bd" onclick="if(event.target===this)closeMobileMenu()" style="align-items:flex-end">
+  <div class="modal-box" style="max-width:100%;width:100%;border-radius:24px 24px 0 0;padding:20px;max-height:80svh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 class="modal-title">Menu</h3>
+      <button onclick="closeMobileMenu()" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="mobileMenuItems" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+  </div>
+</div>
 </div>
 
 <!-- ═══ MODALS ═══ -->
@@ -1082,7 +1093,15 @@ select.inp option{background:#1a1a2e;color:var(--text)}
       <div><label class="lbl">Bucket Name *</label><input id="mbBucket" type="text" class="inp" placeholder="nama-bucket"/></div>
       <div><label class="lbl">Access Key ID *</label><input id="mbAccessKey" type="text" class="inp"/></div>
       <div style="grid-column:1/-1"><label class="lbl">Secret Access Key <span style="color:var(--faint)">(kosong = pertahankan)</span></label><input id="mbSecretKey" type="password" class="inp" autocomplete="new-password"/></div>
-      <div><label class="lbl">Limit (GB) maks 9</label><input id="mbLimit" type="number" class="inp" placeholder="9" min="1" max="9" value="9"/></div>
+      <div><label class="lbl">Limit Penyimpanan (maks 9 GB)</label>
+        <div style="display:flex;gap:8px">
+          <input id="mbLimit" type="number" class="inp" placeholder="9" min="1" step="any" value="9" style="flex:1"/>
+          <select id="mbLimitUnit" class="inp" style="max-width:90px" onchange="onLimitUnitChange()">
+            <option value="GB">GB</option>
+            <option value="MB">MB</option>
+          </select>
+        </div>
+      </div>
       <div><label class="lbl">Urutan Fallback</label><input id="mbUrutan" type="number" class="inp" min="1" value="1"/></div>
     </div>
     <label style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px;cursor:pointer">
@@ -1569,11 +1588,56 @@ function setPrg(pct,label){
   document.getElementById('upPrgLabel').textContent=label;
   document.getElementById('upPrgPct').textContent=pct+'%';
 }
+
+// Hitung total pemakaian bucket dari SEMUA user (akurat, paginated).
+async function getBucketUsageAll(){
+  const usageMap={};
+  let from=0;const PAGE=1000;
+  while(true){
+    const{data,error}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').range(from,from+PAGE-1);
+    if(error||!data||!data.length)break;
+    data.forEach(d=>{const k=d.storage_bucket_id;if(!usageMap[k])usageMap[k]=0;usageMap[k]+=(d.ukuran_file||0);});
+    if(data.length<PAGE)break;
+    from+=PAGE;
+  }
+  return usageMap;
+}
+
+
+// ── MOBILE MENU SHEET ─────────────────────────────────────────
+function openMobileMenu(){
+  const items=document.getElementById('mobileMenuItems');
+  // Semua menu yang TIDAK ada di bottom nav (Home/Dokumen/Upload/AI sudah ada)
+  const menus=[
+    {page:'kategori', label:'Kategori', icon:'<path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>', admin:true},
+    {page:'download', label:'Download', icon:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>', admin:false},
+    {page:'storage', label:'Storage', icon:'<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>', admin:true},
+    {page:'users', label:'Users', icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/>', admin:true},
+    {page:'settings', label:'Pengaturan', icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>', admin:true},
+    {page:'profil', label:'Profil', icon:'<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>', admin:false},
+  ];
+  const isAdmin=CU.role==='admin';
+  items.innerHTML=menus.filter(m=>!m.admin||isAdmin).map(m=>
+    `<button onclick="closeMobileMenu();showPage('${m.page}')" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:16px;cursor:pointer;color:var(--text);transition:all .15s">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.8">${m.icon}</svg>
+      <span style="font-size:12px;font-weight:600">${m.label}</span>
+    </button>`
+  ).join('');
+  openModal('mobileMenuSheet');
+}
+function closeMobileMenu(){closeModal('mobileMenuSheet');}
+
+function onLimitUnitChange(){
+  const unit=document.getElementById('mbLimitUnit').value;
+  const inp=document.getElementById('mbLimit');
+  // Saat ganti ke GB, batasi maks 9; MB maks 9216
+  if(unit==='GB'){inp.max='9';if(parseFloat(inp.value)>9)inp.value='9';}
+  else{inp.max='9216';if(parseFloat(inp.value)>9216)inp.value='9216';}
+}
 async function findAvailableBucket(fileSize){
   const active=allBuckets.filter(b=>b.aktif).sort((a,b)=>a.urutan-b.urutan);
   if(!active.length)return null;
-  const{data:ud}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id',CU.id);
-  const usageMap={};(ud||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
+  const usageMap=await getBucketUsageAll();
   for(const b of active){const used=usageMap[b.id]||0,limit=b.limit_bytes||MAX_BUCKET_BYTES;if(used+fileSize<=limit)return b;}
   return null;
 }
@@ -2044,14 +2108,16 @@ async function loadStoragePage(){
   const empty=document.getElementById('storageEmpty');
   if(!allBuckets.length){list.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
-  const{data:ud}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id',CU.id);
-  const usageMap={};(ud||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
+  const usageMap=await getBucketUsageAll();
+  // Untuk docCount per bucket (semua user)
+  const{data:allDocs}=await sb.from('dokumen').select('storage_bucket_id');
+  const countMap={};(allDocs||[]).forEach(d=>{countMap[d.storage_bucket_id]=(countMap[d.storage_bucket_id]||0)+1;});
   list.innerHTML=allBuckets.map(b=>{
     const used=usageMap[b.id]||0,limit=b.limit_bytes||MAX_BUCKET_BYTES;
     const pct=Math.min((used/limit)*100,100);
     const clr=pct>90?'#f87171':pct>70?'#fbbf24':'#4ade80';
     const badge=!b.aktif?'<span class="badge badge-red">Nonaktif</span>':pct>=100?'<span class="badge badge-red">Penuh</span>':pct>70?'<span class="badge" style="background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)">Hampir penuh</span>':'<span class="badge badge-green">Normal</span>';
-    const docCount = (ud||[]).filter(d=>d.storage_bucket_id===b.id).length;
+    const docCount = countMap[b.id]||0;
     return`<div class="card" style="padding:16px 20px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px"><div style="width:40px;height:40px;background:linear-gradient(135deg,rgba(220,38,38,.2),rgba(219,39,119,.1));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🗄️</div><div><div style="font-size:14px;font-weight:700">${esc(b.label)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(b.bucket)} · ${docCount} file · Urutan ${b.urutan}</div></div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${badge}<button onclick="openModalBucket('${b.id}')" class="btn btn-ghost btn-xs">Edit</button><button onclick="openModalTransfer('${b.id}')" class="btn btn-xs" style="background:rgba(14,165,233,.15);color:#38bdf8;border:1px solid rgba(14,165,233,.25)">Transfer</button><button onclick="confirmDelBucket('${b.id}','${esc(b.label)}')" class="btn btn-danger btn-xs">Hapus</button></div></div><div class="sbar"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${clr}"></div></div><div style="display:flex;justify-content:space-between;margin-top:8px"><span style="font-size:11px;color:var(--muted)">${fmtSz(used)} / ${fmtSz(limit)}</span><span style="font-size:11px;color:var(--muted)">${pct.toFixed(1)}% terpakai</span></div></div>`;
   }).join('');
 }
@@ -2061,12 +2127,16 @@ function openModalBucket(id=''){
     const b=allBuckets.find(x=>x.id==id);
     if(b){
       document.getElementById('mbLabel').value=b.label;document.getElementById('mbAccountId').value=b.account_id;document.getElementById('mbBucket').value=b.bucket;document.getElementById('mbAccessKey').value=b.access_key;document.getElementById('mbSecretKey').value='';
-      document.getElementById('mbLimit').value=Math.round((b.limit_bytes||MAX_BUCKET_BYTES)/1024**3);document.getElementById('mbUrutan').value=b.urutan;document.getElementById('mbAktif').checked=b.aktif;
+      const lb=b.limit_bytes||MAX_BUCKET_BYTES;
+      // Tampilkan dalam MB jika <1GB, selain itu GB
+      if(lb<1024**3){document.getElementById('mbLimit').value=Math.round(lb/1024**2);document.getElementById('mbLimitUnit').value='MB';}
+      else{document.getElementById('mbLimit').value=+(lb/1024**3).toFixed(2);document.getElementById('mbLimitUnit').value='GB';}
+      document.getElementById('mbUrutan').value=b.urutan;document.getElementById('mbAktif').checked=b.aktif;
     }
     document.getElementById('modalBucketTitle').textContent='Edit Bucket R2';
   }else{
     ['mbLabel','mbAccountId','mbBucket','mbAccessKey','mbSecretKey'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('mbLimit').value='9';document.getElementById('mbUrutan').value=String(allBuckets.length+1);document.getElementById('mbAktif').checked=true;
+    document.getElementById('mbLimit').value='9';document.getElementById('mbLimitUnit').value='GB';document.getElementById('mbUrutan').value=String(allBuckets.length+1);document.getElementById('mbAktif').checked=true;
     document.getElementById('modalBucketTitle').textContent='Tambah Bucket R2';
   }
   document.getElementById('modalBucketAlert').style.display='none';openModal('modalBucket');
@@ -2078,7 +2148,11 @@ async function saveBucket(){
   const bucket=document.getElementById('mbBucket').value.trim();
   const accessKey=document.getElementById('mbAccessKey').value.trim();
   const secretKey=document.getElementById('mbSecretKey').value.trim();
-  const limitGb=Math.min(parseFloat(document.getElementById('mbLimit').value)||9,9);
+  const limitVal=parseFloat(document.getElementById('mbLimit').value)||9;
+  const limitUnit=document.getElementById('mbLimitUnit').value;
+  let limitBytes=limitUnit==='MB'?Math.round(limitVal*1024**2):Math.round(limitVal*1024**3);
+  // Maksimal 9 GB (batas R2 free tier per bucket di app ini)
+  limitBytes=Math.min(limitBytes,MAX_BUCKET_BYTES);
   const urutan=parseInt(document.getElementById('mbUrutan').value)||1;
   const aktif=document.getElementById('mbAktif').checked;
   const btn=document.getElementById('btnSaveBucket');
@@ -2086,7 +2160,7 @@ async function saveBucket(){
   if(!id&&!secretKey){showModalAlert('modalBucketAlert','Secret Key wajib untuk bucket baru','err');return;}
   setBtn(btn,true);
   try{
-    const payload={user_id:CU.id,label,account_id:accountId,bucket,access_key:accessKey,limit_bytes:Math.round(limitGb*1024**3),urutan,aktif};
+    const payload={user_id:CU.id,label,account_id:accountId,bucket,access_key:accessKey,limit_bytes:limitBytes,urutan,aktif};
     if(secretKey)payload.secret_key=secretKey;
     const{error}=id?await sb.from('r2_buckets').update(payload).eq('id',id):await sb.from('r2_buckets').insert(payload);
     if(error)throw new Error(error.message);
@@ -2954,8 +3028,7 @@ async function loadDash(){
 async function renderDashStorageBars(){
   const el=document.getElementById('dashStorageBars');
   if(!allBuckets.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:13px">Belum ada bucket R2 — tambah di Storage</div>';return;}
-  const{data:ud}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').eq('user_id',CU.id);
-  const usageMap={};(ud||[]).forEach(d=>{if(!usageMap[d.storage_bucket_id])usageMap[d.storage_bucket_id]=0;usageMap[d.storage_bucket_id]+=(d.ukuran_file||0);});
+  const usageMap=await getBucketUsageAll();
   el.innerHTML=allBuckets.map(b=>{
     const used=usageMap[b.id]||0,limit=b.limit_bytes||MAX_BUCKET_BYTES;
     const pct=Math.min((used/limit)*100,100);

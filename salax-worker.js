@@ -40,6 +40,83 @@ export default {
       return jres({ usage: usageMap }, 200, cors);
     }
 
+    // GET /r2size?bucketId=xxx — ukuran ASLI dari R2 (ListObjects, akurat)
+    if (req.method === 'GET' && path === '/r2size') {
+      const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+      if (!token) return jres({ error: 'Unauthorized' }, 401, cors);
+      const uRes = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, { headers: { apikey: env.SUPABASE_KEY, Authorization: `Bearer ${token}` } });
+      if (!uRes.ok) return jres({ error: 'Unauthorized' }, 401, cors);
+      const bucketId = url.searchParams.get('bucketId');
+      const bucket = await getBucket(env, bucketId);
+      if (!bucket) return jres({ error: 'Bucket tidak ditemukan' }, 404, cors);
+      const cfg = bucketCfg(bucket);
+      // ListObjectsV2 — paginasi via continuation-token
+      let totalSize = 0, count = 0, contToken = '';
+      try {
+        while (true) {
+          let listUrl = `https://${cfg.accountId}.r2.cloudflarestorage.com/${cfg.bucket}?list-type=2&max-keys=1000`;
+          if (contToken) listUrl += `&continuation-token=${encodeURIComponent(contToken)}`;
+          const hdrs = await signS3('GET', listUrl, null, '', cfg);
+          const r = await fetch(listUrl, { method: 'GET', headers: hdrs });
+          if (!r.ok) return jres({ error: 'R2 list gagal: ' + r.status }, 502, cors);
+          const xml = await r.text();
+          // Parse <Size> dari tiap <Contents>
+          const sizes = [...xml.matchAll(/<Size>(\d+)<\/Size>/g)];
+          sizes.forEach(m => { totalSize += parseInt(m[1] || '0'); count++; });
+          const truncated = /<IsTruncated>true<\/IsTruncated>/.test(xml);
+          const ctMatch = xml.match(/<NextContinuationToken>([^<]+)<\/NextContinuationToken>/);
+          if (truncated && ctMatch) contToken = ctMatch[1];
+          else break;
+        }
+        return jres({ bucket_id: bucketId, total_bytes: totalSize, file_count: count }, 200, cors);
+      } catch (e) {
+        return jres({ error: e.message }, 500, cors);
+      }
+    }
+
+    // DELETE /deluser/:id — hapus user TOTAL (auth + dokumen + file R2). Admin only.
+    if (req.method === 'DELETE' && path.startsWith('/deluser/')) {
+      const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+      if (!token) return jres({ error: 'Unauthorized' }, 401, cors);
+      const uRes = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, { headers: { apikey: env.SUPABASE_KEY, Authorization: `Bearer ${token}` } });
+      if (!uRes.ok) return jres({ error: 'Unauthorized' }, 401, cors);
+      const caller = await uRes.json();
+      const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;
+      // Cek caller admin
+      const cr = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${caller.id}&select=role`, { headers: { apikey: k, Authorization: `Bearer ${k}` } });
+      const cd = await cr.json();
+      if (!Array.isArray(cd) || cd[0]?.role !== 'admin') return jres({ error: 'Forbidden: hanya admin' }, 403, cors);
+
+      const targetId = decodeURIComponent(path.slice(9));
+      if (!targetId) return jres({ error: 'ID user kosong' }, 400, cors);
+      if (targetId === caller.id) return jres({ error: 'Tidak bisa hapus diri sendiri' }, 400, cors);
+
+      // 1. Ambil semua dokumen user untuk hapus file R2
+      const docsRes = await fetch(`${env.SUPABASE_URL}/rest/v1/dokumen?user_id=eq.${targetId}&select=r2_key,storage_bucket_id`, { headers: { apikey: k, Authorization: `Bearer ${k}` } });
+      const docs = docsRes.ok ? await docsRes.json() : [];
+      let filesDeleted = 0;
+      for (const doc of (docs || [])) {
+        try {
+          const bucket = await getBucket(env, doc.storage_bucket_id);
+          if (bucket && doc.r2_key) {
+            const cfg = bucketCfg(bucket);
+            const s3url = r2url(cfg, doc.r2_key);
+            const hdrs = await signS3('DELETE', s3url, null, '', cfg);
+            await fetch(s3url, { method: 'DELETE', headers: hdrs }).catch(() => {});
+            filesDeleted++;
+          }
+        } catch (e) {}
+      }
+      // 2. Hapus dokumen dari DB
+      await fetch(`${env.SUPABASE_URL}/rest/v1/dokumen?user_id=eq.${targetId}`, { method: 'DELETE', headers: { apikey: k, Authorization: `Bearer ${k}` } }).catch(() => {});
+      // 3. Hapus profile
+      await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${targetId}`, { method: 'DELETE', headers: { apikey: k, Authorization: `Bearer ${k}` } }).catch(() => {});
+      // 4. Hapus auth user (perlu service key)
+      const authDel = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${targetId}`, { method: 'DELETE', headers: { apikey: k, Authorization: `Bearer ${k}` } });
+      const authOk = authDel.ok;
+      return jres({ ok: true, files_deleted: filesDeleted, auth_deleted: authOk }, 200, cors);
+    }
+
     // SELF-TEST tanpa login
     if (path === '/selftest') {
       const k = env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY;

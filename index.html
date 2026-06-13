@@ -1469,10 +1469,11 @@ ${prompt}`}]}]
     const sel=document.getElementById('upKat');
     if(katMatch){
       sel.value=katMatch.id;
-    } else if(result.kategori){
-      // Suggest creating new category
+    } else if(result.kategori && CU.role==='admin'){
+      // Saran kategori baru HANYA untuk admin (user biasa tidak bisa buat kategori)
       toast(`💡 AI menyarankan kategori baru: "${result.kategori}" — buat via tombol "+ Baru"`, 'info');
     }
+    // User biasa: pilih kategori yang ada saja, tanpa saran teknis
 
     // Show reasoning
     if(result.alasan){
@@ -1480,18 +1481,24 @@ ${prompt}`}]}]
       document.getElementById('aiReasoningText').textContent=result.alasan;
     }
 
-    toast('✨ AI berhasil mendeteksi dokumen','ok');
+    if(CU.role==='admin') toast('✨ AI berhasil mendeteksi dokumen','ok');
+    else toast('✓ Dokumen siap, periksa & lengkapi data','ok');
 
   }catch(e){
-    
     // Fallback to manual
     document.getElementById('upStep2').style.display='none';
     document.getElementById('upStep3').style.display='block';
     document.getElementById('aiNamaFile').value=file.name;
-    if(e.message.includes('API_KEY')||e.message.includes('key')||e.message.includes('401')){
-      toast('⚠️ Gemini API key tidak valid — isi manual','warn');
+    if(CU.role==='admin'){
+      // Admin: pesan teknis
+      if(e.message.includes('API_KEY')||e.message.includes('key')||e.message.includes('401')){
+        toast('⚠️ Gemini API key tidak valid — isi manual','warn');
+      } else {
+        toast('⚠️ AI tidak bisa membaca file ini — isi manual','warn');
+      }
     } else {
-      toast('⚠️ AI tidak bisa membaca file ini — isi manual','warn');
+      // User biasa: pesan umum & sederhana
+      toast('Silakan isi nama & kategori dokumen secara manual','info');
     }
   }
 }
@@ -1603,18 +1610,29 @@ function setPrg(pct,label){
 
 // Hitung total pemakaian bucket dari SEMUA user (akurat, paginated).
 async function getBucketUsageAll(){
-  // Pakai worker /storage (service key) — akurat hitung SEMUA user, untuk admin & user biasa.
-  // RLS membatasi user biasa hanya lihat dokumennya sendiri, jadi query langsung tidak akurat.
+  // Baca ukuran ASLI dari R2 (ListObjects) untuk tiap bucket — paling akurat.
+  // Fallback ke worker /storage (sum ukuran_file DB) jika R2 gagal.
+  const usageMap={};
   try{
     const{data:{session}}=await sb.auth.getSession();
     const token=session?.access_token||'';
     if(WORKER_URL && token){
+      // Ukuran asli R2 per bucket
+      let allOk=true;
+      for(const b of allBuckets){
+        try{
+          const r=await fetch(`${WORKER_URL}/r2size?bucketId=${encodeURIComponent(b.id)}`,{headers:{'Authorization':`Bearer ${token}`}});
+          if(r.ok){const j=await r.json();usageMap[b.id]=j.total_bytes||0;}
+          else{allOk=false;}
+        }catch(e){allOk=false;}
+      }
+      if(allOk && allBuckets.length)return usageMap;
+      // Fallback: sum ukuran_file dari DB via worker
       const res=await fetch(`${WORKER_URL}/storage`,{headers:{'Authorization':`Bearer ${token}`}});
-      if(res.ok){const j=await res.json();return j.usage||{};}
+      if(res.ok){const j=await res.json();return j.usage||usageMap;}
     }
   }catch(e){}
-  // Fallback: query langsung (hanya akurat untuk admin)
-  const usageMap={};
+  // Fallback terakhir: query DB langsung (hanya akurat untuk admin)
   let from=0;const PAGE=1000;
   while(true){
     const{data,error}=await sb.from('dokumen').select('storage_bucket_id,ukuran_file').range(from,from+PAGE-1);
@@ -2390,7 +2408,8 @@ async function doTransfer(){
     const toB=allBuckets.find(b=>b.id===toId);
     const{data:{session}}=await sb.auth.getSession();
     const token=session?.access_token||'';
-    let ok=0,skip=0;
+    let ok=0,skip=0,gagal=0;
+    const gagalList=[];
     for(let i=0;i<docs.length;i++){
       const doc=docs[i];
       const pct=Math.round((i/docs.length)*90);
@@ -2402,33 +2421,49 @@ async function doTransfer(){
         const getRes=await fetch(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{
           headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':fromId}
         });
-        if(!getRes.ok){skip++;continue;}
+        if(!getRes.ok){
+          // File tidak ada di bucket asal (record DB orphan / sudah terhapus di R2)
+          if(getRes.status===404){gagalList.push(`${doc.nama_file} (file tidak ditemukan di bucket asal)`);}
+          else{gagalList.push(`${doc.nama_file} (gagal unduh: ${getRes.status})`);}
+          gagal++;continue;
+        }
         const fileBlob=await getRes.arrayBuffer();
-        if(!fileBlob||fileBlob.byteLength===0){skip++;continue;}
-        // Upload ke bucket tujuan
-        const newKey=`${CU.id}/${Date.now()}_${doc.nama_file}`;
+        if(!fileBlob||fileBlob.byteLength===0){gagalList.push(`${doc.nama_file} (file kosong)`);gagal++;continue;}
+        // Sanitize nama file untuk key baru (hindari spasi/karakter khusus yang break signature)
+        const safeName=(doc.nama_file||'file').replace(/[^a-zA-Z0-9._\-]/g,'_').replace(/_{2,}/g,'_');
+        const newKey=`${CU.id}/${Date.now()}_${i}_${safeName}`;
         const putRes=await fetch(`${WORKER_URL}/upload/${encodeURIComponent(newKey)}`,{
           method:'PUT',
           headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/octet-stream','X-Bucket-Id':toId,'X-R2-Limit':String(toB.limit_bytes||MAX_BUCKET_BYTES)},
           body:fileBlob,
         });
-        if(!putRes.ok){skip++;continue;}
+        if(!putRes.ok){
+          const ej=await putRes.json().catch(()=>({}));
+          gagalList.push(`${doc.nama_file} (gagal upload: ${ej.error||putRes.status})`);
+          gagal++;continue;
+        }
         // Update database: ubah storage_bucket_id dan r2_key
         await sb.from('dokumen').update({storage_bucket_id:toId,r2_key:newKey}).eq('id',doc.id);
-        // Hapus dari bucket asal
+        // Hapus dari bucket asal (file lama)
         await fetch(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{
           method:'DELETE',
           headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':fromId}
         }).catch(()=>{});
         ok++;
-      }catch(e){skip++;}
+      }catch(e){gagalList.push(`${doc.nama_file} (${e.message})`);gagal++;}
     }
     prgFill.style.width='100%';
-    prgLabel.textContent='Selesai!';
+    prgLabel.textContent='Selesai';
     prgPct.textContent='100%';
-    const msg=`✓ ${ok} file berhasil ditransfer${skip>0?`, ${skip} dilewati`:''}`;
-    showModalAlert('modalTransferAlert',msg,'ok');
-    toast(msg,'ok');
+    let msg;
+    if(gagal===0){
+      msg=`✓ Semua ${ok} file berhasil ditransfer`;
+      showModalAlert('modalTransferAlert',msg,'ok');
+    }else{
+      msg=`${ok} berhasil, ${gagal} gagal. File gagal: ${gagalList.slice(0,5).join('; ')}${gagalList.length>5?` dan ${gagalList.length-5} lainnya`:''}`;
+      showModalAlert('modalTransferAlert',msg,ok>0?'warn':'err');
+    }
+    toast(gagal===0?`✓ ${ok} file ditransfer`:`${ok} berhasil, ${gagal} gagal`,gagal===0?'ok':'warn');
     await loadBuckets();
     setTimeout(()=>{closeModal('modalTransfer');loadStoragePage();},1500);
   }catch(e){
@@ -2635,13 +2670,18 @@ async function saveNewUser(){
 }
 
 function confirmDelUser(id,nama){
-  confirm_('Hapus User?','Hapus '+nama+' beserta SEMUA dokumennya? Tindakan ini permanen.',async()=>{
+  confirm_('Hapus User?','Hapus '+nama+' beserta SEMUA dokumen & filenya? Tindakan ini permanen.',async()=>{
     try{
-      // Hapus dokumen user dulu
-      await sb.from('dokumen').delete().eq('user_id',id);
-      // Hapus profile
-      await sb.from('profiles').delete().eq('id',id);
-      toast('User dihapus','ok');
+      const{data:{session}}=await sb.auth.getSession();
+      const token=session?.access_token||'';
+      if(!WORKER_URL||!token)throw new Error('Worker belum dikonfigurasi');
+      const res=await fetch(`${WORKER_URL}/deluser/${encodeURIComponent(id)}`,{
+        method:'DELETE',
+        headers:{'Authorization':`Bearer ${token}`}
+      });
+      const j=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(j.error||'Gagal hapus user');
+      toast('User & semua datanya dihapus','ok');
       loadUsersPage();
     }catch(e){toast('Gagal: '+e.message,'err');}
   });
@@ -2969,7 +3009,7 @@ async function loadUserState(user){
     document.getElementById('app').style.display='flex';
     // Restore halaman terakhir (kecuali jika user biasa buka halaman admin)
     let lastPage='dash';
-    try{ lastPage=localStorage.getItem('salax_page')||'dash'; }catch(e){}
+    try{ lastPage=sessionStorage.getItem('salax_page')||'dash'; }catch(e){}
     const adminPages=['kategori','storage','settings','users'];
     if(CU.role!=='admin' && adminPages.includes(lastPage)) lastPage='dash';
     showPage(lastPage);
@@ -3006,7 +3046,7 @@ const PAGE_LOADERS={
 function showPage(name){
   const validPages=['dash','dokumen','upload','ai','kategori','download','storage','settings','profil','users'];
   if(!validPages.includes(name)) name='404';
-  try{localStorage.setItem('salax_page',name==='404'?'dash':name);}catch(e){}
+  try{sessionStorage.setItem('salax_page',name==='404'?'dash':name);}catch(e){}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('[data-page]').forEach(n=>n.classList.remove('active'));
   const pageId='page'+name[0].toUpperCase()+name.slice(1);

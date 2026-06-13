@@ -238,8 +238,13 @@ function jres(data, status, cors) {
 function bucketCfg(b) {
   return { accountId: b.account_id.trim(), accessKey: b.access_key.trim(), secretKey: b.secret_key.trim(), bucket: b.bucket.trim() };
 }
+function awsEncodeSeg(s) {
+  return encodeURIComponent(s).replace(/[!'()*~]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+}
 function r2url(cfg, key) {
-  return `https://${cfg.accountId}.r2.cloudflarestorage.com/${cfg.bucket}/${key}`;
+  // Encode tiap segmen key (AWS-style) agar spasi/kurung/& konsisten saat upload & ambil.
+  const encKey = key.split('/').map(awsEncodeSeg).join('/');
+  return `https://${cfg.accountId}.r2.cloudflarestorage.com/${cfg.bucket}/${encKey}`;
 }
 
 async function getBucket(env, id) {
@@ -291,7 +296,13 @@ async function signS3(method, urlStr, body, contentType, cfg) {
   const sortedKeys = Object.keys(hmap).sort();
   const canonHeaders = sortedKeys.map(k => `${k}:${hmap[k]}`).join('\n') + '\n';
   const signedHeaders = sortedKeys.join(';');
-  const canonReq = [method, u.pathname, '', canonHeaders, signedHeaders, bodyHash].join('\n');
+  // Canonical query string — WAJIB di-sign jika ada query (mis. ListObjects ?list-type=2)
+  const qp = [];
+  for (const [k, v] of u.searchParams) qp.push([k, v]);
+  qp.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : (a[1] < b[1] ? -1 : 1));
+  const enc = s => encodeURIComponent(s).replace(/[!'()*~]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+  const canonQuery = qp.map(([k, v]) => `${enc(k)}=${enc(v)}`).join('&');
+  const canonReq = [method, u.pathname, canonQuery, canonHeaders, signedHeaders, bodyHash].join('\n');
   const scope = `${ds}/auto/s3/aws4_request`;
   const sts = ['AWS4-HMAC-SHA256', dts, scope, await sha256hex(canonReq)].join('\n');
   let sk = await hmacB(`AWS4${cfg.secretKey}`, ds);

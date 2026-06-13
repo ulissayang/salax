@@ -19,6 +19,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // Fallback jika CDN utama gagal/timeout
 window.addEventListener('error',function(e){
@@ -1617,17 +1619,17 @@ async function getBucketUsageAll(){
     const{data:{session}}=await sb.auth.getSession();
     const token=session?.access_token||'';
     if(WORKER_URL && token){
-      // Ukuran asli R2 per bucket
+      // Ukuran asli R2 per bucket (paling akurat)
       let allOk=true;
       for(const b of allBuckets){
         try{
           const r=await fetch(`${WORKER_URL}/r2size?bucketId=${encodeURIComponent(b.id)}`,{headers:{'Authorization':`Bearer ${token}`}});
           if(r.ok){const j=await r.json();usageMap[b.id]=j.total_bytes||0;}
-          else{allOk=false;}
-        }catch(e){allOk=false;}
+          else{allOk=false;break;}
+        }catch(e){allOk=false;break;}
       }
       if(allOk && allBuckets.length)return usageMap;
-      // Fallback: sum ukuran_file dari DB via worker
+      // Fallback ke sum ukuran_file dari DB via worker (jika R2 list gagal)
       const res=await fetch(`${WORKER_URL}/storage`,{headers:{'Authorization':`Bearer ${token}`}});
       if(res.ok){const j=await res.json();return j.usage||usageMap;}
     }
@@ -2259,6 +2261,8 @@ async function previewDok(r2Key, nama, bucketId, ukuran, kategori){
   const isImage = ['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext);
   const isPDF = ext === 'pdf';
   const isVideo = ['mp4','webm','ogg','mov'].includes(ext);
+  const isDocx = ext === 'docx';
+  const isXlsx = ext === 'xlsx' || ext === 'xls';
   
   try{
     const{data:{session}}=await sb.auth.getSession();
@@ -2283,8 +2287,12 @@ async function previewDok(r2Key, nama, bucketId, ukuran, kategori){
       await renderPdfPreview(blobUrl, body);
     } else if(isVideo){
       body.innerHTML=`<video src="${blobUrl}" controls style="max-width:100%;max-height:75vh;margin:auto;display:block"></video>`;
+    } else if(isDocx){
+      await renderDocxPreview(blob, body);
+    } else if(isXlsx){
+      await renderXlsxPreview(blob, body);
     } else {
-      // Untuk file teks, doc, dll — tampilkan info dan tombol unduh
+      // Untuk file teks, doc lama (.doc), dll — tampilkan info dan tombol unduh
       body.innerHTML=`<div style="text-align:center;padding:60px 20px">
         <div style="font-size:56px;margin-bottom:16px">${fileEmoji(nama)}</div>
         <div style="font-size:16px;font-weight:600;margin-bottom:8px">${esc(nama)}</div>
@@ -2303,6 +2311,46 @@ async function previewDok(r2Key, nama, bucketId, ukuran, kategori){
   }
 }
 
+
+
+async function renderDocxPreview(blob, container){
+  if(typeof mammoth==='undefined'){
+    container.innerHTML='<div style="padding:40px;text-align:center"><div style="color:var(--muted);margin-bottom:16px">Pratinjau dokumen tidak tersedia.</div><button onclick="downloadPreview()" class="btn btn-primary">Unduh File</button></div>';
+    return;
+  }
+  container.innerHTML='<div style="color:var(--muted);padding:40px;text-align:center">⏳ Merender dokumen...</div>';
+  try{
+    const arrayBuffer=await blob.arrayBuffer();
+    const result=await mammoth.convertToHtml({arrayBuffer});
+    container.innerHTML=`<div style="background:#fff;color:#1a1a1a;padding:40px;max-width:800px;margin:0 auto;border-radius:8px;line-height:1.7;font-family:Georgia,serif;overflow-y:auto;max-height:78vh">${result.value||'<p style=\'color:#888\'>Dokumen kosong</p>'}</div>`;
+  }catch(e){
+    container.innerHTML=`<div style="padding:40px;text-align:center"><div style="color:#f87171;margin-bottom:16px">Gagal merender dokumen: ${esc(e.message)}</div><button onclick="downloadPreview()" class="btn btn-primary">Unduh File</button></div>`;
+  }
+}
+
+async function renderXlsxPreview(blob, container){
+  if(typeof XLSX==='undefined'){
+    container.innerHTML='<div style="padding:40px;text-align:center"><div style="color:var(--muted);margin-bottom:16px">Pratinjau spreadsheet tidak tersedia.</div><button onclick="downloadPreview()" class="btn btn-primary">Unduh File</button></div>';
+    return;
+  }
+  container.innerHTML='<div style="color:var(--muted);padding:40px;text-align:center">⏳ Merender spreadsheet...</div>';
+  try{
+    const arrayBuffer=await blob.arrayBuffer();
+    const wb=XLSX.read(arrayBuffer,{type:'array'});
+    let html='<div style="background:#fff;color:#1a1a1a;padding:20px;overflow:auto;max-height:78vh;border-radius:8px">';
+    wb.SheetNames.forEach((name,idx)=>{
+      const ws=wb.Sheets[name];
+      const tableHtml=XLSX.utils.sheet_to_html(ws,{editable:false});
+      html+=`<div style="margin-bottom:8px;font-weight:700;font-size:13px;color:#666">${esc(name)}</div>`;
+      // Styling tabel
+      html+=tableHtml.replace('<table','<table style="border-collapse:collapse;width:100%;margin-bottom:24px;font-size:13px"').replace(/<td/g,'<td style="border:1px solid #ddd;padding:6px 10px"').replace(/<th/g,'<th style="border:1px solid #ddd;padding:6px 10px;background:#f5f5f5"');
+    });
+    html+='</div>';
+    container.innerHTML=html;
+  }catch(e){
+    container.innerHTML=`<div style="padding:40px;text-align:center"><div style="color:#f87171;margin-bottom:16px">Gagal merender spreadsheet: ${esc(e.message)}</div><button onclick="downloadPreview()" class="btn btn-primary">Unduh File</button></div>`;
+  }
+}
 
 async function renderPdfPreview(url, container){
   if(typeof pdfjsLib==='undefined'){
@@ -2400,55 +2448,66 @@ async function doTransfer(){
   setBtn(btn,true);
   prgWrap.style.display='block';
   try{
-    // Ambil semua dokumen di bucket asal
-    const{data:docs,error}=await sb.from('dokumen').select('id,nama_file,r2_key,ukuran_file').eq('user_id',CU.id).eq('storage_bucket_id',fromId);
+    // Ambil semua dokumen di bucket asal (SEMUA user, karena bucket bersama).
+    // Transfer bersifat resumable: record yang sudah pindah punya storage_bucket_id baru,
+    // jadi kalau gagal di tengah, jalankan ulang → hanya file tersisa yang diproses.
+    const{data:docs,error}=await sb.from('dokumen').select('id,nama_file,r2_key,ukuran_file,user_id').eq('storage_bucket_id',fromId);
     if(error) throw new Error(error.message);
-    if(!docs||!docs.length){showModalAlert('modalTransferAlert','Tidak ada file untuk ditransfer','warn');setBtn(btn,false);return;}
+    if(!docs||!docs.length){showModalAlert('modalTransferAlert','Tidak ada file untuk ditransfer (mungkin sudah selesai)','warn');setBtn(btn,false);return;}
     const fromB=allBuckets.find(b=>b.id===fromId);
     const toB=allBuckets.find(b=>b.id===toId);
     const{data:{session}}=await sb.auth.getSession();
     const token=session?.access_token||'';
-    let ok=0,skip=0,gagal=0;
+    let ok=0,gagal=0,orphan=0;
     const gagalList=[];
+    // Helper: fetch dengan retry (untuk transfer besar yang bisa putus di tengah)
+    async function fetchRetry(url,opts,tries=3){
+      let lastErr;
+      for(let t=0;t<tries;t++){
+        try{
+          const r=await fetch(url,opts);
+          if(r.ok||r.status===404||r.status===413)return r; // jangan retry 404/413
+          lastErr=new Error('HTTP '+r.status);
+        }catch(e){lastErr=e;}
+        await new Promise(rs=>setTimeout(rs,800*(t+1))); // backoff
+      }
+      throw lastErr||new Error('gagal setelah retry');
+    }
     for(let i=0;i<docs.length;i++){
       const doc=docs[i];
       const pct=Math.round((i/docs.length)*90);
       prgFill.style.width=pct+'%';
-      prgLabel.textContent=`Mentransfer ${i+1}/${docs.length}: ${doc.nama_file}`;
+      prgLabel.textContent=`Transfer ${i+1}/${docs.length}: ${(doc.nama_file||'').slice(0,30)}`;
       prgPct.textContent=pct+'%';
       try{
-        // Download dari bucket asal
-        const getRes=await fetch(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{
-          headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':fromId}
-        });
+        // Download dari bucket asal (dengan retry)
+        let getRes;
+        try{ getRes=await fetchRetry(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':fromId}}); }
+        catch(e){ gagalList.push(`${doc.nama_file} (koneksi gagal)`);gagal++;continue; }
         if(!getRes.ok){
-          // File tidak ada di bucket asal (record DB orphan / sudah terhapus di R2)
-          if(getRes.status===404){gagalList.push(`${doc.nama_file} (file tidak ditemukan di bucket asal)`);}
-          else{gagalList.push(`${doc.nama_file} (gagal unduh: ${getRes.status})`);}
-          gagal++;continue;
+          if(getRes.status===404){
+            // File tidak ada di R2 (record orphan). Catat & lewati — TIDAK dihitung gagal transfer.
+            orphan++;gagalList.push(`${doc.nama_file} (file hilang di bucket asal — record lama)`);
+          } else { gagalList.push(`${doc.nama_file} (unduh ${getRes.status})`);gagal++; }
+          continue;
         }
         const fileBlob=await getRes.arrayBuffer();
-        if(!fileBlob||fileBlob.byteLength===0){gagalList.push(`${doc.nama_file} (file kosong)`);gagal++;continue;}
-        // Sanitize nama file untuk key baru (hindari spasi/karakter khusus yang break signature)
+        if(!fileBlob||fileBlob.byteLength===0){orphan++;gagalList.push(`${doc.nama_file} (file kosong)`);continue;}
+        // Sanitasi nama untuk key baru (hindari spasi/karakter khusus)
         const safeName=(doc.nama_file||'file').replace(/[^a-zA-Z0-9._\-]/g,'_').replace(/_{2,}/g,'_');
-        const newKey=`${CU.id}/${Date.now()}_${i}_${safeName}`;
-        const putRes=await fetch(`${WORKER_URL}/upload/${encodeURIComponent(newKey)}`,{
-          method:'PUT',
-          headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/octet-stream','X-Bucket-Id':toId,'X-R2-Limit':String(toB.limit_bytes||MAX_BUCKET_BYTES)},
-          body:fileBlob,
-        });
+        const newKey=`${doc.user_id}/${Date.now()}_${i}_${safeName}`;
+        // Upload ke tujuan (dengan retry)
+        let putRes;
+        try{ putRes=await fetchRetry(`${WORKER_URL}/upload/${encodeURIComponent(newKey)}`,{method:'PUT',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/octet-stream','X-Bucket-Id':toId,'X-R2-Limit':String(toB.limit_bytes||MAX_BUCKET_BYTES)},body:fileBlob}); }
+        catch(e){ gagalList.push(`${doc.nama_file} (upload gagal: koneksi)`);gagal++;continue; }
         if(!putRes.ok){
           const ej=await putRes.json().catch(()=>({}));
-          gagalList.push(`${doc.nama_file} (gagal upload: ${ej.error||putRes.status})`);
-          gagal++;continue;
+          gagalList.push(`${doc.nama_file} (upload ${ej.error||putRes.status})`);gagal++;continue;
         }
-        // Update database: ubah storage_bucket_id dan r2_key
+        // Update DB DULU (commit pindah) — ini yang bikin resumable
         await sb.from('dokumen').update({storage_bucket_id:toId,r2_key:newKey}).eq('id',doc.id);
-        // Hapus dari bucket asal (file lama)
-        await fetch(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{
-          method:'DELETE',
-          headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':fromId}
-        }).catch(()=>{});
+        // Baru hapus file lama dari bucket asal
+        await fetch(`${WORKER_URL}/file/${encodeURIComponent(doc.r2_key)}`,{method:'DELETE',headers:{'Authorization':`Bearer ${token}`,'X-Bucket-Id':fromId}}).catch(()=>{});
         ok++;
       }catch(e){gagalList.push(`${doc.nama_file} (${e.message})`);gagal++;}
     }
@@ -2456,14 +2515,18 @@ async function doTransfer(){
     prgLabel.textContent='Selesai';
     prgPct.textContent='100%';
     let msg;
-    if(gagal===0){
+    if(gagal===0 && orphan===0){
       msg=`✓ Semua ${ok} file berhasil ditransfer`;
       showModalAlert('modalTransferAlert',msg,'ok');
     }else{
-      msg=`${ok} berhasil, ${gagal} gagal. File gagal: ${gagalList.slice(0,5).join('; ')}${gagalList.length>5?` dan ${gagalList.length-5} lainnya`:''}`;
+      let parts=[`${ok} berhasil`];
+      if(gagal>0)parts.push(`${gagal} gagal (bisa dicoba ulang)`);
+      if(orphan>0)parts.push(`${orphan} file lama hilang/orphan`);
+      msg=parts.join(', ')+'. '+(gagal>0?'Klik Transfer lagi untuk melanjutkan file yang gagal. ':'')+'Detail: '+gagalList.slice(0,4).join('; ')+(gagalList.length>4?` +${gagalList.length-4} lainnya`:'');
       showModalAlert('modalTransferAlert',msg,ok>0?'warn':'err');
     }
-    toast(gagal===0?`✓ ${ok} file ditransfer`:`${ok} berhasil, ${gagal} gagal`,gagal===0?'ok':'warn');
+    const tmsg=gagal===0&&orphan===0?`✓ ${ok} file ditransfer`:`${ok} berhasil${gagal>0?', '+gagal+' gagal':''}${orphan>0?', '+orphan+' orphan':''}`;
+    toast(tmsg,gagal===0?'ok':'warn');
     await loadBuckets();
     setTimeout(()=>{closeModal('modalTransfer');loadStoragePage();},1500);
   }catch(e){

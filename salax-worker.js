@@ -74,6 +74,54 @@ export default {
       }
     }
 
+    // POST /createuser — buat user via admin API (admin only, tanpa email konfirmasi)
+    if (req.method === 'POST' && path === '/createuser') {
+      const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+      if (!token) return jres({ error: 'Unauthorized' }, 401, cors);
+      const uRes = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, { headers: { apikey: env.SUPABASE_KEY, Authorization: `Bearer ${token}` } });
+      if (!uRes.ok) return jres({ error: 'Unauthorized' }, 401, cors);
+      const caller = await uRes.json();
+      const serviceKey = env.SUPABASE_SERVICE_KEY;
+      if (!serviceKey) return jres({ error: 'SUPABASE_SERVICE_KEY belum diset di Worker' }, 500, cors);
+      // Cek caller admin
+      const cr = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${caller.id}&select=role`, { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } });
+      const cd = await cr.json();
+      if (!Array.isArray(cd) || cd[0]?.role !== 'admin') return jres({ error: 'Forbidden: hanya admin' }, 403, cors);
+
+      let payload;
+      try { payload = await req.json(); } catch (e) { return jres({ error: 'Body tidak valid' }, 400, cors); }
+      const { nama, username, password } = payload || {};
+      if (!nama || !username || !password) return jres({ error: 'nama, username, password wajib' }, 400, cors);
+      if (!/^[a-z0-9_]+$/.test(username)) return jres({ error: 'Username hanya huruf kecil, angka, underscore' }, 400, cors);
+      if (password.length < 6) return jres({ error: 'Password minimal 6 karakter' }, 400, cors);
+
+      // Cek username sudah dipakai?
+      const exist = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?username=eq.${encodeURIComponent(username)}&select=id`, { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } });
+      const existData = await exist.json();
+      if (Array.isArray(existData) && existData.length) return jres({ error: 'Username sudah dipakai' }, 409, cors);
+
+      // Email sintetis internal (WAJIB untuk Supabase Auth password login) — TIDAK ditampilkan & profile.email=null
+      const syntheticEmail = `${username}@salaxuser.com`;
+      const createRes = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users`, {
+        method: 'POST',
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: syntheticEmail, password, email_confirm: true, user_metadata: { nama, username } }),
+      });
+      if (!createRes.ok) {
+        const t = await createRes.text();
+        return jres({ error: 'Gagal buat akun: ' + t.slice(0, 200) }, 502, cors);
+      }
+      const created = await createRes.json();
+      const newId = created.id;
+      // Simpan profile — email DIKOSONGKAN (null) sesuai permintaan
+      await fetch(`${env.SUPABASE_URL}/rest/v1/profiles`, {
+        method: 'POST',
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify({ id: newId, nama, username, email: null, role: 'user', pwd_plain: password, created_by: caller.id }),
+      });
+      return jres({ ok: true, id: newId }, 200, cors);
+    }
+
     // DELETE /deluser/:id — hapus user TOTAL (auth + dokumen + file R2). Admin only.
     if (req.method === 'DELETE' && path.startsWith('/deluser/')) {
       const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
@@ -111,10 +159,17 @@ export default {
       await fetch(`${env.SUPABASE_URL}/rest/v1/dokumen?user_id=eq.${targetId}`, { method: 'DELETE', headers: { apikey: k, Authorization: `Bearer ${k}` } }).catch(() => {});
       // 3. Hapus profile
       await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${targetId}`, { method: 'DELETE', headers: { apikey: k, Authorization: `Bearer ${k}` } }).catch(() => {});
-      // 4. Hapus auth user (perlu service key)
-      const authDel = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${targetId}`, { method: 'DELETE', headers: { apikey: k, Authorization: `Bearer ${k}` } });
-      const authOk = authDel.ok;
-      return jres({ ok: true, files_deleted: filesDeleted, auth_deleted: authOk }, 200, cors);
+      // 4. Hapus auth user — WAJIB pakai service_role key (anon tidak bisa)
+      const serviceKey = env.SUPABASE_SERVICE_KEY;
+      let authOk = false, authMsg = '';
+      if (!serviceKey) {
+        authMsg = 'SUPABASE_SERVICE_KEY belum diset di Worker — akun auth tidak terhapus';
+      } else {
+        const authDel = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${targetId}`, { method: 'DELETE', headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } });
+        authOk = authDel.ok;
+        if (!authOk) authMsg = 'Gagal hapus auth: ' + authDel.status + ' (cek SUPABASE_SERVICE_KEY)';
+      }
+      return jres({ ok: true, files_deleted: filesDeleted, auth_deleted: authOk, auth_warning: authMsg || undefined }, 200, cors);
     }
 
     // SELF-TEST tanpa login

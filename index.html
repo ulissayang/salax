@@ -2701,32 +2701,24 @@ async function saveNewUser(){
   if(!/^[a-z0-9_]+$/.test(username)){showModalAlert('modalAddUserAlert','Username hanya boleh huruf kecil, angka, underscore','err');return;}
   setBtn(btn,true);
   try{
-    // Buat client TERPISAH untuk signup agar TIDAK mengganti session admin
-    const syntheticEmail=username+'@salaxuser.com';
-    const tempClient=supabase.createClient(SUPABASE_URL,SUPABASE_ANON,{
-      auth:{ persistSession:false, autoRefreshToken:false, detectSessionInUrl:false }
+    // Buat user via Worker admin API — TIDAK mengganggu session admin, email profile=null,
+    // tidak mengirim email konfirmasi. Email auth hanya identifier internal (tidak ditampilkan).
+    const{data:{session}}=await sb.auth.getSession();
+    const token=session?.access_token||'';
+    if(!WORKER_URL||!token)throw new Error('Worker belum dikonfigurasi. Atur di Storage.');
+    const res=await fetch(`${WORKER_URL}/createuser`,{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({nama,username,password:pass})
     });
-    const{data,error}=await tempClient.auth.signUp({
-      email:syntheticEmail,
-      password:pass,
-      options:{ data:{nama,username} }
-    });
-    if(error) throw new Error(error.message);
-    const newId=data.user?.id;
-    if(newId){
-      // Simpan profile via client admin (sb) — email DIKOSONGKAN sesuai permintaan
-      await sb.from('profiles').upsert({
-        id:newId, nama, username, email:null,
-        role:'user', pwd_plain:pass, created_by:CU.id
-      },{onConflict:'id'});
-    }
+    const j=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(j.error||'Gagal membuat user');
     showModalAlert('modalAddUserAlert','User berhasil dibuat ✓','ok');
     toast('User '+nama+' berhasil ditambahkan ✓','ok');
-    setTimeout(()=>{closeModal('modalAddUser');loadUsersPage();},1200);
+    setTimeout(()=>{closeModal('modalAddUser');loadUsersPage();loadDash();},1200);
   }catch(e){
     let msg=e.message;
-    if(msg.includes('already registered')||msg.includes('already been registered')) msg='Username sudah dipakai. Pilih username lain.';
-    else if(msg.includes('invalid')) msg='Username tidak valid. Gunakan hanya huruf & angka.';
+    if(msg.includes('sudah dipakai')) msg='Username sudah dipakai. Pilih username lain.';
     showModalAlert('modalAddUserAlert','Gagal: '+msg,'err');
   }
   setBtn(btn,false);
@@ -2744,8 +2736,13 @@ function confirmDelUser(id,nama){
       });
       const j=await res.json().catch(()=>({}));
       if(!res.ok)throw new Error(j.error||'Gagal hapus user');
-      toast('User & semua datanya dihapus','ok');
+      if(j.auth_warning){
+        toast('⚠️ User dihapus dari daftar, tapi: '+j.auth_warning,'warn');
+      }else{
+        toast('User & semua datanya dihapus','ok');
+      }
       loadUsersPage();
+      loadDash();
     }catch(e){toast('Gagal: '+e.message,'err');}
   });
 }
@@ -3025,18 +3022,20 @@ async function doLogout(){
 async function loadUserState(user){
   try{
     CU=user;
-    // Load profile — buat baru jika belum ada
-    let{data:prof}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
-    if(!prof){
-      // Buat profile baru dengan upsert (hindari 409 conflict)
-      const newProf={id:user.id,email:user.email,nama:(user.email||'user').split('@')[0],role:'user'};
-      try{
-        const{data:created}=await sb.from('profiles').upsert(newProf,{onConflict:'id'}).select().maybeSingle();
-        prof=created||newProf;
-      }catch(e){ prof=newProf; }
+    // Load profile. JANGAN auto-create — jika tidak ada, berarti user sudah dihapus/invalid.
+    let{data:prof,error:profErr}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+    if(profErr || !prof){
+      // Profile tidak ada = akun dihapus admin atau tidak valid → tolak login & logout
+      CU=null;
+      try{await sb.auth.signOut();}catch(e){}
+      showAuthPage('login');
+      const errEl=document.getElementById('loginErr');
+      if(errEl){errEl.textContent='Akun ini tidak ditemukan atau telah dihapus. Hubungi admin.';errEl.style.display='block';}
+      const lb=document.getElementById('btnLogin');if(lb)setBtn(lb,false,'Masuk');
+      return;
     }
-    CU.nama=prof.nama||user.email;
-    CU.email=prof.email||user.email;
+    CU.nama=prof.nama||prof.username||'User';
+    CU.email=prof.email||null;
     CU.role=prof.role||'user';
     CU.username=prof.username||'';
     
@@ -3145,6 +3144,12 @@ async function loadDash(){
     document.getElementById('statSize').textContent=fmtSz(totalSize);
     const sbk=document.getElementById('statBuckets');
     if(sbk) sbk.textContent=allBuckets.filter(b=>b.aktif).length;
+    // Jumlah pengguna (admin saja)
+    const statUsers=document.getElementById('statUsers');
+    if(statUsers && isAdmin){
+      const{count:userCount}=await sb.from('profiles').select('*',{count:'exact',head:true});
+      statUsers.textContent=userCount||0;
+    }
     // Storage bars hanya untuk admin (card disembunyikan untuk user)
     if(CU.role==='admin') await renderDashStorageBars();
     // File terbaru dihapus dari dashboard
